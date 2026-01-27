@@ -11,12 +11,6 @@ Real-time chat application for RTC project - 2026
 
 ## Installation
 
-At the root of the project:
-
-```bash
-npm install
-```
-
 In the backend folder:
 
 ```bash
