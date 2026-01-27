@@ -1,4 +1,4 @@
-# EPICHAT
+# {EPICHAT}
 
 Real-time chat application for RTC project - 2026
 
@@ -11,7 +11,23 @@ Real-time chat application for RTC project - 2026
 
 ## Installation
 
+At the root of the project:
+
 ```bash
+npm install
+```
+
+In the backend folder:
+
+```bash
+cd backend
+npm install
+```
+
+In the frontend folder:
+
+```bash
+cd frontend
 npm install
 ```
 
@@ -33,10 +49,7 @@ npm run dev
 
 ### Team
 
-#### Nadir
-
-#### Younes
-
-#### Michaël
-
-#### Warith
+- **Nadir** - Developer
+- **Younes** - Developer
+- **Michaël** - Developer
+- **Warith** - Developer
