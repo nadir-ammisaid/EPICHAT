@@ -12,3 +12,98 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id           String   @id @default(uuid())
+  email        String
+  username     String
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  // Relations
+  ownedServers    Server[]       @relation("ServerOwner")
+  memberships     ServerMember[]
+  messages        Message[]      @relation("MessageAuthor")
+  createdInvites  Invite[]       @relation("InviteCreator")
+  createdChannels Channel[]      @relation("ChannelCreator")
+
+  @@map("users")
+}
+
+model Server {
+  id        String   @id @default(uuid())
+  name      String
+  ownerId   String
+  createdAt DateTime @default(now())
+
+  // Relations
+  owner    User           @relation("ServerOwner", fields: [ownerId], references: [id])
+  members  ServerMember[]
+  channels Channel[]
+  invites  Invite[]
+
+  @@map("servers")
+}
+
+model ServerMember {
+  serverId String
+  userId   String
+  role     String
+  joinedAt DateTime @default(now())
+
+  // Relations
+  server Server @relation(fields: [serverId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@id([serverId, userId])
+  @@map("server_members")
+}
+
+model Channel {
+  id        String   @id @default(uuid())
+  serverId  String
+  name      String
+  createdBy String
+  createdAt DateTime @default(now())
+
+  // Relations
+  server   Server    @relation(fields: [serverId], references: [id])
+  creator  User      @relation("ChannelCreator", fields: [createdBy], references: [id])
+  messages Message[]
+
+  @@map("channels")
+}
+
+model Message {
+  id        String    @id @default(uuid())
+  channelId String
+  authorId  String
+  content   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @default(now())
+  deletedAt DateTime?
+
+  // Relations
+  channel Channel @relation(fields: [channelId], references: [id])
+  author  User    @relation("MessageAuthor", fields: [authorId], references: [id])
+
+  @@map("messages")
+}
+
+model Invite {
+  id        String    @id @default(uuid())
+  serverId  String
+  code      String
+  createdBy String
+  expiresAt DateTime?
+  maxUses   Int?
+  uses      Int
+  createdAt DateTime  @default(now())
+
+  // Relations
+  server  Server @relation(fields: [serverId], references: [id])
+  creator User   @relation("InviteCreator", fields: [createdBy], references: [id])
+
+  @@unique([code])
+  @@map("invites")
+}
