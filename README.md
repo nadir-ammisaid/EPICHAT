@@ -41,6 +41,12 @@ cd frontend
 npm run dev
 ```
 
+### Docker
+
+```bash
+docker compose up --build
+```
+
 ### Team
 
 - **Nadir** - Developer

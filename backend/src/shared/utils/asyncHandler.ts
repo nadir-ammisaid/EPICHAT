@@ -1,5 +1,7 @@
+import type { NextFunction } from "express";
+
 export default function asyncHandler(fn: Function) {
-  return function (req: any, res: any, next: any) {
+  return (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res, next)).catch(next);
   };
 }

@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { prisma } from "../../prisma/client.js";
+import { prisma } from "../../modules/servers/prisma/client.js";
 import type { SignupInput } from "./auth.schemas.ts";
 
 const SALT_ROUNDS = 10;
