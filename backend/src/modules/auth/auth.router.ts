@@ -1,6 +1,7 @@
 import { Router } from "express";
 import asyncHandler from "../../shared/utils/asyncHandler.js";
 import {
+  meController,
   loginController,
   logoutController,
   signupController,
@@ -12,3 +13,4 @@ export const authRouter = Router();
 authRouter.post("/signup", asyncHandler(signupController));
 authRouter.post("/login", asyncHandler(loginController));
 authRouter.post("/logout", requireAuth, asyncHandler(logoutController));
+authRouter.get("/me", requireAuth, asyncHandler(meController));

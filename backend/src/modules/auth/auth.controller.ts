@@ -4,6 +4,7 @@ import { login, signup } from "./auth.service.js";
 import HttpError from "../../shared/errors/httpError.js";
 import { getBearerToken } from "../../shared/utils/authHeader.js";
 import { revokeToken } from "./tokenBlacklist.js";
+import { prisma } from "../../prisma/client.js";
 
 function isPrismaUniqueError(e: unknown): boolean {
   return (
@@ -59,4 +60,29 @@ export async function logoutController(_req: Request, res: Response) {
 
   revokeToken(token);
   res.status(204).send();
+}
+
+//Me
+
+export async function meController(req: Request, res: Response) {
+  const userId = (req as any).user?.userId;
+  if (!userId) {
+    throw new HttpError(401, "Unauthorized");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      username: true,
+      createdAt: true,
+    },
+  });
+
+  if (!user) {
+    throw new HttpError(404, "User not found");
+  }
+
+  res.status(200).json(user);
 }
