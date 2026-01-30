@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { signupSchema } from "./auth.schemas.js";
-import { signup } from "./auth.service.js";
+import { loginSchema, signupSchema } from "./auth.schemas.js";
+import { login, signup } from "./auth.service.js";
 import HttpError from "../../shared/errors/httpError.js";
 
 function isPrismaUniqueError(e: unknown): boolean {
@@ -10,6 +10,8 @@ function isPrismaUniqueError(e: unknown): boolean {
     (e as { code?: string }).code === "P2002"
   );
 }
+
+//Signup
 
 export async function signupController(req: Request, res: Response) {
   const parsed = signupSchema.safeParse(req.body);
@@ -26,4 +28,21 @@ export async function signupController(req: Request, res: Response) {
     }
     throw e;
   }
+}
+
+//Login
+
+export async function loginController(req: Request, res: Response) {
+  const parsed = loginSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpError(400, "Invalid payload");
+  }
+
+  const result = await login(parsed.data);
+
+  if (!result.accessToken) {
+    throw new HttpError(401, "Invalid credentials");
+  }
+
+  res.status(200).json(result);
 }
