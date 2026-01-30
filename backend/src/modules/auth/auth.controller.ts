@@ -2,6 +2,8 @@ import type { Request, Response } from "express";
 import { loginSchema, signupSchema } from "./auth.schemas.js";
 import { login, signup } from "./auth.service.js";
 import HttpError from "../../shared/errors/httpError.js";
+import { getBearerToken } from "../../shared/utils/authHeader.js";
+import { revokeToken } from "./tokenBlacklist.js";
 
 function isPrismaUniqueError(e: unknown): boolean {
   return (
@@ -45,4 +47,16 @@ export async function loginController(req: Request, res: Response) {
   }
 
   res.status(200).json(result);
+}
+
+//Logout
+
+export async function logoutController(_req: Request, res: Response) {
+  const token = getBearerToken(_req);
+  if (!token) {
+    throw new HttpError(401, "Missing token");
+  }
+
+  revokeToken(token);
+  res.status(204).send();
 }
