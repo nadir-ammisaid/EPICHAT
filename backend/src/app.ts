@@ -1,7 +1,6 @@
 import cors from "cors";
 import helmet from "helmet";
 import express from "express";
-import cors from "cors";
 import { authRouter } from "./modules/auth/auth.router.js";
 import { authRateLimiter } from "./shared/middlewares/rateLimit.middleware.js";
 import { notFound } from "./shared/middlewares/notFound.middleware.js";
