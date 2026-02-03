@@ -12,7 +12,7 @@
     "test": "echo \"No tests yet\" && exit 0",
     "db:seed": "tsx prisma/seed.ts",
     "db:setup": "npx prisma db push && npm run db:seed",
-    "db:studio": "docker compose exec backend npx prisma studio --port 5555 --browser none"
+    "db:studio": "npx prisma studio --port 5555 --browser none"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.3.0",

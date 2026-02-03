@@ -16,7 +16,11 @@ services:
       - db
     ports:
       - "${BACK_PORT:-3001}:3001"
+<<<<<<< HEAD
       - "5555:5555"
+=======
+      - "${PRISMA_STUDIO_PORT:-5555}:5555"
+>>>>>>> 4b61622d8dfa194ddd93ad2b39510f5e12392015
     environment:
       DATABASE_URL: ${DATABASE_URL}
     volumes:
