@@ -1,0 +1,19 @@
+.btn-lg {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.btn-md {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.btn-sm {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.btn-xs {
+    font-size: 12px;
+    font-weight: 600;
+}

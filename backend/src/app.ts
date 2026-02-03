@@ -27,8 +27,12 @@ export function createApp() {
  
   // Limit JSON payload size
   app.use(express.json({ limit: "10kb" }));
+  app.use(cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    credentials: true,
+  }));
   app.use(express.json());
- 
+
   // Apply security headers
   app.use(helmet());
  
@@ -48,23 +52,11 @@ export function createApp() {
  
   // Auth routes with rate limiting
   app.use("/auth", authRateLimiter, authRouter);
-
   app.use("/servers", serversRouter);
   app.use("/invites", invitesRouter);
 
   app.use('/api', messagesRouter);
   app.use(channelsRouter);
-
-  // Test routes
-
-  // app.get("/", (_req, res) => {
-  //   res.send("OK");
-  // });
-
-
-  // app.get("/epichat", (_req, res) => {
-  //   res.send("test etst");
-  // });
 
   // Handle unknown routes
   app.use(notFound);
