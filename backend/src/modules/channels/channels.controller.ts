@@ -1,8 +1,9 @@
 import type { Request, Response } from "express";
-import { createChannelService, getServerChannelsService } from "./channels.service.js";
-import { createChannelBodySchema, serverIdParamsSchema, userIdHeaderSchema } from "./channels.schemas.js";
- 
-//Create a new channel in a server
+import { createChannelService, getServerChannelsService, getChannelDetailsService } from "./channels.service.js";
+import { createChannelBodySchema, serverIdParamsSchema, userIdHeaderSchema, channelIdParamsSchema } from "./channels.schemas.js";
+
+
+    //Create a new channel in a server
 
 export async function createChannelController(req: Request, res: Response) {
 
@@ -36,13 +37,13 @@ export async function createChannelController(req: Request, res: Response) {
  
   return res.status(201).json(channel);
 }
- 
-//Get all channels for a given server
+
+
+    //Get all channels for a given server
  
 export async function getServerChannelsController(req: Request, res: Response) {
 
 //Validate serverId from URL params
-
   const paramsResult = serverIdParamsSchema.safeParse(req.params);
   if (!paramsResult.success) {
     return res.status(400).json({ message: paramsResult.error.issues[0]?.message });
@@ -53,4 +54,23 @@ export async function getServerChannelsController(req: Request, res: Response) {
 
 //Return channels list
   return res.status(200).json(channels);
+}
+
+
+    //Get channel details by id
+
+export async function getChannelDetails(req: Request, res: Response) {
+//Validate channelId from URL params
+  const paramsResult = channelIdParamsSchema.safeParse(req.params);
+  if (!paramsResult.success) {
+    return res
+      .status(400)
+      .json({ message: paramsResult.error.issues[0]?.message });
+  }
+  const { channelId } = paramsResult.data;
+
+  const channel = await getChannelDetailsService(channelId);
+
+//Return channel details
+  return res.status(200).json(channel);
 }

@@ -8,7 +8,8 @@ type CreateChannelInput = {
   name: string;
 };
 
-//Create a new channel in a server
+
+    //Create a new channel in a server
 
 export async function createChannelService(input: CreateChannelInput) {
   const { serverId, userId, name } = input;
@@ -43,7 +44,8 @@ export async function createChannelService(input: CreateChannelInput) {
   return channel;
 }
 
-//Get all channels for a server
+
+    //Get all channels for a server
  
 export async function getServerChannelsService(serverId: string) {
 //Check if the server exists
@@ -62,4 +64,20 @@ export async function getServerChannelsService(serverId: string) {
   });
  
   return channels;
+}
+
+
+    //Get channel details by id
+    
+export async function getChannelDetailsService(channelId: string) {
+
+//Fetch channel from database
+  const channel = await prisma.channel.findUnique({
+    where: { id: channelId },
+  });
+  if (!channel) {
+    throw new HttpError(404, "Channel not found");
+  }
+
+  return channel;
 }
