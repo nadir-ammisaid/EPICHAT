@@ -1,15 +1,4 @@
 import { prisma } from "../../prisma/client.js";
-<<<<<<< HEAD
-import type { CreateServerInput } from "./servers.schemas.js";
-
-export async function createServer(input: CreateServerInput) {
-  return prisma.$transaction(async (tx: any) => {
-    const server = await tx.server.create({
-      data: { name: input.name, ownerId: input.userId },
-    });
-    await tx.serverMember.create({
-      data: { serverId: server.id, userId: input.userId, role: "owner" },
-=======
 import type { Prisma } from "../../generated/prisma/client.js";
 
 import HttpError from "../../shared/errors/httpError.js";
@@ -22,16 +11,11 @@ export async function createServer(input: CreateServerServiceInput) {
     });
     await tx.serverMember.create({
       data: { serverId: server.id, userId: input.ownerId, role: "owner" },
->>>>>>> 4b61622d8dfa194ddd93ad2b39510f5e12392015
     });
     return server;
   });
 }
 
-<<<<<<< HEAD
-export async function getManyServers() {
-  return prisma.server.findMany();
-=======
 export async function getManyServers(userId: string) {
   return prisma.server.findMany({
     where: {
@@ -223,5 +207,4 @@ export async function updateMemberRole(
       },
     },
   });
->>>>>>> 4b61622d8dfa194ddd93ad2b39510f5e12392015
 }
