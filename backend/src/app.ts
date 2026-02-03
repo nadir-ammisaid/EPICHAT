@@ -5,6 +5,7 @@ import { authRouter } from "./modules/auth/auth.router.js";
 import { authRateLimiter } from "./shared/middlewares/rateLimit.middleware.js";
 import { notFound } from "./shared/middlewares/notFound.middleware.js";
 import { errorMiddleware } from "./shared/middlewares/error.middleware.js";
+import { channelsRouter } from "./modules/channels/channels.router.js";
 
 // Read and validate allowed client origin
 function getClientUrl(): string {
@@ -48,6 +49,7 @@ export function createApp() {
   app.use("/auth", authRouter);
   app.use("/servers", serversRouter);
   app.use("/invites", invitesRouter);
+  app.use(channelsRouter);
 
   // Test routes
 
