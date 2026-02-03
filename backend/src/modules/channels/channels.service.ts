@@ -80,4 +80,28 @@ export async function getChannelDetailsService(channelId: string) {
   }
 
   return channel;
+
+}
+
+    //Delete a channel by id
+
+export async function deleteChannelService(input: {
+  channelId: string;
+  userId: string;
+}) {
+  const { channelId, userId } = input;
+
+//Check if channel exists
+  const channel = await prisma.channel.findUnique({
+    where: { id: channelId },
+  });
+
+  if (!channel) {
+    throw new HttpError(404, "Channel not found");
+  }
+
+//Delete channel
+  await prisma.channel.delete({
+    where: { id: channelId },
+  });
 }

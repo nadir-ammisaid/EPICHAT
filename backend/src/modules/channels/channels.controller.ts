@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { createChannelService, getServerChannelsService, getChannelDetailsService } from "./channels.service.js";
+import { createChannelService, getServerChannelsService, getChannelDetailsService, deleteChannelService } from "./channels.service.js";
 import { createChannelBodySchema, serverIdParamsSchema, userIdHeaderSchema, channelIdParamsSchema } from "./channels.schemas.js";
 
 
@@ -73,4 +73,27 @@ export async function getChannelDetails(req: Request, res: Response) {
 
 //Return channel details
   return res.status(200).json(channel);
+}
+
+
+    //Delete a channel by id
+
+export async function deleteChannelController(req: Request, res: Response) {
+//Validate channelId from URL params
+  const paramsResult = channelIdParamsSchema.safeParse(req.params);
+  if (!paramsResult.success) {
+    return res.status(400).json({ message: paramsResult.error.issues[0]?.message });
+  }
+  const { channelId } = paramsResult.data;
+
+//Validate user-id
+  const headerResult = userIdHeaderSchema.safeParse(req.headers);
+  if (!headerResult.success) {
+    return res.status(401).json({ message: "Missing or invalid user-id header" });
+  }
+  const userId = headerResult.data["user-id"];
+
+  await deleteChannelService({ channelId, userId });
+
+  return res.status(204).send();
 }
