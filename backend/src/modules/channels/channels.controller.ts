@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { createChannelService, getServerChannelsService, getChannelDetailsService, deleteChannelService } from "./channels.service.js";
-import { createChannelBodySchema, serverIdParamsSchema, userIdHeaderSchema, channelIdParamsSchema } from "./channels.schemas.js";
+import { createChannelService, getServerChannelsService, getChannelDetailsService, deleteChannelService, updateChannelService } from "./channels.service.js";
+import { createChannelBodySchema, serverIdParamsSchema, userIdHeaderSchema, channelIdParamsSchema, updateChannelBodySchema } from "./channels.schemas.js";
 
 
     //Create a new channel in a server
@@ -72,6 +72,40 @@ export async function getChannelDetails(req: Request, res: Response) {
   const channel = await getChannelDetailsService(channelId);
 
 //Return channel details
+  return res.status(200).json(channel);
+}
+
+
+    //Update channel name by id
+
+export async function updateChannelController(req: Request, res: Response) {
+//Validate channelId from URL params
+  const paramsResult = channelIdParamsSchema.safeParse(req.params);
+  if (!paramsResult.success) {
+    return res.status(400).json({ message: paramsResult.error.issues[0]?.message });
+  }
+  const { channelId } = paramsResult.data;
+
+//Validate user-id header (later replaced by real auth)
+  const headerResult = userIdHeaderSchema.safeParse(req.headers);
+  if (!headerResult.success) {
+    return res.status(401).json({ message: "Missing or invalid user-id header" });
+  }
+  const userId = headerResult.data["user-id"];
+
+//Validate request body (new channel name)
+  const bodyResult = updateChannelBodySchema.safeParse(req.body);
+  if (!bodyResult.success) {
+    return res.status(400).json({ message: bodyResult.error.issues[0]?.message });
+  }
+  const { name } = bodyResult.data;
+
+  const channel = await updateChannelService({
+    channelId,
+    userId,
+    name,
+  });
+
   return res.status(200).json(channel);
 }
 
