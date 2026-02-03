@@ -3,6 +3,7 @@ import { authRouter } from "./modules/auth/auth.router.js";
 import { authRateLimiter } from "./shared/middlewares/rateLimit.middleware.js";
 import { notFound } from "./shared/middlewares/notFound.middleware.js";
 import { errorMiddleware } from "./shared/middlewares/error.middleware.js";
+import { channelsRouter } from "./modules/channels/channels.router.js";
 import { serversRouter } from "./modules/servers/servers.router.js";
 import { invitesRouter } from "./modules/invites/invites.router.js";
 import messagesRouter from './modules/messages/messages.router.js';
@@ -26,6 +27,7 @@ export function createApp() {
   app.use("/invites", invitesRouter);
 
   app.use('/api', messagesRouter);
+  app.use(channelsRouter);
 
   // Test routes
 
