@@ -53,7 +53,7 @@ model ServerMember {
   joinedAt DateTime @default(now())
 
   // Relations
-  server Server @relation(fields: [serverId], references: [id])
+  server Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
   user   User   @relation(fields: [userId], references: [id])
 
   @@id([serverId, userId])
@@ -68,7 +68,7 @@ model Channel {
   createdAt DateTime @default(now())
 
   // Relations
-  server   Server    @relation(fields: [serverId], references: [id])
+  server   Server    @relation(fields: [serverId], references: [id], onDelete: Cascade)
   creator  User      @relation("ChannelCreator", fields: [createdBy], references: [id])
   messages Message[]
 
@@ -85,7 +85,7 @@ model Message {
   deletedAt DateTime?
 
   // Relations
-  channel Channel @relation(fields: [channelId], references: [id])
+  channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   author  User    @relation("MessageAuthor", fields: [authorId], references: [id])
 
   @@map("messages")
@@ -102,7 +102,7 @@ model Invite {
   createdAt DateTime  @default(now())
 
   // Relations
-  server  Server @relation(fields: [serverId], references: [id])
+  server  Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
   creator User   @relation("InviteCreator", fields: [createdBy], references: [id])
 
   @@unique([code])
