@@ -1,3 +1,5 @@
+import cors from "cors";
+import helmet from "helmet";
 import express from "express";
 import { authRouter } from "./modules/auth/auth.router.js";
 import { authRateLimiter } from "./shared/middlewares/rateLimit.middleware.js";
@@ -20,9 +22,33 @@ const clientUrl = getClientUrl();
 export function createApp() {
   const app = express();
 
+// Hide server fingerprint
+  app.disable("x-powered-by");
+ 
+  // Limit JSON payload size
+  app.use(express.json({ limit: "10kb" }));
   app.use(express.json());
+ 
+  // Apply security headers
+  app.use(helmet());
+ 
+  // Configure CORS with strict origin check
+  app.use(
+    cors({
+      origin(origin, callback) {
+        if (!origin) return callback(null, true);
+        if (origin === clientUrl) return callback(null, true);
+        return callback(null, false);
+      },
+      credentials: true,
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+    }),
+  );
+ 
+  // Auth routes with rate limiting
+  app.use("/auth", authRateLimiter, authRouter);
 
-  app.use("/auth", authRouter);
   app.use("/servers", serversRouter);
   app.use("/invites", invitesRouter);
 
