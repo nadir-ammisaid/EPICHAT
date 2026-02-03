@@ -83,6 +83,35 @@ export async function getChannelDetailsService(channelId: string) {
 
 }
 
+
+    //Update channel name by id
+
+export async function updateChannelService(input: {
+  channelId: string;
+  userId: string;
+  name: string;
+}) {
+  const { channelId, userId, name } = input;
+
+//Check if channel exists
+  const channel = await prisma.channel.findUnique({
+    where: { id: channelId },
+  });
+
+  if (!channel) {
+    throw new HttpError(404, "Channel not found");
+  }
+
+//Update channel name
+  const updatedChannel = await prisma.channel.update({
+    where: { id: channelId },
+    data: { name },
+  });
+
+  return updatedChannel;
+}
+
+
     //Delete a channel by id
 
 export async function deleteChannelService(input: {
