@@ -17,8 +17,11 @@ services:
     ports:
       - "${BACK_PORT:-3001}:3001"
       - "5555:5555"
+      - "${PRISMA_STUDIO_PORT:-5555}:5555"
     environment:
       DATABASE_URL: ${DATABASE_URL}
+      CLIENT_URL: ${CLIENT_URL}
+      JWT_SECRET: ${JWT_SECRET}
     volumes:
       - ./backend:/app
       - /app/node_modules
