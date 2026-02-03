@@ -14,6 +14,8 @@ function getClientUrl(): string {
 }
 
 const clientUrl = getClientUrl();
+import { serversRouter } from "./modules/servers/servers.router.js";
+import { invitesRouter } from "./modules/invites/invites.router.js";
 
 export function createApp() {
   const app = express();
@@ -43,6 +45,9 @@ export function createApp() {
 
   // Auth routes with rate limiting
   app.use("/auth", authRateLimiter, authRouter);
+  app.use("/auth", authRouter);
+  app.use("/servers", serversRouter);
+  app.use("/invites", invitesRouter);
 
   // Test routes
 
