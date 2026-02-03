@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
-import Loader from "./Loader";
+import { registerSchema } from "@/lib/validation/auth";
 
 export default function RegisterForm() {
     const router = useRouter();
@@ -18,16 +18,22 @@ export default function RegisterForm() {
         setIsLoading(true);
 
         const formData = new FormData(e.currentTarget);
-        const email = formData.get("email") as string;
-        const username = formData.get("username") as string;
-        const password = formData.get("password") as string;
-        const confirmPassword = formData.get("confirmPassword") as string;
+        const raw = {
+            email: formData.get("email") ?? "",
+            username: formData.get("username") ?? "",
+            password: formData.get("password") ?? "",
+            confirmPassword: formData.get("confirmPassword") ?? "",
+        };
 
-        if (password !== confirmPassword) {
-            setError("Les mots de passe ne correspondent pas");
+        const result = registerSchema.safeParse(raw);
+        if (!result.success) {
+            const firstIssue = result.error.issues[0];
+            setError(firstIssue.message);
             setIsLoading(false);
             return;
         }
+
+        const { email, username, password } = result.data;
 
         try {
             const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
@@ -55,7 +61,7 @@ export default function RegisterForm() {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center gap-4 py-14">²
+        <div className="flex flex-col items-center justify-center gap-4 py-14">
             <h1 className="text-4xl font-bold">Bienvenue !</h1>
             <h2 className="h5">Inscrivez-vous</h2>
             <form onSubmit={handleSubmit} className="flex flex-col items-center justify-center gap-4 w-full max-w-md">

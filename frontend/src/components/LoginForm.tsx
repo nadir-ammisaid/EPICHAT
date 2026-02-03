@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
+import { loginSchema } from "@/lib/validation/auth";
 
 export default function LoginForm() {
     const router = useRouter();
@@ -17,8 +18,19 @@ export default function LoginForm() {
         setIsLoading(true);
 
         const formData = new FormData(e.currentTarget);
-        const email = formData.get("email") as string;
-        const password = formData.get("password") as string;
+        const raw = {
+            email: formData.get("email") ?? "",
+            password: formData.get("password") ?? "",
+        };
+
+        const result = loginSchema.safeParse(raw);
+        if (!result.success) {
+            setError(result.error.issues[0].message);
+            setIsLoading(false);
+            return;
+        }
+
+        const { email, password } = result.data;
 
         try {
             const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
