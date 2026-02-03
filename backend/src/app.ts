@@ -1,17 +1,68 @@
+import cors from "cors";
+import helmet from "helmet";
 import express from "express";
+import { authRouter } from "./modules/auth/auth.router.js";
+import { authRateLimiter } from "./shared/middlewares/rateLimit.middleware.js";
+import { notFound } from "./shared/middlewares/notFound.middleware.js";
+import { errorMiddleware } from "./shared/middlewares/error.middleware.js";
+import { channelsRouter } from "./modules/channels/channels.router.js";
+import { serversRouter } from "./modules/servers/servers.router.js";
+import { invitesRouter } from "./modules/invites/invites.router.js";
+import messagesRouter from './modules/messages/messages.router.js';
+
+// Read and validate allowed client origin
+function getClientUrl(): string {
+  const url = process.env.CLIENT_URL;
+  if (!url) throw new Error("CLIENT_URL is not defined");
+  return url;
+}
+
+const clientUrl = getClientUrl();
 
 export function createApp() {
   const app = express();
 
+// Hide server fingerprint
+  app.disable("x-powered-by");
+ 
+  // Limit JSON payload size
+  app.use(express.json({ limit: "10kb" }));
+  app.use(cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    credentials: true,
+  }));
   app.use(express.json());
 
-  app.get("/", (_req, res) => {
-    res.send("OK");
-  });
+  // Apply security headers
+  app.use(helmet());
+ 
+  // Configure CORS with strict origin check
+  app.use(
+    cors({
+      origin(origin, callback) {
+        if (!origin) return callback(null, true);
+        if (origin === clientUrl) return callback(null, true);
+        return callback(null, false);
+      },
+      credentials: true,
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+    }),
+  );
+ 
+  // Auth routes with rate limiting
+  app.use("/auth", authRateLimiter, authRouter);
+  app.use("/servers", serversRouter);
+  app.use("/invites", invitesRouter);
 
-  app.get("/epichat", (_req, res) => {
-    res.send("test etst");
-  });
+  app.use('/api', messagesRouter);
+  app.use(channelsRouter);
+
+  // Handle unknown routes
+  app.use(notFound);
+
+  // Centralized error handler
+  app.use(errorMiddleware);
 
   return app;
 }
