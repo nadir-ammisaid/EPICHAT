@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { createChannelService, getServerChannelsService, getChannelDetailsService, deleteChannelService, updateChannelService } from "./channels.service.js";
-import { createChannelBodySchema, serverIdParamsSchema, userIdHeaderSchema, channelIdParamsSchema, updateChannelBodySchema } from "./channels.schemas.js";
+import { createChannelBodySchema, serverIdParamsSchema, channelIdParamsSchema, updateChannelBodySchema } from "./channels.schemas.js";
 
 
     //Create a new channel in a server
@@ -15,11 +15,7 @@ export async function createChannelController(req: Request, res: Response) {
   const { serverId } = paramsResult.data;
 
 //Validate user-id header
-  const headerResult = userIdHeaderSchema.safeParse(req.headers);
-  if (!headerResult.success) {
-    return res.status(401).json({ message: "Missing or invalid user-id header" });
-  }
-  const userId = headerResult.data["user-id"];
+const userId = (req as any).user.userId;
  
 //Validate request body : channel name
   const bodyResult = createChannelBodySchema.safeParse(req.body);
@@ -86,14 +82,10 @@ export async function updateChannelController(req: Request, res: Response) {
   }
   const { channelId } = paramsResult.data;
 
-//Validate user-id header (later replaced by real auth)
-  const headerResult = userIdHeaderSchema.safeParse(req.headers);
-  if (!headerResult.success) {
-    return res.status(401).json({ message: "Missing or invalid user-id header" });
-  }
-  const userId = headerResult.data["user-id"];
+//Validate user-id header
+const userId = (req as any).user.userId;
 
-//Validate request body (new channel name)
+//Validate request body
   const bodyResult = updateChannelBodySchema.safeParse(req.body);
   if (!bodyResult.success) {
     return res.status(400).json({ message: bodyResult.error.issues[0]?.message });
@@ -121,13 +113,9 @@ export async function deleteChannelController(req: Request, res: Response) {
   const { channelId } = paramsResult.data;
 
 //Validate user-id
-  const headerResult = userIdHeaderSchema.safeParse(req.headers);
-  if (!headerResult.success) {
-    return res.status(401).json({ message: "Missing or invalid user-id header" });
-  }
-  const userId = headerResult.data["user-id"];
+const userId = (req as any).user.userId;
 
-  await deleteChannelService({ channelId, userId });
+await deleteChannelService({ channelId, userId });
 
-  return res.status(204).send();
+return res.status(204).send();
 }
