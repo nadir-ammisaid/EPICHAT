@@ -16,8 +16,6 @@ services:
       - db
     ports:
       - "${BACK_PORT:-3001}:3001"
-      - "5555:5555"
-      - "${PRISMA_STUDIO_PORT:-5555}:5555"
     environment:
       DATABASE_URL: ${DATABASE_URL}
       CLIENT_URL: ${CLIENT_URL}
@@ -26,6 +24,20 @@ services:
       - ./backend:/app
       - /app/node_modules
     command: sh -c "npx prisma generate && npx prisma db push && npm run dev"
+
+  prisma-studio:
+    build: ./backend
+    command: npx prisma studio --port 5555 --browser none
+    ports:
+      - "${PRISMA_STUDIO_PORT:-5555}:5555"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      - db
+
 
   frontend:
     build: ./frontend
