@@ -8,14 +8,13 @@ import Image from "next/image";
 import { apiClient } from "@/lib/api/client";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Modal } from "@/components/ui/Modal";
 
 type Server = { id: string; name: string; ownerId: string; createdAt: string };
 
 export default function ServerBar({ className = "" }: { className?: string }) {
   const pathname = usePathname();
   const [servers, setServers] = useState<Server[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
@@ -25,14 +24,11 @@ export default function ServerBar({ className = "" }: { className?: string }) {
 
   const getServers = async () => {
     try {
-      setError(null);
+      setServers([]);
       const data = await apiClient.request("/servers");
       setServers(Array.isArray(data) ? data : []);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Erreur chargement");
       setServers([]);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -85,7 +81,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
                   <Link
                     key={server.id}
                     href={`/dashboard/${server.id}`}
-                    className="bg-brand-muted text-black flex items-center justify-center rounded-xl h-[80px] w-[80px] hover:cursor-pointer hover:bg-brand-muted/80"
+                    className="bg-brand-muted text-foreground flex items-center justify-center rounded-xl h-[80px] w-[80px] hover:cursor-pointer hover:bg-brand-muted/80"
                     title={server.name}
                   >
                     {server.name.slice(0, 1).toUpperCase()}
@@ -108,67 +104,51 @@ export default function ServerBar({ className = "" }: { className?: string }) {
         </div>
       </div>
 
-      {createOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="create-server-title"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setCreateOpen(false);
-              setNewName("");
-              setCreateError(null);
-            }
-          }}
-        >
-          <div
-            className="w-full max-w-sm rounded-lg bg-background p-4 shadow-lg"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 id="create-server-title" className="mb-4 flex items-center justify-center gap-2">
-              Nouveau serveur
-            </h2>
-            <form onSubmit={handleCreate} className="flex flex-col gap-3">
-              <Input
-                label="Nom du serveur"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="Mon serveur"
-                maxLength={100}
-                required
-                disabled={createLoading}
-              />
-              {createError && (
-                <p className="text-sm text-error">{createError}</p>
-              )}
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => {
-                    setCreateOpen(false);
-                    setNewName("");
-                    setCreateError(null);
-                  }}
-                  disabled={createLoading}
-                >
-                  Annuler
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  className="flex-1"
-                  disabled={createLoading || !newName.trim()}
-                >
-                  {createLoading ? "Création…" : "Créer"}
-                </Button>
-              </div>
-            </form>
+      <Modal
+        open={createOpen}
+        onClose={() => {
+          setCreateOpen(false);
+          setNewName("");
+          setCreateError(null);
+        }}
+        title="Nouveau serveur"
+      >
+        <form onSubmit={handleCreate} className="flex flex-col gap-3">
+          <Input
+            label="Nom du serveur"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Mon serveur"
+            maxLength={100}
+            required
+            disabled={createLoading}
+          />
+          {createError && <p className="text-sm text-error">{createError}</p>}
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={() => {
+                setCreateOpen(false);
+                setNewName("");
+                setCreateError(null);
+              }}
+              disabled={createLoading}
+            >
+              Annuler
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              className="flex-1"
+              disabled={createLoading || !newName.trim()}
+            >
+              {createLoading ? "Création…" : "Créer"}
+            </Button>
           </div>
-        </div>
-      )}
+        </form>
+      </Modal>
     </>
   );
 }
