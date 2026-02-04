@@ -9,6 +9,7 @@ import {
   updateServerController,
   deleteServerController,
   leaveServerController,
+  joinServerController,
   getServerMembersController,
   updateMemberRoleController,
 } from "./servers.controller.js";
@@ -41,6 +42,13 @@ serversRouter.post(
   requireAuth,
   authorize(["user"]),
   asyncHandler(createServerController),
+);
+
+serversRouter.post(
+  "/:id/join",
+  requireAuth,
+  authorize(["user"]),
+  asyncHandler(joinServerController),
 );
 
 serversRouter.put(
