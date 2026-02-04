@@ -77,7 +77,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
               </Link>
               
         {/* Liste de serveurs      */}
-        <div className="flex w-full flex-col items-center justify-center gap-1 overflow-y-auto">
+        <div className="flex w-full flex-col items-center justify-center gap-2 overflow-y-auto">
             {
               servers.map((server) => {
                 const isActive = serverIdFromPath === server.id;
@@ -126,7 +126,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
             className="w-full max-w-sm rounded-lg bg-background p-4 shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 id="create-server-title" className="mb-4 text-lg font-semibold">
+            <h2 id="create-server-title" className="mb-4 flex items-center justify-center gap-2">
               Nouveau serveur
             </h2>
             <form onSubmit={handleCreate} className="flex flex-col gap-3">
