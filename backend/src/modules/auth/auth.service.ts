@@ -76,7 +76,7 @@ export async function login(
 
   const payload = {
     userId: user.id,
-    role: "USER",
+    role: "user",
   };
 
   const token = jwt.sign(payload, getJwtSecret(), {
