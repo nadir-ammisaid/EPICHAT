@@ -1,5 +1,5 @@
 import asyncHandler from "../../shared/utils/asyncHandler.js";
-import { sendMessageBodySchema } from "./messages.schemas.js";
+import { sendMessageBodySchema, getMessagesQuerySchema } from "./messages.schemas.js";
 import { sendMessage as sendMessageService } from "./messages.service.js";
 import { deleteMessage as deleteMessageService } from "./messages.service.js";
 import { getChannelMessages as getChannelMessagesService } from "./messages.service.js";
@@ -31,9 +31,11 @@ export const getChannelMessages = asyncHandler(async (req: Request, res: Respons
   if (typeof channelId !== "string") throw new HttpError(400, "Invalid channel id");
   const userId = (req as any).user.userId;
 
-  const messages = await getChannelMessagesService(userId, channelId);
+  const { limit, before } = getMessagesQuerySchema.parse(req.query);
 
-  res.json({ messages });
+  const result = await getChannelMessagesService(userId, channelId, limit, before);
+
+  res.json({ result });
 });
 
 //Delete msg
