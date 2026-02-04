@@ -2,11 +2,11 @@ import { prisma } from "../../prisma/client.js";
 import HttpError from "../../shared/errors/httpError.js";
 
 export async function sendMessage(userId: string, channelId: string, content: string) {
-  // Verify that the channel exists
+  // Verify channel existence
   const channel = await prisma.channel.findUnique({ where: { id: channelId } });
   if (!channel) throw new HttpError(404, "Channel not found");
 
-  // Verify that the user is a member of the server and channel
+  // Check user permissions
   const membership = await prisma.serverMember.findUnique({
     where: { serverId_userId: { serverId: channel.serverId, userId } },
   });
@@ -22,19 +22,46 @@ export async function sendMessage(userId: string, channelId: string, content: st
   });
 }
 
-export async function getChannelMessages(userId: string, channelId: string) {
+export async function getChannelMessages(
+  userId: string,
+  channelId: string,
+  limit: number,
+  before?: string
+) {
+  //Verify channel existence
   const channel = await prisma.channel.findUnique({ where: { id: channelId } });
   if (!channel) throw new HttpError(404, "Channel not found");
 
+  //Check user permissions
   const membership = await prisma.serverMember.findUnique({
     where: { serverId_userId: { serverId: channel.serverId, userId } },
   });
   if (!membership) throw new HttpError(403, "Access denied: You must be a member of this server to view this channel.");
 
-  return prisma.message.findMany({
+  
+  // const cursorPart = before ? { cursor: { id: before }, skip: 1 } : {};
+
+  // Configure pagination and fetching
+  const args: any = {
     where: { channelId },
-    orderBy: { createdAt: "asc" }, // From oldest to newest
-  });
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    take: limit,
+  };
+
+  if (before) {
+    args.cursor = { id: before };
+    args.skip = 1;
+  }
+
+  const rows = await prisma.message.findMany(args)
+  // Format order (Oldest to Newest)
+  const messages = rows.reverse();
+
+  // Determine the cursor for the next page
+  const nextCursor = messages.at(0)?.id ?? null;
+
+
+  return { messages, nextCursor };
 }
 
 export async function deleteMessage(userId: string, messageId: string) {
@@ -60,5 +87,5 @@ export async function deleteMessage(userId: string, messageId: string) {
     data: { deletedAt: new Date(), content: "" },
   });
 
-    return message.channelId;
+  return message.channelId;
 }

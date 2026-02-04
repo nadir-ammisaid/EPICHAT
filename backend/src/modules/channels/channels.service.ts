@@ -8,7 +8,8 @@ type CreateChannelInput = {
   name: string;
 };
 
-//Create a new channel in a server
+
+    //Create a new channel in a server
 
 export async function createChannelService(input: CreateChannelInput) {
   const { serverId, userId, name } = input;
@@ -43,7 +44,8 @@ export async function createChannelService(input: CreateChannelInput) {
   return channel;
 }
 
-//Get all channels for a server
+
+    //Get all channels for a server
  
 export async function getServerChannelsService(serverId: string) {
 //Check if the server exists
@@ -62,4 +64,73 @@ export async function getServerChannelsService(serverId: string) {
   });
  
   return channels;
+}
+
+
+    //Get channel details by id
+    
+export async function getChannelDetailsService(channelId: string) {
+
+//Fetch channel from database
+  const channel = await prisma.channel.findUnique({
+    where: { id: channelId },
+  });
+  if (!channel) {
+    throw new HttpError(404, "Channel not found");
+  }
+
+  return channel;
+
+}
+
+
+    //Update channel name by id
+
+export async function updateChannelService(input: {
+  channelId: string;
+  userId: string;
+  name: string;
+}) {
+  const { channelId, userId, name } = input;
+
+//Check if channel exists
+  const channel = await prisma.channel.findUnique({
+    where: { id: channelId },
+  });
+
+  if (!channel) {
+    throw new HttpError(404, "Channel not found");
+  }
+
+//Update channel name
+  const updatedChannel = await prisma.channel.update({
+    where: { id: channelId },
+    data: { name },
+  });
+
+  return updatedChannel;
+}
+
+
+    //Delete a channel by id
+
+export async function deleteChannelService(input: {
+  channelId: string;
+  userId: string;
+}) {
+  const { channelId, userId } = input;
+
+//Check if channel exists
+  const channel = await prisma.channel.findUnique({
+    where: { id: channelId },
+  });
+
+  if (!channel) {
+    throw new HttpError(404, "Channel not found");
+  }
+
+//Delete channel
+  await prisma.channel.delete({
+    where: { id: channelId },
+  });
 }

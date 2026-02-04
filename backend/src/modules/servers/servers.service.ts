@@ -2,7 +2,42 @@ import { prisma } from "../../prisma/client.js";
 import type { Prisma } from "../../generated/prisma/client.js";
 
 import HttpError from "../../shared/errors/httpError.js";
-import type { CreateServerServiceInput, UpdateServerInput, UpdateMemberRoleInput } from "./servers.schemas.js";
+import type {
+  CreateServerServiceInput,
+  UpdateServerInput,
+  UpdateMemberRoleInput,
+} from "./servers.schemas.js";
+
+type ServerRole = "owner" | "admin" | "member";
+
+async function getMembership(serverId: string, userId: string) {
+  return prisma.serverMember.findUnique({
+    where: {
+      serverId_userId: { serverId, userId },
+    },
+    select: { role: true },
+  });
+}
+
+async function requireMember(serverId: string, userId: string) {
+  const membership = await getMembership(serverId, userId);
+  if (!membership) {
+    throw new HttpError(403, "Forbidden");
+  }
+  return membership;
+}
+
+async function requireRole(
+  serverId: string,
+  userId: string,
+  roles: ServerRole[],
+) {
+  const membership = await requireMember(serverId, userId);
+  if (!roles.includes(membership.role as ServerRole)) {
+    throw new HttpError(403, "Forbidden");
+  }
+  return membership;
+}
 
 export async function createServer(input: CreateServerServiceInput) {
   return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
@@ -26,7 +61,9 @@ export async function getManyServers(userId: string) {
   });
 }
 
-export async function getServerById(id: string) {
+export async function getServerById(id: string, requesterUserId: string) {
+  await requireMember(id, requesterUserId);
+
   return prisma.server.findUnique({
     where: { id },
   });
@@ -41,16 +78,47 @@ export async function getServerMember(serverId: string, userId: string) {
   });
 }
 
-export async function updateServer(id: string, input: UpdateServerInput) {
+export async function updateServer(
+  serverId: string,
+  input: UpdateServerInput,
+  requesterUserId: string,
+) {
+  const server = await prisma.server.findUnique({
+    where: { id: serverId },
+    select: { ownerId: true },
+  });
+
+  if (!server) {
+    throw new HttpError(404, "Server not found");
+  }
+
+  const isOwner = server.ownerId === requesterUserId;
+  if (!isOwner) {
+    await requireRole(serverId, requesterUserId, ["admin"]);
+  }
+
   return prisma.server.update({
-    where: { id },
+    where: { id: serverId },
     data: { name: input.name },
   });
 }
 
-export async function deleteServer(id: string) {
+export async function deleteServer(serverId: string, requesterUserId: string) {
+  const server = await prisma.server.findUnique({
+    where: { id: serverId },
+    select: { ownerId: true },
+  });
+
+  if (!server) {
+    throw new HttpError(404, "Server not found");
+  }
+
+  if (server.ownerId !== requesterUserId) {
+    throw new HttpError(403, "Forbidden");
+  }
+
   return prisma.server.delete({
-    where: { id },
+    where: { id: serverId },
   });
 }
 
@@ -74,6 +142,13 @@ export async function joinServer(serverId: string, userId: string) {
       userId,
       role: "member",
     },
+  });
+}
+
+export async function getServerExists(serverId: string) {
+  return prisma.server.findUnique({
+    where: { id: serverId },
+    select: { id: true },
   });
 }
 
@@ -110,7 +185,12 @@ export async function leaveServer(serverId: string, userId: string) {
   });
 }
 
-export async function getServerMembers(serverId: string) {
+export async function getServerMembers(
+  serverId: string,
+  requesterUserId: string,
+) {
+  await requireMember(serverId, requesterUserId);
+
   return prisma.serverMember.findMany({
     where: { serverId },
     include: {
@@ -133,7 +213,7 @@ export async function updateMemberRole(
   serverId: string,
   targetUserId: string,
   newRole: UpdateMemberRoleInput["role"],
-  requesterUserId: string
+  requesterUserId: string,
 ) {
   const server = await prisma.server.findUnique({
     where: { id: serverId },
@@ -142,19 +222,6 @@ export async function updateMemberRole(
 
   if (!server) {
     throw new HttpError(404, "Server not found");
-  }
-
-  const requesterMember = await prisma.serverMember.findUnique({
-    where: {
-      serverId_userId: {
-        serverId,
-        userId: requesterUserId,
-      },
-    },
-  });
-
-  if (!requesterMember) {
-    throw new HttpError(403, "You are not a member of this server");
   }
 
   const isOwner = server.ownerId === requesterUserId;
@@ -177,15 +244,14 @@ export async function updateMemberRole(
   }
 
   if (newRole === "owner") {
-    throw new HttpError(403, "Cannot assign owner role via this endpoint; use transfer ownership");
+    throw new HttpError(
+      403,
+      "Cannot assign owner role via this endpoint; use transfer ownership",
+    );
   }
 
   if (targetUserId === server.ownerId) {
     throw new HttpError(403, "Cannot change owner role");
-  }
-
-  if (!isOwner && targetMember.role === "owner") {
-    throw new HttpError(403, "Only owner can modify owner role");
   }
 
   return prisma.serverMember.update({

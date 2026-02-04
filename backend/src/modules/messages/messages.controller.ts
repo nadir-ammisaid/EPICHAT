@@ -1,5 +1,5 @@
 import asyncHandler from "../../shared/utils/asyncHandler.js";
-import { sendMessageBodySchema } from "./messages.schemas.js";
+import { sendMessageBodySchema, getMessagesQuerySchema } from "./messages.schemas.js";
 import { sendMessage as sendMessageService } from "./messages.service.js";
 import { deleteMessage as deleteMessageService } from "./messages.service.js";
 import { getChannelMessages as getChannelMessagesService } from "./messages.service.js";
@@ -12,7 +12,7 @@ export const sendMessage = asyncHandler(async (req: Request, res: Response) => {
 
   if (typeof channelId !== "string") throw new HttpError(400, "Invalid channel id"); // Check that the type is a string
 
-  const userId = (req as any).user.id; // Get userId from middleware
+  const userId = (req as any).user.userId; // Get userId from middleware
 
   const { content } = sendMessageBodySchema.parse(req.body); // Get content from JSON body
 
@@ -29,11 +29,13 @@ export const sendMessage = asyncHandler(async (req: Request, res: Response) => {
 export const getChannelMessages = asyncHandler(async (req: Request, res: Response) => {
   const channelId = req.params.id;
   if (typeof channelId !== "string") throw new HttpError(400, "Invalid channel id");
-  const userId = (req as any).user.id;
+  const userId = (req as any).user.userId;
 
-  const messages = await getChannelMessagesService(userId, channelId);
+  const { limit, before } = getMessagesQuerySchema.parse(req.query);
 
-  res.json({ messages });
+  const result = await getChannelMessagesService(userId, channelId, limit, before);
+
+  res.json({ result });
 });
 
 //Delete msg
@@ -41,7 +43,7 @@ export const deleteMessage = asyncHandler(async (req: Request, res: Response) =>
   const messageId = req.params.id;
   if (typeof messageId !== "string") throw new HttpError(400, "Invalid message id");
 
-  const userId = (req as any).user.id;
+  const userId = (req as any).user.userId;
 
   const channelId = await deleteMessageService(userId, messageId);
 
