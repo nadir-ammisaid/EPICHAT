@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { prisma } from "../../prisma/client.js";
-import type { LoginInput, SignupInput } from "./auth.schemas.js";
+import type { LoginInput, SignupInput, UpdateProfileInput } from "./auth.schemas.js";
 
 const SALT_ROUNDS = 10;
 
@@ -76,7 +76,7 @@ export async function login(
 
   const payload = {
     userId: user.id,
-    role: "USER",
+    role: "user",
   };
 
   const token = jwt.sign(payload, getJwtSecret(), {
@@ -84,4 +84,27 @@ export async function login(
   });
 
   return { accessToken: token };
+}
+
+// Update profile (username)
+
+export async function updateProfile(userId: string, input: UpdateProfileInput) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { username: input.username },
+    select: { id: true, email: true, username: true, createdAt: true },
+  });
+}
+
+// Delete account
+
+export async function deleteAccount(userId: string) {
+  await prisma.$transaction(async (tx) => {
+    await tx.serverMember.deleteMany({ where: { userId } });
+    await tx.message.deleteMany({ where: { authorId: userId } });
+    await tx.invite.deleteMany({ where: { createdBy: userId } });
+    await tx.channel.deleteMany({ where: { createdBy: userId } });
+    await tx.server.deleteMany({ where: { ownerId: userId } });
+    await tx.user.delete({ where: { id: userId } });
+  });
 }
