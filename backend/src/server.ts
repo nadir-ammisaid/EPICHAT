@@ -92,7 +92,7 @@ export function startServer() {
           removeTypingUser(channelId, userId);
           clearTimeoutKey(key);
           emitTypingUpdateToAll(channelId);
-        }, 5000),
+        }, 5000), //5s
       );
 
       // notify others only
