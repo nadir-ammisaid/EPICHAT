@@ -4,12 +4,12 @@ Real-time chat application - RTC Project 2026
 
 ## Stack
 
-| Layer | Technology |
-|-------|------------|
+| Layer    | Technology                        |
+| -------- | --------------------------------- |
 | Frontend | Next.js 16, React 19, TailwindCSS |
-| Backend | Node.js, Express 5, Socket.IO |
-| Database | PostgreSQL, Prisma ORM |
-| Auth | JWT (jsonwebtoken, bcrypt) |
+| Backend  | Node.js, Express 5, Socket.IO     |
+| Database | PostgreSQL, Prisma ORM            |
+| Auth     | JWT (jsonwebtoken, bcrypt)        |
 
 ## Requirements
 
@@ -65,64 +65,64 @@ npm run test:coverage # Run with coverage report
 
 ### Authentication
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/auth/signup` | Create account |
-| POST | `/auth/login` | Authenticate user |
-| POST | `/auth/logout` | Invalidate token |
-| GET | `/auth/me` | Get current user |
+| Method | Endpoint       | Description       |
+| ------ | -------------- | ----------------- |
+| POST   | `/auth/signup` | Create account    |
+| POST   | `/auth/login`  | Authenticate user |
+| POST   | `/auth/logout` | Invalidate token  |
+| GET    | `/auth/me`     | Get current user  |
 
 ### Servers
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/servers` | List user's servers |
-| POST | `/servers` | Create server |
-| GET | `/servers/:id` | Get server details |
-| PUT | `/servers/:id` | Update server |
-| DELETE | `/servers/:id` | Delete server |
-| POST | `/servers/:id/join` | Join server |
-| DELETE | `/servers/:id/leave` | Leave server |
-| GET | `/servers/:id/members` | List members |
-| PUT | `/servers/:id/members/:userId` | Update member role |
+| Method | Endpoint                       | Description         |
+| ------ | ------------------------------ | ------------------- |
+| GET    | `/servers`                     | List user's servers |
+| POST   | `/servers`                     | Create server       |
+| GET    | `/servers/:id`                 | Get server details  |
+| PUT    | `/servers/:id`                 | Update server       |
+| DELETE | `/servers/:id`                 | Delete server       |
+| POST   | `/servers/:id/join`            | Join server         |
+| DELETE | `/servers/:id/leave`           | Leave server        |
+| GET    | `/servers/:id/members`         | List members        |
+| PUT    | `/servers/:id/members/:userId` | Update member role  |
 
 ### Channels
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/servers/:serverId/channels` | List channels |
-| POST | `/servers/:serverId/channels` | Create channel |
-| GET | `/channels/:id` | Get channel details |
-| PUT | `/channels/:id` | Update channel |
-| DELETE | `/channels/:id` | Delete channel |
+| Method | Endpoint                      | Description         |
+| ------ | ----------------------------- | ------------------- |
+| GET    | `/servers/:serverId/channels` | List channels       |
+| POST   | `/servers/:serverId/channels` | Create channel      |
+| GET    | `/channels/:id`               | Get channel details |
+| PUT    | `/channels/:id`               | Update channel      |
+| DELETE | `/channels/:id`               | Delete channel      |
 
 ### Messages
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/channels/:id/messages` | Get message history |
-| POST | `/channels/:id/messages` | Send message |
-| DELETE | `/messages/:id` | Delete message |
+| Method | Endpoint                 | Description         |
+| ------ | ------------------------ | ------------------- |
+| GET    | `/channels/:id/messages` | Get message history |
+| POST   | `/channels/:id/messages` | Send message        |
+| DELETE | `/messages/:id`          | Delete message      |
 
 ### Invites
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/invites/:code/use` | Use invite code |
+| Method | Endpoint             | Description     |
+| ------ | -------------------- | --------------- |
+| POST   | `/invites/:code/use` | Use invite code |
 
 ## WebSocket Events
 
 Connection: `ws://localhost:3001/ws`
 
-| Event | Direction | Payload | Description |
-|-------|-----------|---------|-------------|
-| `channel:join` | Client | `channelId` | Join channel room |
-| `channel:leave` | Client | `channelId` | Leave channel room |
-| `typing:start` | Client | `{ channelId, userId }` | Start typing indicator |
-| `typing:stop` | Client | `{ channelId, userId }` | Stop typing indicator |
-| `typing:update` | Server | `{ channelId, userIds[] }` | Typing users list |
-| `message:new` | Server | `Message` | New message broadcast |
-| `message:deleted` | Server | `{ messageId }` | Message deleted |
+| Event             | Direction | Payload                    | Description            |
+| ----------------- | --------- | -------------------------- | ---------------------- |
+| `channel:join`    | Client    | `channelId`                | Join channel room      |
+| `channel:leave`   | Client    | `channelId`                | Leave channel room     |
+| `typing:start`    | Client    | `{ channelId, userId }`    | Start typing indicator |
+| `typing:stop`     | Client    | `{ channelId, userId }`    | Stop typing indicator  |
+| `typing:update`   | Server    | `{ channelId, userIds[] }` | Typing users list      |
+| `message:new`     | Server    | `Message`                  | New message broadcast  |
+| `message:deleted` | Server    | `{ messageId }`            | Message deleted        |
 
 ## Database Schema
 
@@ -161,11 +161,11 @@ Invite
 
 ## Roles & Permissions
 
-| Role | Create Channel | Delete Channel | Delete Messages | Manage Roles | Delete Server |
-|------|----------------|----------------|-----------------|--------------|---------------|
-| Owner | Yes | Yes | Any | Yes | Yes |
-| Admin | Yes | Yes | Any | No | No |
-| Member | No | No | Own only | No | No |
+| Role   | Create Channel | Delete Channel | Delete Messages | Manage Roles | Delete Server |
+| ------ | -------------- | -------------- | --------------- | ------------ | ------------- |
+| Owner  | Yes            | Yes            | Any             | Yes          | Yes           |
+| Admin  | Yes            | Yes            | Any             | No           | No            |
+| Member | No             | No             | Own only        | No           | No            |
 
 ## Project Structure
 
@@ -216,6 +216,38 @@ PORT=3001
 
 ### Frontend (.env.local)
 
+```
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
+
+## Bonus Features
+
+| Feature               | Status      |
+| --------------------- | ----------- |
+| Emoji/Unicode support | Implemented |
+
+### Emoji Support
+
+Full Unicode and emoji support is available:
+
+- `EmojiPicker` component with 5 categories and 130+ emojis
+- Search functionality
+- Click-outside-to-close
+- Keyboard navigation (Escape to close)
+- `MessageInput` component with integrated emoji picker
+- Auto-resize textarea
+- Enter to send, Shift+Enter for new line
+
+Usage:
+
+```tsx
+import { MessageInput } from "@/components/ui";
+
+<MessageInput
+  onSendMessage={(content) => console.log(content)}
+  onTypingStart={() => socket.emit("typing:start", { channelId, userId })}
+  onTypingStop={() => socket.emit("typing:stop", { channelId, userId })}
+/>;
 ```
 
 ## Team
