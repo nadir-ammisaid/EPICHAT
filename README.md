@@ -102,6 +102,7 @@ npm run test:coverage # Run with coverage report
 | ------ | ------------------------ | ------------------- |
 | GET    | `/channels/:id/messages` | Get message history |
 | POST   | `/channels/:id/messages` | Send message        |
+| PUT    | `/messages/:id`          | Edit message        |
 | DELETE | `/messages/:id`          | Delete message      |
 
 ### Invites
@@ -122,6 +123,7 @@ Connection: `ws://localhost:3001/ws`
 | `typing:stop`     | Client    | `{ channelId, userId }`    | Stop typing indicator  |
 | `typing:update`   | Server    | `{ channelId, userIds[] }` | Typing users list      |
 | `message:new`     | Server    | `Message`                  | New message broadcast  |
+| `message:updated` | Server    | `Message`                  | Message edited         |
 | `message:deleted` | Server    | `{ messageId }`            | Message deleted        |
 
 ## Database Schema

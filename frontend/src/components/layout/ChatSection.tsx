@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import parseDashboardPath from "@/lib/utils/parseDashboardPath";
 import { getSocket } from "@/lib/socket/socket";
 import { SOCKET_EVENTS } from "@/lib/socket/socket.events";
-import { Trash2 } from "lucide-react";
+import { Trash2, Pencil, Check, X } from "lucide-react";
 
 
 type Message = {
@@ -55,6 +55,9 @@ export default function ChatSection() {
 
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [usernamesById, setUsernamesById] = useState<Record<string, string>>({});
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
 
   const typingStopTimer = useRef<number | null>(null);
 
@@ -218,14 +221,23 @@ export default function ChatSection() {
       setTypingUsers(payload.userIds ?? []);
     };
 
+    const onMessageUpdated = (message: Message) => {
+      if (message.channelId !== channelId) return;
+      setMessages((prev) =>
+        prev.map((m) => (m.id === message.id ? { ...m, ...message } : m)),
+      );
+    };
+
     socket.on(SOCKET_EVENTS.MESSAGE_NEW, onMessageNew);
     socket.on(SOCKET_EVENTS.MESSAGE_DELETED, onMessageDeleted);
     socket.on(SOCKET_EVENTS.TYPING_UPDATE, onTypingUpdate);
+    socket.on("message:updated", onMessageUpdated);
 
     return () => {
       socket.off(SOCKET_EVENTS.MESSAGE_NEW, onMessageNew);
       socket.off(SOCKET_EVENTS.MESSAGE_DELETED, onMessageDeleted);
       socket.off(SOCKET_EVENTS.TYPING_UPDATE, onTypingUpdate);
+      socket.off("message:updated", onMessageUpdated);
     };
   }, [channelId]);
 
@@ -287,6 +299,52 @@ async function handleDelete(messageId: string) {
   } catch (e: unknown) {
     setError(e instanceof Error ? e.message : "Failed to delete message");
   }
+}
+
+async function handleEdit(messageId: string) {
+  if (!messageId || !editText.trim()) return;
+
+  setError(null);
+
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/messages/${messageId}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ content: editText.trim() }),
+      },
+    );
+
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(`${res.status} ${res.statusText} - ${t}`);
+    }
+
+    const updated = await res.json();
+    setMessages((prev) =>
+      prev.map((m) => (m.id === messageId ? { ...m, ...updated } : m)),
+    );
+    setEditingId(null);
+    setEditText("");
+  } catch (e: unknown) {
+    setError(e instanceof Error ? e.message : "Failed to edit message");
+  }
+}
+
+function startEditing(message: Message) {
+  setEditingId(message.id);
+  setEditText(message.content);
+}
+
+function cancelEditing() {
+  setEditingId(null);
+  setEditText("");
 }
 
 
@@ -365,15 +423,31 @@ async function handleDelete(messageId: string) {
 
 {messages.map((m) => {
   const canDelete = !!myUserId && m.authorId === myUserId && !m.deletedAt;
+  const canEdit = !!myUserId && m.authorId === myUserId && !m.deletedAt;
+  const isEditing = editingId === m.id;
+  const wasEdited = m.updatedAt !== m.createdAt && !m.deletedAt;
 
   return (
     <div
       key={m.id}
       className="group mb-2 flex items-start gap-1 px-1 py-1 hover:bg-muted/40"
     >
-
-      <div className="w-6 shrink-0 flex justify-start">
-        {canDelete ? (
+      <div className="w-12 shrink-0 flex justify-start gap-0.5">
+        {canEdit && !isEditing ? (
+          <button
+            type="button"
+            className="mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-background/70"
+            title="Edit message"
+            onClick={() => startEditing(m)}
+          >
+            <Pencil className="h-4 w-4 opacity-70 hover:opacity-100" />
+          </button>
+        ) : (
+          <span className="mt-0.5 invisible p-0.5">
+            <Pencil className="h-4 w-4" />
+          </span>
+        )}
+        {canDelete && !isEditing ? (
           <button
             type="button"
             className="mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-background/70"
@@ -383,24 +457,54 @@ async function handleDelete(messageId: string) {
             <Trash2 className="h-4 w-4 opacity-70 hover:opacity-100" />
           </button>
         ) : (
-
           <span className="mt-0.5 invisible p-0.5">
             <Trash2 className="h-4 w-4" />
           </span>
         )}
       </div>
 
-
       <div className="min-w-0 flex-1">
         <div className="text-[11px] opacity-60 flex gap-1">
           <span>{m.author?.username ?? m.authorId}</span>
           <span>-</span>
           <span>{formatDate(m.createdAt)}</span>
+          {wasEdited && <span className="italic">(edited)</span>}
         </div>
 
-        <div className="text-sm leading-5">
-          {m.deletedAt ? <i className="opacity-60">(deleted)</i> : m.content}
-        </div>
+        {isEditing ? (
+          <div className="flex gap-2 items-center mt-1">
+            <input
+              className="flex-1 rounded border border-border bg-background px-2 py-1 text-sm"
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleEdit(m.id);
+                if (e.key === "Escape") cancelEditing();
+              }}
+              autoFocus
+            />
+            <button
+              type="button"
+              className="p-1 rounded hover:bg-muted"
+              title="Save"
+              onClick={() => handleEdit(m.id)}
+            >
+              <Check className="h-4 w-4 text-green-500" />
+            </button>
+            <button
+              type="button"
+              className="p-1 rounded hover:bg-muted"
+              title="Cancel"
+              onClick={cancelEditing}
+            >
+              <X className="h-4 w-4 text-red-500" />
+            </button>
+          </div>
+        ) : (
+          <div className="text-sm leading-5">
+            {m.deletedAt ? <i className="opacity-60">(deleted)</i> : m.content}
+          </div>
+        )}
       </div>
     </div>
   );

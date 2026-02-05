@@ -114,3 +114,30 @@ export async function deleteMessage(userId: string, messageId: string) {
 
   return message.channelId;
 }
+
+export async function updateMessage(
+  userId: string,
+  messageId: string,
+  content: string,
+) {
+  const message = await prisma.message.findUnique({
+    where: { id: messageId },
+    include: { channel: true },
+  });
+  if (!message) throw new HttpError(404, "Message not found");
+  if (message.deletedAt) throw new HttpError(400, "Cannot edit a deleted message");
+
+  if (message.authorId !== userId) {
+    throw new HttpError(403, "You can only edit your own messages");
+  }
+
+  const updated = await prisma.message.update({
+    where: { id: messageId },
+    data: { content, updatedAt: new Date() },
+    include: {
+      author: { select: { id: true, username: true } },
+    },
+  });
+
+  return updated;
+}
