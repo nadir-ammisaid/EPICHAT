@@ -23,7 +23,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     apiClient
-      .request("/auth/me")
+      .request("/me")
       .then((data: User) => {
         setEmail(data.email ?? null);
         setUsername(data.username ?? "");
@@ -40,7 +40,7 @@ export default function ProfilePage() {
     }
     setSaveLoading(true);
     try {
-      const updated = await apiClient.request("/auth/me", {
+      const updated = await apiClient.request("/me", {
         method: "PATCH",
         body: JSON.stringify({ username: result.data.username }),
       });
@@ -56,7 +56,7 @@ export default function ProfilePage() {
     setDeleteError(null);
     setDeleteLoading(true);
     try {
-      await apiClient.request("/auth/me", { method: "DELETE" });
+      await apiClient.request("/me", { method: "DELETE" });
       localStorage.removeItem("token");
       router.replace("/login");
     } catch (err) {
