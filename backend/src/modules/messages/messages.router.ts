@@ -1,13 +1,28 @@
 import { Router } from "express";
 import { requireAuth } from "../../shared/middlewares/auth.middleware.js";
-import { sendMessage } from "./messages.controller.js";
-import { getChannelMessages } from "./messages.controller.js";
-import { deleteMessage } from "./messages.controller.js";
+import { authorize } from "../../shared/middlewares/authorize.middleware.js";
+import {
+  sendMessage,
+  getChannelMessages,
+  deleteMessage,
+} from "./messages.controller.js";
 
 const router = Router();
 
-router.post("/channels/:id/messages", requireAuth, sendMessage);
-router.get("/channels/:id/messages", requireAuth, getChannelMessages);
-router.delete("/messages/:id", requireAuth, deleteMessage);
+router.post(
+  "/channels/:id/messages",
+  requireAuth,
+  authorize(["user"]),
+  sendMessage,
+);
+
+router.get(
+  "/channels/:id/messages",
+  requireAuth,
+  authorize(["user"]),
+  getChannelMessages,
+);
+
+router.delete("/messages/:id", requireAuth, authorize(["user"]), deleteMessage);
 
 export default router;

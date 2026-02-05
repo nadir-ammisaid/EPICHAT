@@ -5,6 +5,8 @@ import {
   loginController,
   logoutController,
   signupController,
+  updateProfileController,
+  deleteAccountController,
 } from "./auth.controller.js";
 import { requireAuth } from "../../shared/middlewares/auth.middleware.js";
 
@@ -14,3 +16,5 @@ authRouter.post("/signup", asyncHandler(signupController));
 authRouter.post("/login", asyncHandler(loginController));
 authRouter.post("/logout", requireAuth, asyncHandler(logoutController));
 authRouter.get("/me", requireAuth, asyncHandler(meController));
+authRouter.patch("/me", requireAuth, asyncHandler(updateProfileController));
+authRouter.delete("/me", requireAuth, asyncHandler(deleteAccountController));

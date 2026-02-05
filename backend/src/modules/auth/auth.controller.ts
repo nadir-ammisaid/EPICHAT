@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { loginSchema, signupSchema } from "./auth.schemas.js";
-import { login, signup } from "./auth.service.js";
+import { loginSchema, signupSchema, updateProfileSchema } from "./auth.schemas.js";
+import { login, signup, updateProfile, deleteAccount } from "./auth.service.js";
 import HttpError from "../../shared/errors/httpError.js";
 import { getBearerToken } from "../../shared/utils/authHeader.js";
 import { revokeToken } from "./tokenBlacklist.js";
@@ -85,4 +85,36 @@ export async function meController(req: Request, res: Response) {
   }
 
   res.status(200).json(user);
+}
+
+// Update profile
+
+export async function updateProfileController(req: Request, res: Response) {
+  const userId = (req as any).user?.userId;
+  if (!userId) throw new HttpError(401, "Unauthorized");
+
+  const parsed = updateProfileSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpError(400, "Invalid payload");
+  }
+
+  try {
+    const user = await updateProfile(userId, parsed.data);
+    res.status(200).json(user);
+  } catch (e) {
+    if (isPrismaUniqueError(e)) {
+      throw new HttpError(409, "Username already exists");
+    }
+    throw e;
+  }
+}
+
+// Delete account
+
+export async function deleteAccountController(req: Request, res: Response) {
+  const userId = (req as any).user?.userId;
+  if (!userId) throw new HttpError(401, "Unauthorized");
+
+  await deleteAccount(userId);
+  res.status(204).send();
 }
