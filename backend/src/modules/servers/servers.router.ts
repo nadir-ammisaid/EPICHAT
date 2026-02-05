@@ -78,3 +78,13 @@ serversRouter.delete(
   authorize(["user"]),
   asyncHandler(leaveServerController),
 );
+
+// Singular router for GET /server/:id (specification compliance)
+export const serverSingularRouter = Router();
+
+serverSingularRouter.get(
+  "/:id",
+  requireAuth,
+  authorize(["user"]),
+  asyncHandler(getServerControllerById),
+);

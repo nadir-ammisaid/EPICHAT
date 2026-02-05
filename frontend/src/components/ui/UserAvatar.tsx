@@ -14,7 +14,7 @@ export default function UserAvatar() {
 
   useEffect(() => {
     apiClient
-      .request("/auth/me")
+      .request("/me")
       .then((user: { username?: string }) => setUsername(user?.username ?? null))
       .catch(() => setUsername(null));
   }, []);
