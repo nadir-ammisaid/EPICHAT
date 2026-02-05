@@ -43,3 +43,14 @@ export const registerSchema = z
   });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
+
+export const profileSchema = z.object({
+  username: z
+    .string({ message: "Le nom d'utilisateur est requis" })
+    .min(1, "Le nom d'utilisateur est requis")
+    .min(3, "Le nom d'utilisateur doit contenir au moins 3 caractères")
+    .max(32, "Le nom d'utilisateur ne doit pas dépasser 32 caractères")
+    .transform((v) => v.trim()),
+});
+
+export type ProfileInput = z.infer<typeof profileSchema>;
