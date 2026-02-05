@@ -113,7 +113,7 @@ export default function ChatSection() {
         const token = localStorage.getItem("token");
 
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/channels/${channelId}/messages?limit=50`,
+          `${process.env.NEXT_PUBLIC_API_URL}/channels/${channelId}/messages?limit=50`,
           {
             method: "GET",
             headers: {
@@ -260,7 +260,7 @@ async function handleDelete(messageId: string) {
     const token = localStorage.getItem("token");
 
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/messages/${messageId}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/messages/${messageId}`,
       {
         method: "DELETE",
         headers: {
@@ -304,7 +304,7 @@ async function handleDelete(messageId: string) {
       const token = localStorage.getItem("token");
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/channels/${channelId}/messages`,
+        `${process.env.NEXT_PUBLIC_API_URL}/channels/${channelId}/messages`,
         {
           method: "POST",
           headers: {
