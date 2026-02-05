@@ -217,10 +217,41 @@ PORT=3001
 ### Frontend (.env.local)
 
 ```
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
+
+## Bonus Features
+
+| Feature | Status |
+|---------|--------|
+| Emoji/Unicode support | Implemented |
+
+### Emoji Support
+
+Full Unicode and emoji support is available:
+
+- `EmojiPicker` component with 5 categories and 130+ emojis
+- Search functionality
+- Click-outside-to-close
+- Keyboard navigation (Escape to close)
+- `MessageInput` component with integrated emoji picker
+- Auto-resize textarea
+- Enter to send, Shift+Enter for new line
+
+Usage:
+```tsx
+import { MessageInput } from "@/components/ui";
+
+<MessageInput
+  onSendMessage={(content) => console.log(content)}
+  onTypingStart={() => socket.emit("typing:start", { channelId, userId })}
+  onTypingStop={() => socket.emit("typing:stop", { channelId, userId })}
+/>
+```
 
 ## Team
 
-- Nadir - Full-Stack developer
-- Younes - Full-Stack developer
-- Michael - Full-Stack developer
-- Warith - Full-Stack developer
+- Nadir
+- Younes
+- Michael
+- Warith
