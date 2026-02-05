@@ -70,7 +70,7 @@ npm run test:coverage # Run with coverage report
 | POST   | `/auth/signup` | Create account    |
 | POST   | `/auth/login`  | Authenticate user |
 | POST   | `/auth/logout` | Invalidate token  |
-| GET    | `/auth/me`     | Get current user  |
+| GET    | `/me`          | Get current user  |
 
 ### Servers
 
@@ -78,7 +78,7 @@ npm run test:coverage # Run with coverage report
 | ------ | ------------------------------ | ------------------- |
 | GET    | `/servers`                     | List user's servers |
 | POST   | `/servers`                     | Create server       |
-| GET    | `/servers/:id`                 | Get server details  |
+| GET    | `/server/:id`                  | Get server details  |
 | PUT    | `/servers/:id`                 | Update server       |
 | DELETE | `/servers/:id`                 | Delete server       |
 | POST   | `/servers/:id/join`            | Join server         |
