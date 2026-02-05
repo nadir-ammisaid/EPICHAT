@@ -19,6 +19,9 @@ export async function sendMessage(userId: string, channelId: string, content: st
       authorId: userId,
       content,
     },
+    include: {
+      author: { select: { id: true, username: true } },
+    },
   });
 }
 
@@ -38,8 +41,8 @@ export async function getChannelMessages(
   });
   if (!membership) throw new HttpError(403, "Access denied: You must be a member of this server to view this channel.");
 
-  
-  // const cursorPart = before ? { cursor: { id: before }, skip: 1 } : {};
+
+
 
   // Configure pagination and fetching
   const args: any = {
@@ -53,11 +56,17 @@ export async function getChannelMessages(
     args.skip = 1;
   }
 
-  const rows = await prisma.message.findMany(args)
+  const rows = await prisma.message.findMany({
+  ...args,
+  include: {
+    author: { select: { id: true, username: true } },
+  },
+});
+
   // Format order (Oldest to Newest)
   const messages = rows.reverse();
 
-  // Determine the cursor for the next page
+  
   const nextCursor = messages.at(0)?.id ?? null;
 
 

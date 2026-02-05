@@ -2,6 +2,20 @@
 
 import { getSocket } from "./socket";
 
+
+export const SOCKET_EVENTS = {
+  CHANNEL_JOIN: "channel:join",
+  CHANNEL_LEAVE: "channel:leave",
+
+  MESSAGE_NEW: "message:new",
+  MESSAGE_DELETED: "message:deleted",
+
+  TYPING_START: "typing:start",
+  TYPING_STOP: "typing:stop",
+  TYPING_UPDATE: "typing:update",
+} as const;
+
+
 export type MessagePayload = {
   id: string;
   channelId: string;
