@@ -143,8 +143,8 @@ export default function ChatSection() {
           }
           return next;
         });
-      } catch (e: any) {
-        if (e.name !== "AbortError") {
+      } catch (e: unknown) {
+        if (e instanceof Error && e.name !== "AbortError") {
           setError(e.message ?? "Failed to load messages");
         }
       } finally {
@@ -284,8 +284,8 @@ async function handleDelete(messageId: string) {
     );
 
 
-  } catch (e: any) {
-    setError(e.message ?? "Failed to delete message");
+  } catch (e: unknown) {
+    setError(e instanceof Error ? e.message : "Failed to delete message");
   }
 }
 
@@ -327,8 +327,8 @@ async function handleDelete(messageId: string) {
         const socket = getSocket();
         socket.emit(SOCKET_EVENTS.TYPING_STOP, { channelId, userId: myUserId });
       }
-    } catch (e: any) {
-      setError(e.message ?? "Failed to send message");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to send message");
     } finally {
       setSending(false);
     }
