@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiClient } from "@/lib/api/client";
 import { profileSchema } from "@/lib/validation/auth";
+import getRandomAvatar from "@/lib/utils/getRandomAvatar";
 import { Button, Input, Modal } from "@/components/ui";
 import Loader from "@/components/ui/Loader";
 import AuthGuard from "@/lib/auth/auth.guard";
+import { ArrowLeft, MessageCircleWarning, RefreshCw } from "lucide-react";
 
-type User = { id: string; email: string; username: string; createdAt: string };
+interface UserProfile { id: string; email: string; username: string; createdAt: string };
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -20,11 +22,12 @@ export default function ProfilePage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [avatarSeed, setAvatarSeed] = useState<string>("");
 
   useEffect(() => {
     apiClient
       .request("/auth/me")
-      .then((data: User) => {
+      .then((data: UserProfile) => {
         setEmail(data.email ?? null);
         setUsername(data.username ?? "");
       })
@@ -76,8 +79,9 @@ export default function ProfilePage() {
 
   return (
     <AuthGuard>
-      <div className="mx-auto flex min-h-screen max-w-md flex-col gap-6 bg-background p-6">
-        <div className="flex items-center gap-4">
+      <div className="mx-auto flex max-w-md min-h-screen flex-col items-center justify-between gap-6 bg-background p-6">
+        <div className="flex items-center w-fit gap-4 border border-border rounded-full p-2">
+          <ArrowLeft className="h-4 w-4 " />
           <Link
             href="/dashboard"
             className="text-sm"
@@ -85,17 +89,38 @@ export default function ProfilePage() {
             Retour
           </Link>
         </div>
-        <h1 className="text-xl font-semibold">Mon profil</h1>
+        <h1 className="h3">Mon profil</h1>
 
-        <section className="rounded-lg border border-border p-4">
-          <h2>Informations</h2>
+        <section className="rounded-lg border flex flex-col gap-8 border-border p-8">
+          <div className="flex flex-col items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setAvatarSeed(`${username}-${Date.now()}`)}
+              className="group relative flex shrink-0 rounded-full outline-none ring-2 ring-transparent focus:ring-brand"
+              title="Changer l'avatar"
+              aria-label="Changer l'avatar"
+            >
+              <img
+                src={getRandomAvatar(avatarSeed || username || "default")}
+                alt={username}
+                className="h-24 w-24 rounded-full object-cover"
+                width={96}
+                height={96}
+              />
+              <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                <RefreshCw className="h-8 w-8 text-white" />
+              </span>
+            </button>
+            <span className="text-xs text-muted-foreground">Cliquez sur l'avatar pour en générer un autre</span>
+          </div>
+          <h2 className="h4">Informations</h2>
           <form onSubmit={handleSave} className="flex flex-col gap-3">
             <Input
               label="Email"
               value={email ?? ""}
               disabled
-              className="bg-muted border-border-muted"
-              size="lg"
+              className="bg-muted border-border text-border"
+              size="md"
             />
             <Input
               label="Nom d'utilisateur"
@@ -105,7 +130,7 @@ export default function ProfilePage() {
               placeholder="Mon pseudo"
               maxLength={32}
               disabled={saveLoading}
-              size="lg"
+              size="md"
             />
             <Button type="submit" disabled={saveLoading}>
               {saveLoading ? "Enregistrement…" : "Enregistrer"}
@@ -113,13 +138,17 @@ export default function ProfilePage() {
           </form>
         </section>
 
-        <section className="rounded-md flex flex-col gap-2  items-center justify-center p-4">
-          <h2 className="h3">Zone de danger</h2>
+        <section className="rounded-md flex flex-col gap-2 items-center justify-center p-4">
+          <span className="flex items-center gap-2">
+
+          <MessageCircleWarning />
           <p className="mb-3 text-sm text-foreground">
             La suppression du compte est définitive. Toutes vos données seront effacées.
           </p>
+          </span>
           <Button
-            variant="outline"
+            variant="primary"
+            className="bg-error hover:bg-error/90"
             type="button"
             onClick={() => setDeleteOpen(true)}
           >
@@ -144,7 +173,6 @@ export default function ProfilePage() {
           <div className="flex gap-2">
             <Button
               variant="outline"
-              className="flex-1"
               onClick={() => setDeleteOpen(false)}
               disabled={deleteLoading}
             >
@@ -152,7 +180,7 @@ export default function ProfilePage() {
             </Button>
             <Button
               variant="primary"
-              className="flex-1 border-error bg-error hover:bg-error/90"
+              className="bg-error hover:bg-error/90"
               onClick={handleDelete}
               disabled={deleteLoading}
             >

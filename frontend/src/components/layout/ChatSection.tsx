@@ -342,15 +342,15 @@ async function handleDelete(messageId: string) {
 
     const names = others.map((id) => usernamesById[id] ?? id);
 
-    if (names.length === 1) return `${names[0]} is typing…`;
-    return `${names.slice(0, 2).join(", ")} are typing…`;
+    if (names.length === 1) return `${names[0]} est en train de taper…`;
+    return `${names.slice(0, 2).join(", ")} sont en train de taper…`;
   }, [typingUsers, myUserId, usernamesById]);
 
   if (!channelId) {
     return (
       <div className="flex min-h-0 flex-1 flex-col border border-border bg-background">
         <div className="flex-1 overflow-y-auto p-4">
-          <p className="text-sm text-muted-foreground">Select a channel to start chatting.</p>
+          <p className="text-sm text-muted-foreground">Selectionnez un canal pour commencer à chatter.</p>
         </div>
       </div>
     );
