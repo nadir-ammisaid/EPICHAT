@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import parseDashboardPath from "@/lib/utils/parseDashboardPath";
 import { getSocket } from "@/lib/socket/socket";
@@ -21,10 +21,40 @@ type Message = {
   };
 };
 
+type Member = {
+  id: string;
+  username: string;
+};
+
 function formatDate(iso: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
   return d.toLocaleString();
+}
+
+function renderContent(content: string) {
+  const mentionRegex = /@(\w+)/g;
+  const parts: (string | React.ReactNode)[] = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = mentionRegex.exec(content)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(content.slice(lastIndex, match.index));
+    }
+    parts.push(
+      <span key={match.index} className="text-brand font-medium">
+        {match[0]}
+      </span>
+    );
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < content.length) {
+    parts.push(content.slice(lastIndex));
+  }
+
+  return parts.length > 0 ? parts : content;
 }
 
 function getMyUserIdFromToken(token: string | null): string | null {
@@ -44,7 +74,7 @@ function getMyUserIdFromToken(token: string | null): string | null {
 
 export default function ChatSection() {
   const pathname = usePathname();
-  const { channelId } = parseDashboardPath(pathname ?? "");
+  const { channelId, serverId } = parseDashboardPath(pathname ?? "");
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
@@ -58,6 +88,12 @@ export default function ChatSection() {
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
+
+  const [members, setMembers] = useState<Member[]>([]);
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionFilter, setMentionFilter] = useState("");
+  const [mentionIndex, setMentionIndex] = useState(0);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const typingStopTimer = useRef<number | null>(null);
 
@@ -101,6 +137,36 @@ export default function ChatSection() {
     const token = localStorage.getItem("token");
     setMyUserId(getMyUserIdFromToken(token));
   }, []);
+
+  useEffect(() => {
+    if (!serverId) return;
+
+    async function fetchMembers() {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/servers/${serverId}/members`,
+          {
+            headers: {
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          },
+        );
+        if (res.ok) {
+          const data = await res.json();
+          const list = data?.members ?? data ?? [];
+          setMembers(
+            list.map((m: { user?: { id: string; username: string }; userId?: string; username?: string }) => ({
+              id: m.user?.id ?? m.userId,
+              username: m.user?.username ?? m.username,
+            })),
+          );
+        }
+      } catch {}
+    }
+
+    fetchMembers();
+  }, [serverId]);
 
   // Load initial messages (REST)
   useEffect(() => {
@@ -245,6 +311,16 @@ export default function ChatSection() {
   function handleTypingChange(nextValue: string) {
     setText(nextValue);
 
+    const atMatch = nextValue.match(/@(\w*)$/);
+    if (atMatch) {
+      setShowMentions(true);
+      setMentionFilter(atMatch[1].toLowerCase());
+      setMentionIndex(0);
+    } else {
+      setShowMentions(false);
+      setMentionFilter("");
+    }
+
     if (!channelId) return;
     if (!myUserId) return;
 
@@ -262,6 +338,21 @@ export default function ChatSection() {
         userId: myUserId,
       });
     }, 500);
+  }
+
+  const filteredMembers = useMemo(() => {
+    if (!mentionFilter) return members;
+    return members.filter((m) =>
+      m.username?.toLowerCase().includes(mentionFilter),
+    );
+  }, [members, mentionFilter]);
+
+  function insertMention(username: string) {
+    const newText = text.replace(/@\w*$/, `@${username} `);
+    setText(newText);
+    setShowMentions(false);
+    setMentionFilter("");
+    inputRef.current?.focus();
   }
 async function handleDelete(messageId: string) {
   if (!messageId) return;
@@ -502,7 +593,7 @@ function cancelEditing() {
           </div>
         ) : (
           <div className="text-sm leading-5">
-            {m.deletedAt ? <i className="opacity-60">(deleted)</i> : m.content}
+            {m.deletedAt ? <i className="opacity-60">(deleted)</i> : renderContent(m.content)}
           </div>
         )}
       </div>
@@ -519,24 +610,71 @@ function cancelEditing() {
 
 
       <div className="border-t border-border p-3">
-        <div className="flex gap-2">
-          <input
-            className="flex-1 rounded border border-border bg-background px-3 py-2 text-sm"
-            placeholder="Write a message…"
-            value={text}
-            onChange={(e) => handleTypingChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSend();
-            }}
-            disabled={sending}
-          />
-          <button
-            className="rounded bg-brand px-3 py-2 text-sm text-white disabled:opacity-50"
-            onClick={handleSend}
-            disabled={sending || !text.trim()}
-          >
-            Send
-          </button>
+        <div className="relative">
+          {showMentions && filteredMembers.length > 0 && (
+            <div className="absolute bottom-full left-0 mb-1 w-48 rounded border border-border bg-background shadow-lg max-h-40 overflow-y-auto">
+              {filteredMembers.slice(0, 8).map((member, idx) => (
+                <button
+                  key={member.id}
+                  type="button"
+                  className={`w-full px-3 py-2 text-left text-sm hover:bg-muted ${
+                    idx === mentionIndex ? "bg-brand/20 text-brand font-medium" : ""
+                  }`}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    insertMention(member.username);
+                  }}
+                >
+                  @{member.username}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <input
+              ref={inputRef}
+              className="flex-1 rounded border border-border bg-background px-3 py-2 text-sm"
+              placeholder="Write a message…"
+              value={text}
+              onChange={(e) => handleTypingChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (showMentions && filteredMembers.length > 0) {
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setMentionIndex((prev) =>
+                      prev < Math.min(filteredMembers.length - 1, 7) ? prev + 1 : 0,
+                    );
+                    return;
+                  }
+                  if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setMentionIndex((prev) =>
+                      prev > 0 ? prev - 1 : Math.min(filteredMembers.length - 1, 7),
+                    );
+                    return;
+                  }
+                  if (e.key === "Enter" || e.key === "Tab") {
+                    e.preventDefault();
+                    insertMention(filteredMembers[mentionIndex].username);
+                    return;
+                  }
+                  if (e.key === "Escape") {
+                    setShowMentions(false);
+                    return;
+                  }
+                }
+                if (e.key === "Enter") handleSend();
+              }}
+              disabled={sending}
+            />
+            <button
+              className="rounded bg-brand px-3 py-2 text-sm text-white disabled:opacity-50"
+              onClick={handleSend}
+              disabled={sending || !text.trim()}
+            >
+              Send
+            </button>
+          </div>
         </div>
       </div>
     </div>
