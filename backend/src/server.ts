@@ -2,6 +2,7 @@ import "dotenv/config";
 import http from "http";
 import { createApp } from "./app.js";
 import { Server } from "socket.io";
+import jwt from "jsonwebtoken";
 
 type TypingPayload = {
   channelId?: string;
@@ -39,6 +40,30 @@ export function startServer() {
     path: "/ws",
     cors: { origin: true, credentials: true },
   });
+  function getJwtSecret(): string {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) throw new Error("JWT_SECRET is not defined");
+    return secret;
+  }
+
+  io.use((socket, next) => {
+    try {
+      const token = socket.handshake.auth?.token;
+      if (!token) return next(); 
+
+      const decoded = jwt.verify(token, getJwtSecret()) as { userId: string; role: string };
+
+      
+      socket.data.user = {
+        id: decoded.userId,
+        role: decoded.role,
+      };
+
+      return next();
+    } catch {
+      return next(); 
+    }
+  });
 
 
   app.locals.io = io;
@@ -58,6 +83,9 @@ export function startServer() {
   }
 
   io.on("connection", (socket) => {
+    // console.log("[socket] connected:", socket.id);
+    // console.log(socket.handshake.auth);
+
     socket.on("channel:join", (rawChannelId: string) => {
       if (typeof rawChannelId !== "string") return;
       const channelId = rawChannelId.trim();
@@ -76,7 +104,7 @@ export function startServer() {
 
     socket.on("typing:start", (payload: TypingPayload) => {
       const channelId = payload?.channelId?.trim();
-      const userId = payload?.userId?.trim();
+      const userId = socket.data.user?.id;
       if (!channelId || !userId) return;
 
       // add user
@@ -104,7 +132,7 @@ export function startServer() {
 
     socket.on("typing:stop", (payload: TypingPayload) => {
       const channelId = payload?.channelId?.trim();
-      const userId = payload?.userId?.trim();
+      const userId = socket.data.user?.id;
       if (!channelId || !userId) return;
 
       const key = `${channelId}:${userId}`;
