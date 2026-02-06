@@ -2,11 +2,12 @@ import Header from "@/components/home/Header";
 import Hero from "@/components/home/Hero";
 import HomeSection from "@/components/home/Section";
 import Footer from "@/components/home/Footer";
-
+import RedirectIfAuthed from "@/components/dashboard/RedirectIfAuthed";
 
 export default function HomePage() {
   return (
     <>
+      <RedirectIfAuthed />
       <Header />
       <main>
         <Hero />

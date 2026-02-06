@@ -28,7 +28,10 @@ export default function UserAvatar() {
       .request("/me")
       .then((user: { username?: string; status?: string }) => {
         setUsername(user?.username ?? null);
-        if (user?.status) setStatus(user.status as UserStatus);
+        if (user?.status) {
+          const s = user.status === "offline" ? "online" : user.status;
+          setStatus(s as UserStatus);
+        }
       })
       .catch(() => setUsername(null));
   }, []);
@@ -54,20 +57,24 @@ export default function UserAvatar() {
 
   return (
     <Dropdown>
-      <Dropdown.Trigger className="relative flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-border bg-brand-muted/80 transition-colors hover:opacity-90">
-        {username ? (
-          <img
-            src={avatarUrl}
-            alt={username}
-            className="h-full w-full object-cover"
-            width={48}
-            height={48}
-          />
-        ) : (
-          <User className="h-6 w-6 text-foreground" />
-        )}
+      <Dropdown.Trigger className="relative flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full transition-opacity hover:opacity-90">
+        <div className="h-full w-full overflow-hidden rounded-full border border-border bg-brand-muted/80">
+          {username ? (
+            <img
+              src={avatarUrl}
+              alt={username}
+              className="h-full w-full object-cover"
+              width={48}
+              height={48}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center">
+              <User className="h-6 w-6 text-foreground" />
+            </div>
+          )}
+        </div>
         <span
-          className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-background ${
+          className={`absolute -bottom-1 -right-1 z-10 h-5 w-5 rounded-full border-[3px] border-background ${
             status === "online" ? "bg-green-500" :
             status === "away" ? "bg-yellow-500" :
             status === "busy" ? "bg-red-500" : "bg-gray-400"
