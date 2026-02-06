@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { apiClient } from "@/lib/api/client";
 import { profileSchema } from "@/lib/validation/auth";
 import getRandomAvatar from "@/lib/utils/getRandomAvatar";
@@ -60,7 +61,7 @@ export default function ProfilePage() {
       setOriginalUsername(updated.username ?? username);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
-    } catch (err) {
+    } catch {
       return;
     } finally {
       setSaveLoading(false);
@@ -112,19 +113,20 @@ export default function ProfilePage() {
               title="Changer l'avatar"
               aria-label="Changer l'avatar"
             >
-              <img
+              <Image
                 src={getRandomAvatar(avatarSeed || username || "default")}
                 alt={username}
                 className="h-24 w-24 rounded-full object-cover md:h-32 md:w-32"
                 width={96}
                 height={96}
+                unoptimized
               />
               <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
                 <RefreshCw className="h-8 w-8 text-white" />
               </span>
             </button>
             <span className="text-muted-foreground text-center text-xs">
-              Cliquez sur l'avatar pour en générer un autre
+              Cliquez sur l&apos;avatar pour en générer un autre
             </span>
           </div>
           <div className="flex flex-col gap-4 md:w-2/3">
