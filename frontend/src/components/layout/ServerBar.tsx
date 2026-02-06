@@ -3,12 +3,13 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Loader2, Plus, LogIn, UserPlus, Copy, Check } from "lucide-react";
+import { Loader2, UserPlus, Copy, Check, Pencil, Trash2, Settings } from "lucide-react";
 import Image from "next/image";
 import { apiClient } from "@/lib/api/client";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { Dropdown } from "@/components/ui/Dropdown";
 
 type Server = { id: string; name: string; ownerId: string; createdAt: string };
 
@@ -92,14 +93,15 @@ export default function ServerBar({ className = "" }: { className?: string }) {
     }
   };
 
-  const openInviteModal = () => {
+  const openInviteModal = (serverId?: string) => {
+    const id = serverId ?? serverIdFromPath;
     setInviteError(null);
     setCreatedCode(null);
     setInviteOpen(true);
-    if (serverIdFromPath) {
+    if (id) {
       setInviteLoading(true);
       apiClient
-        .request(`/servers/${serverIdFromPath}/invites`, { method: "POST" })
+        .request(`/servers/${id}/invites`, { method: "POST" })
         .then((invite: { code: string }) => {
           setCreatedCode(invite.code);
         })
@@ -122,11 +124,22 @@ export default function ServerBar({ className = "" }: { className?: string }) {
     });
   };
 
+  // Supprimer un serveur
+  const handleDeleteServer = async (serverId: string) => {
+    try {
+      await apiClient.request(`/servers/${serverId}`, { method: "DELETE" });
+      await getServers();
+    } catch (e) {
+      console.error(e);
+    }
+  };
   return (
     <>
       <div
-        className={`flex h-full shrink-0 flex-col items-center justify-between bg-background p-4 border border-border ${className}`}
+        className={`flex h-full shrink-0 flex-col items-center justify-between bg-background p-2 border border-border ${className}`}
       >
+        <div className="flex flex-col gap-2 mt-2 w-full items-center">
+
         <Link href="/dashboard" className="flex shrink-0" aria-label="Accueil">
             <Image
               src="/images/logo.png"
@@ -134,34 +147,100 @@ export default function ServerBar({ className = "" }: { className?: string }) {
               width={100}
               height={100}
               className="rounded-lg object-cover"
-            />
-              </Link>
+              />
+          </Link>
+          <hr className="w-full border-border-muted"/>
+              </div>
               
-        {/* Liste de serveurs      */}
-        <div className="flex w-full flex-col items-center justify-center gap-2 overflow-y-auto">
-            {
-              servers.map((server) => {
-                const isActive = serverIdFromPath === server.id;
-                return (
-                  <Link
-                    key={server.id}
-                    href={`/dashboard/${server.id}`}
-                    className="bg-brand-muted text-foreground flex items-center justify-center rounded-xl h-[80px] w-[80px] hover:cursor-pointer hover:bg-brand-muted/80"
-                    title={server.name}
-                  >
+        {/* Liste de serveurs */}
+        <div className="flex w-full flex-col gap-2 overflow-y-auto">
+          {servers.map((server) => {
+            const isActive = serverIdFromPath === server.id;  
+
+            return (
+              <div
+                key={server.id}
+                className={`
+                  flex items-center gap-1 rounded-lg
+                  bg-brand-muted text-foreground hover:bg-brand-muted/80
+                 hover:cursor-pointer transition-colors
+                  ${isActive ? "bg-brand-hover font-medium" : ""}
+                `}
+              >
+                <Link
+                  href={`/dashboard/${server.id}`}
+                  title={server.name}
+                  className="flex min-w-0 flex-1 items-center gap-3 px-4 py-2 rounded-full"
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-brand text-background text-sm">
                     {server.name.slice(0, 1).toUpperCase()}
-                  </Link>
-                );
-              })}
+                  </span>
+                  <span className="truncate text-sm">{server.name}</span>
+                </Link>
+                <Dropdown className="shrink-0">
+                  <Dropdown.Trigger>
+                    <button
+                      type="button"
+                      className="flex h-8 w-8 items-center justify-center rounded-md hover:cursor-pointer text-foreground"
+                      title="Options du serveur"
+                      aria-label="Options du serveur"
+                    >
+                      <Settings className="h-4 w-4" />
+                    </button>
+                  </Dropdown.Trigger>
+                  <Dropdown.Menu position="bottom" align="right">
+                    <button
+                      type="button"
+                      onClick={() => openInviteModal(server.id)}
+                      className="flex w-full items-center gap-2 px-4 hover:cursor-pointer hover:bg-brand-muted/10 py-2 text-left text-sm text-foreground hover:bg-muted"
+                      role="menuitem"
+                    >
+                      <UserPlus className="h-4 w-4" />
+                      Inviter
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {}}
+                      className="flex w-full items-center gap-2 px-4 hover:cursor-pointer hover:bg-brand-muted/10 py-2 text-left text-sm text-foreground hover:bg-muted"
+                      role="menuitem"
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Modifier le nom
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteServer(server.id)}
+                      className="flex w-full items-center gap-2 px-4 hover:cursor-pointer hover:bg-brand-muted/10 py-2 text-left text-sm text-error hover:bg-muted"
+                      role="menuitem"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Supprimer le serveur
+                    </button>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </div>
+            );
+          })}
         </div>
-              
-        {/* Rejoindre / Inviter */}
-        <div className="flex shrink-0 flex-col gap-2 w-full items-center">
+            
+      
+
+        {/* Créer / Rejoindre */}
+        <div className="shrink-0 flex flex-col gap-2 w-full items-center">
+          <Button
+            type="button"
+            onClick={() => setCreateOpen(true)}
+            className="w-full gap-2 items-center justify-center hover:cursor-pointer hover:bg-brand-hover bg-brand text-white transition-colors"
+            title="Créer un serveur"
+            aria-label="Créer un serveur"
+          >
+            Créer un serveur
+          </Button>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="w-full gap-2"
+            className="w-full gap-2 items-center justify-center"
             onClick={() => {
               setJoinError(null);
               setInviteCode("");
@@ -170,34 +249,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
             title="Rejoindre un serveur avec un code"
             aria-label="Rejoindre un serveur"
           >
-            <LogIn className="h-4 w-4" />
-            Rejoindre
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="w-full gap-2"
-            onClick={openInviteModal}
-            disabled={!serverIdFromPath}
-            title={serverIdFromPath ? "Inviter des utilisateurs sur ce serveur" : "Sélectionnez un serveur pour inviter"}
-            aria-label="Inviter des utilisateurs"
-          >
-            <UserPlus className="h-4 w-4" />
-            Inviter
-          </Button>
-        </div>
-
-        {/* Bouton pour créer un serveur  */}
-        <div className="shrink-0">
-            <Button
-            type="button"
-            onClick={() => setCreateOpen(true)}
-            className="flex h-[100px] w-[100px] items-center justify-center rounded-xl hover:cursor-pointer hover:bg-brand-hover bg-brand text-foreground transition-colors"
-            title="Créer un serveur"
-            aria-label="Créer un serveur"
-          >
-            <Plus className="h-6 w-6 text-white" />
+            Rejoindre un serveur
           </Button>
         </div>
       </div>
