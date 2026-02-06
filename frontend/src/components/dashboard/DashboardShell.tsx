@@ -19,6 +19,7 @@ export default function DashboardShell() {
 
   return (
     <>
+
       {/* Desktop  */}
       <div className="hidden h-screen overflow-hidden md:flex">
         <ServerBar />

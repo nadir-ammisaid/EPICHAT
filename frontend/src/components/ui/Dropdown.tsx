@@ -1,11 +1,25 @@
 "use client";
 
-import { createContext, useContext, useState, useRef, useEffect, useCallback, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  type ReactNode,
+  Children,
+  cloneElement,
+  isValidElement,
+  type ReactElement,
+} from "react";
+import { createPortal } from "react-dom";
 
 type DropdownContextValue = {
   open: boolean;
   setOpen: (value: boolean) => void;
   toggle: () => void;
+  triggerRef: React.RefObject<HTMLDivElement | null>;
 };
 
 const DropdownContext = createContext<DropdownContextValue | null>(null);
@@ -20,10 +34,13 @@ type DropdownProps = { children: ReactNode; className?: string };
 
 export function Dropdown({ children, className = "" }: DropdownProps) {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLDivElement | null>(null);
   const toggle = useCallback(() => setOpen((v) => !v), []);
   return (
-    <DropdownContext.Provider value={{ open, setOpen, toggle }}>
-      <div className={`relative ${className}`}>{children}</div>
+    <DropdownContext.Provider value={{ open, setOpen, toggle, triggerRef }}>
+      <div ref={triggerRef} className={`relative ${className}`}>
+        {children}
+      </div>
     </DropdownContext.Provider>
   );
 }
@@ -32,6 +49,25 @@ type TriggerProps = { children: ReactNode; className?: string };
 
 function Trigger({ children, className = "" }: TriggerProps) {
   const { toggle } = useDropdown();
+  const childArray = Children.toArray(children);
+  const singleChild = childArray.length === 1 ? childArray[0] : null;
+  const isSingleElement = singleChild !== null && isValidElement(singleChild);
+
+  if (isSingleElement) {
+    const prevOnClick = (singleChild.props as { onClick?: (e: React.MouseEvent) => void }).onClick;
+    return (
+      <div className={className}>
+        {cloneElement(singleChild as ReactElement<{ onClick?: (e: React.MouseEvent) => void }>, {
+          onClick: (e: React.MouseEvent) => {
+            e.stopPropagation();
+            toggle();
+            prevOnClick?.(e);
+          },
+        })}
+      </div>
+    );
+  }
+
   return (
     <div
       onClick={toggle}
@@ -47,16 +83,28 @@ function Trigger({ children, className = "" }: TriggerProps) {
 
 type MenuProps = {
   children: ReactNode;
-  /** Position du menu par rapport au trigger: "bottom" (sous) ou "top" (au-dessus) */
   position?: "bottom" | "top";
-  /** Alignement: "left" ou "right" */
   align?: "left" | "right";
   className?: string;
 };
 
 function Menu({ children, position = "bottom", align = "left", className = "" }: MenuProps) {
-  const { open, setOpen } = useDropdown();
+  const { open, setOpen, triggerRef } = useDropdown();
   const menuRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+
+  useEffect(() => {
+    if (open && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      const margin = 8;
+      setCoords({
+        top: position === "top" ? rect.top - margin : rect.bottom + margin,
+        left: align === "right" ? rect.right - 180 : rect.left,
+      });
+    } else {
+      setCoords(null);
+    }
+  }, [open, position, align, triggerRef]);
 
   useEffect(() => {
     if (!open) return;
@@ -64,9 +112,10 @@ function Menu({ children, position = "bottom", align = "left", className = "" }:
       if (e.key === "Escape") setOpen(false);
     };
     const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      const target = e.target as Node;
+      const inMenu = menuRef.current?.contains(target);
+      const inTrigger = triggerRef.current?.contains(target);
+      if (!inMenu && !inTrigger) setOpen(false);
     };
     document.addEventListener("keydown", handleEscape);
     document.addEventListener("mousedown", handleClickOutside);
@@ -74,22 +123,41 @@ function Menu({ children, position = "bottom", align = "left", className = "" }:
       document.removeEventListener("keydown", handleEscape);
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [open, setOpen]);
+  }, [open, setOpen, triggerRef]);
+
+  const handleMenuClick = useCallback(
+    (e: React.MouseEvent) => {
+      if ((e.target as Element).closest?.("[role='menuitem']")) setOpen(false);
+    },
+    [setOpen]
+  );
 
   if (!open) return null;
 
-  const positionClasses = position === "top" ? "bottom-full mb-2" : "top-full mt-2";
-  const alignClasses = align === "right" ? "right-0" : "left-0";
-
-  return (
+  const menuContent = (
     <div
       ref={menuRef}
-      className={`absolute z-50 min-w-[180px] rounded-lg border border-border bg-background py-1 shadow-lg ${positionClasses} ${alignClasses} ${className}`}
+      className={`fixed z-50 min-w-44 rounded-lg border border-border bg-background py-1 shadow-lg ${className} text-foreground`}
+      style={
+        coords
+          ? {
+              ...(position === "top"
+                ? { bottom: `calc(100vh - ${coords.top}px)`, left: coords.left }
+                : { top: coords.top, left: coords.left }),
+            }
+          : { visibility: "hidden" }
+      }
       role="menu"
+      onClick={handleMenuClick}
     >
       {children}
     </div>
   );
+
+  if (typeof document !== "undefined") {
+    return createPortal(menuContent, document.body);
+  }
+  return menuContent;
 }
 
 Dropdown.Trigger = Trigger;
