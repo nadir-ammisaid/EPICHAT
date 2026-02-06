@@ -50,8 +50,14 @@ export function createApp() {
         // allow non-browser clients (curl, postman)
         if (!origin) return callback(null, true);
 
-        // allow your frontend
-        if (origin === clientUrl) return callback(null, true);
+        // Allow localhost and 127.0.0.1 for development
+        if (
+          origin.startsWith("http://localhost") ||
+          origin.startsWith("http://127.0.0.1") ||
+          origin === clientUrl
+        ) {
+          return callback(null, true);
+        }
 
         // block everything else
         return callback(null, false);

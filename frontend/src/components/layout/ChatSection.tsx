@@ -5,7 +5,8 @@ import { usePathname } from "next/navigation";
 import parseDashboardPath from "@/lib/utils/parseDashboardPath";
 import { getSocket } from "@/lib/socket/socket";
 import { SOCKET_EVENTS } from "@/lib/socket/socket.events";
-import { Trash2, Pencil, Check, X } from "lucide-react";
+import { Trash2, Pencil, Check, X, Smile } from "lucide-react";
+import { EmojiPicker } from "@/components/ui/EmojiPicker";
 
 
 type Message = {
@@ -92,6 +93,7 @@ export default function ChatSection() {
   const [members, setMembers] = useState<Member[]>([]);
   const [showMentions, setShowMentions] = useState(false);
   const [mentionFilter, setMentionFilter] = useState("");
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [mentionIndex, setMentionIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -559,7 +561,7 @@ function cancelEditing() {
           <span>{m.author?.username ?? m.authorId}</span>
           <span>-</span>
           <span>{formatDate(m.createdAt)}</span>
-          {wasEdited && <span className="italic">(edited)</span>}
+          {wasEdited && <span className="italic">(modifié)</span>}
         </div>
 
         {isEditing ? (
@@ -593,7 +595,7 @@ function cancelEditing() {
           </div>
         ) : (
           <div className="text-sm leading-5">
-            {m.deletedAt ? <i className="opacity-60">(deleted)</i> : renderContent(m.content)}
+            {m.deletedAt ? <i className="opacity-60">(supprimé)</i> : renderContent(m.content)}
           </div>
         )}
       </div>
@@ -630,11 +632,30 @@ function cancelEditing() {
               ))}
             </div>
           )}
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
+                className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                aria-label="Open emoji picker"
+              >
+                <Smile className="w-5 h-5" />
+              </button>
+              <EmojiPicker
+                isOpen={isEmojiPickerOpen}
+                onClose={() => setIsEmojiPickerOpen(false)}
+                onEmojiSelect={(emoji) => {
+                  setText((prev) => prev + emoji);
+                  setIsEmojiPickerOpen(false);
+                  inputRef.current?.focus();
+                }}
+              />
+            </div>
             <input
               ref={inputRef}
               className="flex-1 rounded border border-border bg-background px-3 py-2 text-sm"
-              placeholder="Écrire un message..."
+              placeholder="Ecrire un message..."
               value={text}
               onChange={(e) => handleTypingChange(e.target.value)}
               onKeyDown={(e) => {

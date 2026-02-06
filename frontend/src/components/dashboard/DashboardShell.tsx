@@ -1,6 +1,7 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import ServerBar from "@/components/layout/ServerBar";
 import ChannelBar from "@/components/layout/ChannelBar";
@@ -10,12 +11,30 @@ import UserBar from "@/components/layout/UserBar";
 import UserAvatar from "@/components/ui/UserAvatar";
 import parseDashboardPath from "@/lib/utils/parseDashboardPath";
 import { ArrowLeftIcon } from "lucide-react";
-
-
+import { apiClient } from "@/lib/api/client";
 
 export default function DashboardShell() {
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { serverId, channelId } = parseDashboardPath(pathname ?? "");
+  const inviteHandled = useRef(false);
+
+  useEffect(() => {
+    const code = searchParams.get("invite");
+    if (!code || inviteHandled.current) return;
+    inviteHandled.current = true;
+    apiClient
+      .request(`/invites/${encodeURIComponent(code)}/join`, { method: "POST" })
+      .then((member: { serverId?: string }) => {
+        if (member?.serverId) {
+          router.replace(`/dashboard/${member.serverId}`);
+        }
+      })
+      .catch(() => {
+        inviteHandled.current = false;
+      });
+  }, [searchParams, router]);
 
   return (
     <>
