@@ -230,7 +230,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
           <Button
             type="button"
             onClick={() => setCreateOpen(true)}
-            className="w-full gap-2 items-center justify-center hover:cursor-pointer hover:bg-brand-hover bg-brand text-white transition-colors"
+            className="w-full gap-2 items-center justify-center hover:cursor-pointer hover:bg-brand-hover bg-brand text-background transition-colors"
             title="Créer un serveur"
             aria-label="Créer un serveur"
           >
