@@ -5,6 +5,7 @@ import {
   sendMessage,
   getChannelMessages,
   deleteMessage,
+  updateMessage,
 } from "./messages.controller.js";
 
 const router = Router();
@@ -24,5 +25,7 @@ router.get(
 );
 
 router.delete("/messages/:id", requireAuth, authorize(["user"]), deleteMessage);
+
+router.put("/messages/:id", requireAuth, authorize(["user"]), updateMessage);
 
 export default router;

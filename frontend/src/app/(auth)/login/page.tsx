@@ -10,11 +10,12 @@ export default function LoginPage() {
                 </div>
             </div>
             <Image 
-                src="/images/blue.jpg" 
-                alt="Epichat" 
+                src="/login.png" 
+                alt="Illustration de connexion" 
                 width={1920} 
                 height={1080} 
                 className="object-cover w-full h-full md:order-2" 
+                priority={true}
             />
         </div>
     );

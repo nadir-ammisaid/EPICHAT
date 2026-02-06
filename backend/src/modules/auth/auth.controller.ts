@@ -76,6 +76,7 @@ export async function meController(req: Request, res: Response) {
       id: true,
       email: true,
       username: true,
+      status: true,
       createdAt: true,
     },
   });
@@ -117,4 +118,39 @@ export async function deleteAccountController(req: Request, res: Response) {
 
   await deleteAccount(userId);
   res.status(204).send();
+}
+
+const VALID_STATUSES = ["online", "away", "busy", "invisible", "offline"];
+
+export async function updateStatusController(req: Request, res: Response) {
+  const userId = (req as any).user?.userId;
+  if (!userId) throw new HttpError(401, "Unauthorized");
+
+  const { status } = req.body;
+  if (!status || !VALID_STATUSES.includes(status)) {
+    throw new HttpError(400, "Invalid status");
+  }
+
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: { status },
+    select: { id: true, status: true },
+  });
+
+  const io = req.app.locals.io;
+  if (io) {
+    const memberships = await prisma.serverMember.findMany({
+      where: { userId },
+      select: { serverId: true },
+    });
+    for (const m of memberships) {
+      io.to(`server:${m.serverId}`).emit("presence:update", {
+        serverId: m.serverId,
+        userId,
+        status: status === "invisible" ? "offline" : status,
+      });
+    }
+  }
+
+  res.status(200).json(user);
 }

@@ -27,6 +27,9 @@ export async function sendMessage(
       authorId: userId,
       content,
     },
+    include: {
+      author: { select: { id: true, username: true } },
+    },
   });
 }
 
@@ -44,13 +47,10 @@ export async function getChannelMessages(
   const membership = await prisma.serverMember.findUnique({
     where: { serverId_userId: { serverId: channel.serverId, userId } },
   });
-  if (!membership)
-    throw new HttpError(
-      403,
-      "Access denied: You must be a member of this server to view this channel.",
-    );
+  if (!membership) throw new HttpError(403, "Access denied: You must be a member of this server to view this channel.");
 
-  // const cursorPart = before ? { cursor: { id: before }, skip: 1 } : {};
+
+
 
   // Configure pagination and fetching
   const args: any = {
@@ -65,12 +65,19 @@ export async function getChannelMessages(
     args.skip = 1;
   }
 
-  const rows = await prisma.message.findMany(args);
+  const rows = await prisma.message.findMany({
+  ...args,
+  include: {
+    author: { select: { id: true, username: true } },
+  },
+});
 
-  const last = rows.at(-1);
-  const nextCursor = last ? last.id : null;
-
+  // Format order (Oldest to Newest)
   const messages = rows.reverse();
+
+  
+  const nextCursor = messages.at(0)?.id ?? null;
+
 
   return { messages, nextCursor };
 }
@@ -106,4 +113,31 @@ export async function deleteMessage(userId: string, messageId: string) {
   });
 
   return message.channelId;
+}
+
+export async function updateMessage(
+  userId: string,
+  messageId: string,
+  content: string,
+) {
+  const message = await prisma.message.findUnique({
+    where: { id: messageId },
+    include: { channel: true },
+  });
+  if (!message) throw new HttpError(404, "Message not found");
+  if (message.deletedAt) throw new HttpError(400, "Cannot edit a deleted message");
+
+  if (message.authorId !== userId) {
+    throw new HttpError(403, "You can only edit your own messages");
+  }
+
+  const updated = await prisma.message.update({
+    where: { id: messageId },
+    data: { content, updatedAt: new Date() },
+    include: {
+      author: { select: { id: true, username: true } },
+    },
+  });
+
+  return updated;
 }
