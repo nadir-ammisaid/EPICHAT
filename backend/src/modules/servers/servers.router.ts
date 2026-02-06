@@ -2,6 +2,7 @@ import { Router } from "express";
 import asyncHandler from "../../shared/utils/asyncHandler.js";
 import { requireAuth } from "../../shared/middlewares/auth.middleware.js";
 import { authorize } from "../../shared/middlewares/authorize.middleware.js";
+import { createInviteController } from "../invites/invites.controller.js";
 import {
   createServerController,
   getManyServersController,
@@ -49,6 +50,13 @@ serversRouter.post(
   requireAuth,
   authorize(["user"]),
   asyncHandler(joinServerController),
+);
+
+serversRouter.post(
+  "/:id/invites",
+  requireAuth,
+  authorize(["user"]),
+  asyncHandler(createInviteController),
 );
 
 serversRouter.put(

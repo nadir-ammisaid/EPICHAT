@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Loader2, UserPlus, Copy, Check, Pencil, Trash2, Settings } from "lucide-react";
 import Image from "next/image";
 import { apiClient } from "@/lib/api/client";
 import { Button } from "@/components/ui/Button";
@@ -22,14 +22,16 @@ export default function ServerBar({ className = "" }: { className?: string }) {
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
-  const [editServer, setEditServer] = useState<Server | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editLoading, setEditLoading] = useState(false);
-  const [editError, setEditError] = useState<string | null>(null);
+  const [joinOpen, setJoinOpen] = useState(false);
+  const [inviteCode, setInviteCode] = useState("");
+  const [joinLoading, setJoinLoading] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
 
-  const [deleteServer, setDeleteServer] = useState<Server | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [createdCode, setCreatedCode] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const serverIdFromPath = pathname?.split("/").filter(Boolean)[1] ?? null;
 
@@ -47,7 +49,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
     getServers();
   }, []);
 
-  const handleCreateServer = async (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     const name = newName.trim();
     if (!name) return;
@@ -68,64 +70,76 @@ export default function ServerBar({ className = "" }: { className?: string }) {
     }
   };
 
-  const openEdit = (server: Server) => {
-    setEditServer(server);
-    setEditName(server.name);
-    setEditError(null);
-  };
-
-  const handleEdit = async (e: React.FormEvent) => {
+  const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editServer) return;
-    const name = editName.trim();
-    if (!name) return;
-    setEditError(null);
-    setEditLoading(true);
+    const code = inviteCode.trim();
+    if (!code) return;
+    setJoinError(null);
+    setJoinLoading(true);
     try {
-      const updated = await apiClient.request(`/servers/${editServer.id}`, {
-        method: "PUT",
-        body: JSON.stringify({ name }),
+      const member = await apiClient.request(`/invites/${encodeURIComponent(code)}/join`, {
+        method: "POST",
       });
-      setServers((prev) =>
-        prev.map((s) => (s.id === editServer.id ? { ...s, name: updated.name } : s))
-      );
-      setEditServer(null);
-      setEditName("");
-    } catch (e) {
-      setEditError(e instanceof Error ? e.message : "Erreur modification");
-    } finally {
-      setEditLoading(false);
-    }
-  };
-
-  const openDelete = (server: Server) => {
-    setDeleteServer(server);
-    setDeleteError(null);
-  };
-
-  const handleDelete = async () => {
-    if (!deleteServer) return;
-    setDeleteError(null);
-    setDeleteLoading(true);
-    try {
-      await apiClient.request(`/servers/${deleteServer.id}`, { method: "DELETE" });
-      setServers((prev) => prev.filter((s) => s.id !== deleteServer.id));
-      if (serverIdFromPath === deleteServer.id) {
-        router.push("/dashboard");
+      await getServers();
+      setInviteCode("");
+      setJoinOpen(false);
+      if (member?.serverId) {
+        router.push(`/dashboard/${member.serverId}`);
       }
-      setDeleteServer(null);
     } catch (e) {
-      setDeleteError(e instanceof Error ? e.message : "Erreur suppression");
+      setJoinError(e instanceof Error ? e.message : "Erreur lors de l’utilisation du code");
     } finally {
-      setDeleteLoading(false);
+      setJoinLoading(false);
     }
   };
 
+  const openInviteModal = (serverId?: string) => {
+    const id = serverId ?? serverIdFromPath;
+    setInviteError(null);
+    setCreatedCode(null);
+    setInviteOpen(true);
+    if (id) {
+      setInviteLoading(true);
+      apiClient
+        .request(`/servers/${id}/invites`, { method: "POST" })
+        .then((invite: { code: string }) => {
+          setCreatedCode(invite.code);
+        })
+        .catch((e: Error) => {
+          setInviteError(e instanceof Error ? e.message : "Erreur");
+        })
+        .finally(() => setInviteLoading(false));
+    }
+  };
+
+  const inviteLink = typeof window !== "undefined" && createdCode
+    ? `${window.location.origin}/dashboard?invite=${encodeURIComponent(createdCode)}`
+    : "";
+
+  const copyInviteLink = () => {
+    if (!inviteLink) return;
+    navigator.clipboard.writeText(inviteLink).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  // Supprimer un serveur
+  const handleDeleteServer = async (serverId: string) => {
+    try {
+      await apiClient.request(`/servers/${serverId}`, { method: "DELETE" });
+      await getServers();
+    } catch (e) {
+      console.error(e);
+    }
+  };
   return (
     <>
       <div
         className={`flex h-full shrink-0 flex-col items-center justify-between bg-background p-2 border border-border ${className}`}
       >
+        <div className="flex flex-col gap-2 mt-2 w-full items-center">
+
         <Link href="/dashboard" className="flex shrink-0" aria-label="Accueil">
             <Image
               src="/images/logo.png"
@@ -133,8 +147,10 @@ export default function ServerBar({ className = "" }: { className?: string }) {
               width={100}
               height={100}
               className="rounded-lg object-cover"
-            />
-              </Link>
+              />
+          </Link>
+          <hr className="w-full border-border-muted"/>
+              </div>
               
         {/* Liste de serveurs */}
         <div className="flex w-full flex-col gap-2 overflow-y-auto">
@@ -161,25 +177,31 @@ export default function ServerBar({ className = "" }: { className?: string }) {
                   </span>
                   <span className="truncate text-sm">{server.name}</span>
                 </Link>
-                
                 <Dropdown className="shrink-0">
                   <Dropdown.Trigger>
                     <button
                       type="button"
-                      className="flex h-8 w-8 items-center justify-center rounded-md text-foreground"
+                      className="flex h-8 w-8 items-center justify-center rounded-md hover:cursor-pointer text-foreground"
                       title="Options du serveur"
                       aria-label="Options du serveur"
                     >
-                      <Pencil className="h-4 w-4 hover:cursor-pointer" />
+                      <Settings className="h-4 w-4" />
                     </button>
                   </Dropdown.Trigger>
                   <Dropdown.Menu position="bottom" align="right">
                     <button
                       type="button"
-                      onClick={() => {
-                        openEdit(server);
-                      }}
-                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-foreground hover:bg-muted"
+                      onClick={() => openInviteModal(server.id)}
+                      className="flex w-full items-center gap-2 px-4 hover:cursor-pointer hover:bg-brand-muted/10 py-2 text-left text-sm text-foreground hover:bg-muted"
+                      role="menuitem"
+                    >
+                      <UserPlus className="h-4 w-4" />
+                      Inviter
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {}}
+                      className="flex w-full items-center gap-2 px-4 hover:cursor-pointer hover:bg-brand-muted/10 py-2 text-left text-sm text-foreground hover:bg-muted"
                       role="menuitem"
                     >
                       <Pencil className="h-4 w-4" />
@@ -187,10 +209,8 @@ export default function ServerBar({ className = "" }: { className?: string }) {
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        openDelete(server);
-                      }}
-                      className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-error hover:bg-muted"
+                      onClick={() => handleDeleteServer(server.id)}
+                      className="flex w-full items-center gap-2 px-4 hover:cursor-pointer hover:bg-brand-muted/10 py-2 text-left text-sm text-error hover:bg-muted"
                       role="menuitem"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -202,18 +222,34 @@ export default function ServerBar({ className = "" }: { className?: string }) {
             );
           })}
         </div>
+            
+      
 
-              
-        {/* Bouton pour créer un serveur  */}
-        <div className="shrink-0">
-            <Button
+        {/* Créer / Rejoindre */}
+        <div className="shrink-0 flex flex-col gap-2 w-full items-center">
+          <Button
             type="button"
             onClick={() => setCreateOpen(true)}
-            className="flex h-24 w-24 items-center justify-center rounded-xl hover:cursor-pointer hover:bg-brand-hover bg-brand text-foreground transition-colors"
+            className="w-full gap-2 items-center justify-center hover:cursor-pointer hover:bg-brand-hover bg-brand text-background transition-colors"
             title="Créer un serveur"
             aria-label="Créer un serveur"
           >
-            <Plus className="h-6 w-6 text-background" />
+            Créer un serveur
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="w-full gap-2 items-center justify-center"
+            onClick={() => {
+              setJoinError(null);
+              setInviteCode("");
+              setJoinOpen(true);
+            }}
+            title="Rejoindre un serveur avec un code"
+            aria-label="Rejoindre un serveur"
+          >
+            Rejoindre un serveur
           </Button>
         </div>
       </div>
@@ -227,7 +263,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
         }}
         title="Nouveau serveur"
       >
-        <form onSubmit={handleCreateServer} className="flex flex-col gap-3">
+        <form onSubmit={handleCreate} className="flex flex-col gap-3">
           <Input
             label="Nom du serveur"
             value={newName}
@@ -265,36 +301,34 @@ export default function ServerBar({ className = "" }: { className?: string }) {
       </Modal>
 
       <Modal
-        open={!!editServer}
+        open={joinOpen}
         onClose={() => {
-          setEditServer(null);
-          setEditName("");
-          setEditError(null);
+          setJoinOpen(false);
+          setInviteCode("");
+          setJoinError(null);
         }}
-        title="Modifier le serveur"
+        title="Rejoindre un serveur"
       >
-        <form onSubmit={handleEdit} className="flex flex-col gap-3">
+        <form onSubmit={handleJoin} className="flex flex-col gap-3">
           <Input
-            label="Nom du serveur"
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
-            placeholder="Mon serveur"
-            maxLength={100}
-            required
-            disabled={editLoading}
+            label="Code d'invitation"
+            value={inviteCode}
+            onChange={(e) => setInviteCode(e.target.value)}
+            placeholder="Collez le code reçu"
+            disabled={joinLoading}
           />
-          {editError && <p className="text-sm text-error">{editError}</p>}
+          {joinError && <p className="text-sm text-error">{joinError}</p>}
           <div className="flex gap-2">
             <Button
               type="button"
               variant="outline"
               className="flex-1"
               onClick={() => {
-                setEditServer(null);
-                setEditName("");
-                setEditError(null);
+                setJoinOpen(false);
+                setInviteCode("");
+                setJoinError(null);
               }}
-              disabled={editLoading}
+              disabled={joinLoading}
             >
               Annuler
             </Button>
@@ -302,55 +336,70 @@ export default function ServerBar({ className = "" }: { className?: string }) {
               type="submit"
               variant="primary"
               className="flex-1"
-              disabled={editLoading || !editName.trim()}
+              disabled={joinLoading || !inviteCode.trim()}
             >
-              {editLoading ? "Enregistrement…" : "Enregistrer"}
+              {joinLoading ? "Rejoindre…" : "Rejoindre"}
             </Button>
           </div>
         </form>
       </Modal>
 
       <Modal
-        open={!!deleteServer}
+        open={inviteOpen}
         onClose={() => {
-          if (!deleteLoading) {
-            setDeleteServer(null);
-            setDeleteError(null);
-          }
+          setInviteOpen(false);
+          setInviteError(null);
+          setCreatedCode(null);
+          setCopied(false);
         }}
-        title="Supprimer le serveur"
+        title="Inviter des utilisateurs"
       >
         <div className="flex flex-col gap-3">
-          {deleteServer && (
-            <p className="text-sm text-foreground">
-              Êtes-vous sûr de vouloir supprimer le serveur{" "}
-              <strong>{deleteServer.name}</strong> ? Cette action est irréversible.
+          {inviteLoading && (
+            <p className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Génération du lien…
             </p>
           )}
-          {deleteError && <p className="text-sm text-error">{deleteError}</p>}
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="flex-1"
-              onClick={() => {
-                setDeleteServer(null);
-                setDeleteError(null);
-              }}
-              disabled={deleteLoading}
-            >
-              Annuler
-            </Button>
-            <Button
-              type="button"
-              variant="primary"
-              className="flex-1 bg-error hover:opacity-90"
-              onClick={handleDelete}
-              disabled={deleteLoading}
-            >
-              {deleteLoading ? "Suppression…" : "Supprimer"}
-            </Button>
-          </div>
+          {inviteError && <p className="text-sm text-error">{inviteError}</p>}
+          {createdCode && !inviteLoading && (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Partagez ce lien ou le code pour que d’autres puissent rejoindre le serveur (via « Rejoindre »).
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  readOnly
+                  value={inviteLink}
+                  className="font-mono text-sm"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={copyInviteLink}
+                  className="shrink-0"
+                  title="Copier le lien"
+                >
+                  {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Code seul : <code className="rounded bg-muted px-1">{createdCode}</code>
+              </p>
+            </>
+          )}
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-2"
+            onClick={() => {
+              setInviteOpen(false);
+              setInviteError(null);
+              setCreatedCode(null);
+            }}
+          >
+            Fermer
+          </Button>
         </div>
       </Modal>
     </>
