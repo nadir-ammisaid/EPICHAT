@@ -28,7 +28,10 @@ export default function UserAvatar() {
       .request("/me")
       .then((user: { username?: string; status?: string }) => {
         setUsername(user?.username ?? null);
-        if (user?.status) setStatus(user.status as UserStatus);
+        if (user?.status) {
+          const s = user.status === "offline" ? "online" : user.status;
+          setStatus(s as UserStatus);
+        }
       })
       .catch(() => setUsername(null));
   }, []);

@@ -92,7 +92,22 @@ export function startServer() {
 
   io.on("connection", (socket) => {
     // console.log("[socket] connected:", socket.id);
-    // console.log(socket.handshake.auth);
+    // console.log("[socket] connected:", socket.id);
+    const userId = socket.data.user?.id;
+
+    if (userId) {
+       // On connection, mark as online if currently offline
+       prisma.user.findUnique({ where: { id: userId }, select: { status: true } })
+        .then(async (user) => {
+            if (user?.status === 'offline') {
+                await prisma.user.update({
+                    where: { id: userId },
+                    data: { status: 'online' }
+                });
+            }
+        })
+        .catch(() => {});
+    }
 
     socket.on("channel:join", (rawChannelId: string) => {
       if (typeof rawChannelId !== "string") return;
