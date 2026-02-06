@@ -634,7 +634,7 @@ function cancelEditing() {
             <input
               ref={inputRef}
               className="flex-1 rounded border border-border bg-background px-3 py-2 text-sm"
-              placeholder="Write a message…"
+              placeholder="Écrire un message..."
               value={text}
               onChange={(e) => handleTypingChange(e.target.value)}
               onKeyDown={(e) => {
@@ -672,7 +672,7 @@ function cancelEditing() {
               onClick={handleSend}
               disabled={sending || !text.trim()}
             >
-              Send
+              Envoyer
             </button>
           </div>
         </div>
