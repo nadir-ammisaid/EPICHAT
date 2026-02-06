@@ -70,7 +70,7 @@ npm run test:coverage # Run with coverage report
 | POST   | `/auth/signup` | Create account    |
 | POST   | `/auth/login`  | Authenticate user |
 | POST   | `/auth/logout` | Invalidate token  |
-| GET    | `/auth/me`     | Get current user  |
+| GET    | `/me`          | Get current user  |
 
 ### Servers
 
@@ -78,7 +78,7 @@ npm run test:coverage # Run with coverage report
 | ------ | ------------------------------ | ------------------- |
 | GET    | `/servers`                     | List user's servers |
 | POST   | `/servers`                     | Create server       |
-| GET    | `/servers/:id`                 | Get server details  |
+| GET    | `/server/:id`                  | Get server details  |
 | PUT    | `/servers/:id`                 | Update server       |
 | DELETE | `/servers/:id`                 | Delete server       |
 | POST   | `/servers/:id/join`            | Join server         |
@@ -102,6 +102,7 @@ npm run test:coverage # Run with coverage report
 | ------ | ------------------------ | ------------------- |
 | GET    | `/channels/:id/messages` | Get message history |
 | POST   | `/channels/:id/messages` | Send message        |
+| PUT    | `/messages/:id`          | Edit message        |
 | DELETE | `/messages/:id`          | Delete message      |
 
 ### Invites
@@ -122,6 +123,7 @@ Connection: `ws://localhost:3001/ws`
 | `typing:stop`     | Client    | `{ channelId, userId }`    | Stop typing indicator  |
 | `typing:update`   | Server    | `{ channelId, userIds[] }` | Typing users list      |
 | `message:new`     | Server    | `Message`                  | New message broadcast  |
+| `message:updated` | Server    | `Message`                  | Message edited         |
 | `message:deleted` | Server    | `{ messageId }`            | Message deleted        |
 
 ## Database Schema

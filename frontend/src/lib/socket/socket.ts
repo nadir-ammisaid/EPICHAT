@@ -5,14 +5,21 @@ import { io, type Socket } from "socket.io-client";
 let socket: Socket | null = null;
 
 export function getSocket() {
-  if (socket) return socket;
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+  const token = localStorage.getItem("token");
 
+  if (socket) {
 
-  const url = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+    socket.auth = token ? { token } : {};
+    return socket;
+  }
 
-  socket = io(url, {
-    path: "/ws", 
+  socket = io(apiUrl, {
+    path: "/ws",
     transports: ["websocket"],
+    autoConnect: true,
+    withCredentials: true,
+    auth: token ? { token } : undefined,
   });
 
   return socket;

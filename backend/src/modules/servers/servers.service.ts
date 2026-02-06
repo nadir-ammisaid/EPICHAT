@@ -199,6 +199,7 @@ export async function getServerMembers(
           id: true,
           email: true,
           username: true,
+          status: true,
           createdAt: true,
         },
       },

@@ -26,7 +26,7 @@ export function Modal({ open, onClose, title, children, titleId }: ModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/30 p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby={id}
@@ -39,7 +39,7 @@ export function Modal({ open, onClose, title, children, titleId }: ModalProps) {
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
-          <h2 id={id} className="mb-4 text-lg font-semibold">
+          <h2 id={id} className="mb-4 h3">
             {title}
           </h2>
         )}
