@@ -335,7 +335,7 @@ export function EmojiPicker({
       <div className="border-border border-b p-2">
         <input
           type="text"
-          placeholder="Search emojis... (e.g. heart, smile, fire)"
+          placeholder="Rechercher un emoji..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="bg-background border-border focus:ring-primary w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:outline-none"
@@ -365,7 +365,7 @@ export function EmojiPicker({
       <div className="h-48 overflow-y-auto p-2">
         {filteredEmojis.length === 0 ? (
           <p className="text-muted-foreground py-4 text-center text-sm">
-            No emojis found for &quot;{searchQuery}&quot;
+            Aucun emoji trouve pour &quot;{searchQuery}&quot;
           </p>
         ) : (
           <div className="grid grid-cols-8 gap-1">
