@@ -50,13 +50,25 @@ export function createApp() {
         // allow non-browser clients (curl, postman)
         if (!origin) return callback(null, true);
 
-        // Allow localhost and 127.0.0.1 for development
-        if (
-          origin.startsWith("http://localhost") ||
-          origin.startsWith("http://127.0.0.1") ||
-          origin === clientUrl
-        ) {
+        if (origin === clientUrl) {
           return callback(null, true);
+        }
+
+        try {
+          const { hostname } = new URL(origin);
+
+          // Local development + common private network ranges
+          if (
+            hostname === "localhost" ||
+            hostname === "127.0.0.1" ||
+            hostname.startsWith("10.") ||
+            hostname.startsWith("192.168.") ||
+            /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname)
+          ) {
+            return callback(null, true);
+          }
+        } catch {
+          // Invalid origin, block below
         }
 
         // block everything else
