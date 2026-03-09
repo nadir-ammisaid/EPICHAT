@@ -206,17 +206,21 @@ EPICHAT/
 
 ## Environment Variables
 
-### Backend (.env)
+### Backend (`backend/.env`)
 
 ```
-DATABASE_URL=postgresql://user:pass@localhost:5432/epichat
-JWT_SECRET=your-secret-key
-JWT_EXPIRES_IN=1h
 CLIENT_URL=http://localhost:3000
-PORT=3001
+
+# Local database URL (backend launched from host)
+DATABASE_URL=postgresql://user:password@localhost:5432/epichat?sslmode=disable
+# Docker database URL (uncomment if needed)
+# DATABASE_URL=postgresql://user:password@db:5432/epichat?sslmode=disable
+
+JWT_SECRET=your-secret-key
+JWT_EXPIRES_IN=3600
 ```
 
-### Frontend (.env.local)
+### Frontend (`frontend/.env`)
 
 ```
 NEXT_PUBLIC_API_URL=http://localhost:3001
