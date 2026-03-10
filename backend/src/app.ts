@@ -10,6 +10,7 @@ import {
 import { invitesRouter } from "./modules/invites/invites.router.js";
 import { channelsRouter } from "./modules/channels/channels.router.js";
 import messagesRouter from "./modules/messages/messages.router.js";
+import { gifRouter } from "./modules/gif/gif.router.js";
 import {
   meController,
   updateProfileController,
@@ -96,6 +97,7 @@ export function createApp() {
   // Routers that already define their own paths
   app.use(channelsRouter);
   app.use(messagesRouter);
+  app.use(gifRouter);
 
   // Handle unknown routes
   app.use(notFound);

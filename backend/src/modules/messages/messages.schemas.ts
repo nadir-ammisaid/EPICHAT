@@ -1,8 +1,27 @@
 import { z } from "zod";
 
-export const sendMessageBodySchema = z.object({
-  content: z.string().min(1).max(2000),
+const textMessageSchema = z.object({
+  type: z.literal("text"),
+  content: z.string().trim().min(1).max(2000),
+  mediaUrl: z.undefined().optional(),
 });
+
+const gifMessageSchema = z.object({
+  type: z.literal("gif"),
+  content: z.string().trim().max(2000).optional().default(""),
+  mediaUrl: z.string().url("mediaUrl must be a valid URL"),
+});
+
+const legacyTextMessageSchema = z.object({
+  content: z.string().trim().min(1).max(2000),
+});
+
+export const sendMessageBodySchema = z
+  .union([textMessageSchema, gifMessageSchema, legacyTextMessageSchema])
+  .transform((payload) => {
+    if ("type" in payload) return payload;
+    return { type: "text" as const, content: payload.content, mediaUrl: undefined };
+  });
 
 export const channelIdParamsSchema = z.object({
   id: z.uuid({ message: "channel id must be a valid UUID" }),
@@ -18,5 +37,5 @@ export const getMessagesQuerySchema = z.object({
 });
 
 export const updateMessageBodySchema = z.object({
-  content: z.string().min(1).max(2000),
+  content: z.string().trim().min(1).max(2000),
 });
