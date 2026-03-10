@@ -12,6 +12,9 @@ import Loader from "@/components/ui/Loader";
 import AuthGuard from "@/lib/auth/auth.guard";
 import { ArrowLeft, MessageCircleWarning, RefreshCw } from "lucide-react";
 
+const AVATAR_SEED_STORAGE_KEY = "epichat.avatarSeed";
+const AVATAR_SEED_UPDATED_EVENT = "epichat:avatar-seed-updated";
+
 interface UserProfile {
   id: string;
   email: string;
@@ -42,6 +45,10 @@ export default function ProfilePage() {
       })
       .catch(() => router.replace("/login"))
       .finally(() => setUserLoading(false));
+
+    if (typeof window !== "undefined") {
+      setAvatarSeed(localStorage.getItem(AVATAR_SEED_STORAGE_KEY) ?? "");
+    }
   }, [router]);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -108,7 +115,14 @@ export default function ProfilePage() {
           <div className="flex flex-col items-center gap-3 md:w-1/3">
             <button
               type="button"
-              onClick={() => setAvatarSeed(`${username}-${Date.now()}`)}
+              onClick={() => {
+                const nextSeed = `${username || "default"}-${Date.now()}`;
+                setAvatarSeed(nextSeed);
+                if (typeof window !== "undefined") {
+                  localStorage.setItem(AVATAR_SEED_STORAGE_KEY, nextSeed);
+                  window.dispatchEvent(new Event(AVATAR_SEED_UPDATED_EVENT));
+                }
+              }}
               className="group focus:ring-brand relative flex shrink-0 rounded-full ring-2 ring-transparent outline-none"
               title="Changer l'avatar"
               aria-label="Changer l'avatar"
