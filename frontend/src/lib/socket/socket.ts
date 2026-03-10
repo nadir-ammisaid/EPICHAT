@@ -9,8 +9,12 @@ export function getSocket() {
   const token = localStorage.getItem("token");
 
   if (socket) {
-
-    socket.auth = token ? { token } : {};
+    // Si le token a changé, on reconnecte avec le bon token
+    const currentToken = (socket.auth as { token?: string })?.token;
+    if (token && currentToken !== token) {
+      socket.auth = { token };
+      socket.disconnect().connect();
+    }
     return socket;
   }
 
@@ -33,7 +37,6 @@ export function joinChannel(channelId: string) {
     return;
   }
 
-  
   s.once("connect", () => {
     s.emit("channel:join", channelId);
   });
