@@ -59,7 +59,7 @@ export default function LoginForm() {
                 setError("Identifiants invalides");
                 setIsLoading(false);
             }
-        } catch (error) {
+        } catch {
             setError("Erreur lors de la connexion");
             setIsLoading(false);
         }

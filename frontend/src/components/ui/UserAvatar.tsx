@@ -3,10 +3,14 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { LogOut, User, UserIcon, Circle } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { Dropdown } from "@/components/ui/Dropdown";
 import getRandomAvatar from "@/lib/utils/getRandomAvatar";
+
+const AVATAR_SEED_STORAGE_KEY = "epichat.avatarSeed";
+const AVATAR_SEED_UPDATED_EVENT = "epichat:avatar-seed-updated";
 
 type UserStatus = "online" | "away" | "busy" | "invisible";
 
@@ -21,7 +25,11 @@ export default function UserAvatar() {
   const router = useRouter();
   const [username, setUsername] = useState<string | null>(null);
   const [status, setStatus] = useState<UserStatus>("online");
-  const avatarUrl = getRandomAvatar(username ?? "default");
+  const [avatarSeed, setAvatarSeed] = useState<string>(() => {
+    if (typeof window === "undefined") return "";
+    return localStorage.getItem(AVATAR_SEED_STORAGE_KEY) ?? "";
+  });
+  const avatarUrl = getRandomAvatar(avatarSeed || username || "default");
 
   useEffect(() => {
     apiClient
@@ -34,6 +42,28 @@ export default function UserAvatar() {
         }
       })
       .catch(() => setUsername(null));
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const syncAvatarSeed = () => {
+      setAvatarSeed(localStorage.getItem(AVATAR_SEED_STORAGE_KEY) ?? "");
+    };
+
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === AVATAR_SEED_STORAGE_KEY) {
+        syncAvatarSeed();
+      }
+    };
+
+    window.addEventListener("storage", onStorage);
+    window.addEventListener(AVATAR_SEED_UPDATED_EVENT, syncAvatarSeed);
+
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener(AVATAR_SEED_UPDATED_EVENT, syncAvatarSeed);
+    };
   }, []);
 
   const handleLogout = () => {
@@ -60,12 +90,13 @@ export default function UserAvatar() {
       <Dropdown.Trigger className="relative flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full transition-opacity hover:opacity-90">
         <div className="h-full w-full overflow-hidden rounded-full border border-border bg-brand-muted/80">
           {username ? (
-            <img
+            <Image
               src={avatarUrl}
               alt={username}
               className="h-full w-full object-cover"
               width={48}
               height={48}
+              unoptimized
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center">

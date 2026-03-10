@@ -4,9 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:local": "node ./node_modules/next/dist/bin/next dev",
     "build": "next build",
+    "build:local": "node ./node_modules/next/dist/bin/next build",
     "start": "next start",
-    "lint": "eslint"
+    "start:local": "node ./node_modules/next/dist/bin/next start",
+    "lint": "eslint",
+    "lint:local": "node ./node_modules/eslint/bin/eslint.js ."
   },
   "dependencies": {
     "axios": "^1.13.3",
