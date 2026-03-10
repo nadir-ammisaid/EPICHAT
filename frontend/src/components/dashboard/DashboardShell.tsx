@@ -28,21 +28,21 @@ export default function DashboardShell() {
   const [dmContact, setDmContact] = useState<{ username: string; status: string } | null>(null);
 
 useEffect(() => {
-  if (serverId !== "dm" || !channelId) { setDmContact(null); return; }
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-    const uid = JSON.parse(atob(token.split(".")[1])).userId ?? null;
-    if (!uid) return;
-    getConversations()
-      .then((convs) => {
-        const conv = convs.find((c) => c.id === channelId);
-        if (!conv) return;
-        const other = conv.participant1Id === uid ? conv.participant2 : conv.participant1;
-        setDmContact({ username: other.username, status: other.status });
-      })
-      .catch(() => setDmContact(null));
-  } catch { setDmContact(null); }
+  async function load() {
+    if (serverId !== "dm" || !channelId) { setDmContact(null); return; }
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const uid = JSON.parse(atob(token.split(".")[1])).userId ?? null;
+      if (!uid) return;
+      const convs = await getConversations();
+      const conv = convs.find((c) => c.id === channelId);
+      if (!conv) { setDmContact(null); return; }
+      const other = conv.participant1Id === uid ? conv.participant2 : conv.participant1;
+      setDmContact({ username: other.username, status: other.status });
+    } catch { setDmContact(null); }
+  }
+  load();
 }, [serverId, channelId]);
 
 

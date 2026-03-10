@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState,useMemo } from "react";
 import parseDashboardPath from "@/lib/utils/parseDashboardPath";
 import { apiClient } from "@/lib/api/client";
 import getInitials from "@/lib/utils/getInitials";
@@ -37,16 +37,13 @@ export default function MemberSection() {
   const [onlineStatus, setOnlineStatus] = useState<Record<string, string>>({});
 
   const router = useRouter();
-  const [myUserId, setMyUserId] = useState<string | null>(null);
-
-  useEffect(() => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      setMyUserId(payload.userId ?? null);
-    } catch { }
-  }, []);
+const myUserId = useMemo(() => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+    return JSON.parse(atob(token.split(".")[1])).userId ?? null;
+  } catch { return null; }
+}, []);
 
   async function handleOpenDm(targetUserId: string) {
     try {
