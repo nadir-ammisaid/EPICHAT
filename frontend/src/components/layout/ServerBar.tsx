@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Loader2, UserPlus, Copy, Check, Pencil, Trash2, Settings } from "lucide-react";
+import { Loader2, UserPlus, Copy, Check, Pencil, Trash2, Settings,MessageSquare } from "lucide-react";
 import Image from "next/image";
 import { apiClient } from "@/lib/api/client";
 import { Button } from "@/components/ui/Button";
@@ -124,7 +124,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
     });
   };
 
-  // Supprimer un serveur
+  // delet server
   const handleDeleteServer = async (serverId: string) => {
     try {
       await apiClient.request(`/servers/${serverId}`, { method: "DELETE" });
@@ -150,9 +150,20 @@ export default function ServerBar({ className = "" }: { className?: string }) {
               />
           </Link>
           <hr className="w-full border-border-muted"/>
+          <Link
+  href="/dashboard/dm"
+  className={`flex w-full items-center gap-3 rounded-lg px-4 py-2 transition-colors hover:bg-brand-muted/80 hover:cursor-pointer ${
+    pathname?.startsWith("/dashboard/dm") ? "bg-brand-hover font-medium" : "bg-brand-muted"
+  }`}
+  title="Messages privés"
+>
+  <MessageSquare className="h-5 w-5 shrink-0" />
+  <span className="truncate text-sm">Messages privés</span>
+</Link>
+
               </div>
               
-        {/* Liste de serveurs */}
+         {/* Server list */}
         <div className="flex w-full flex-col gap-2 overflow-y-auto">
           {servers.map((server) => {
             const isActive = serverIdFromPath === server.id;  
@@ -225,7 +236,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
             
       
 
-        {/* Créer / Rejoindre */}
+        {/* Create / Join */}
         <div className="shrink-0 flex flex-col gap-2 w-full items-center">
           <Button
             type="button"
