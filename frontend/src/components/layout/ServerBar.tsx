@@ -40,7 +40,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
       setServers([]);
       const data = await apiClient.request("/servers");
       setServers(Array.isArray(data) ? data : []);
-    } catch (e) {
+    } catch {
       setServers([]);
     }
   };

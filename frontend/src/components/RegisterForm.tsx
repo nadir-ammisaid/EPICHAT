@@ -54,7 +54,7 @@ export default function RegisterForm() {
             }
 
             router.push("/login");
-        } catch (error) {
+        } catch {
             setError("Erreur lors de l'inscription");
             setIsLoading(false);
         }

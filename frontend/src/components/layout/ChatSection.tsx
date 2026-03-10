@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -5,8 +6,10 @@ import { usePathname } from "next/navigation";
 import parseDashboardPath from "@/lib/utils/parseDashboardPath";
 import { getSocket } from "@/lib/socket/socket";
 import { SOCKET_EVENTS } from "@/lib/socket/socket.events";
-import { Trash2, Pencil, Check, X, Smile } from "lucide-react";
+import { Trash2, Pencil, Check, X, Smile, Image as ImageIcon, Search } from "lucide-react";
 import { EmojiPicker } from "@/components/ui/EmojiPicker";
+import { Modal } from "@/components/ui/Modal";
+import { apiClient } from "@/lib/api/client";
 
 
 type Message = {
@@ -14,12 +17,21 @@ type Message = {
   channelId: string;
   authorId: string;
   content: string;
+  type: "text" | "gif";
+  mediaUrl: string | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
   author?: {
     username: string;
   };
+};
+
+type GifSearchItem = {
+  id: string;
+  title: string;
+  previewUrl: string;
+  gifUrl: string;
 };
 
 type Member = {
@@ -83,6 +95,7 @@ export default function ChatSection() {
 
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const [gifSending, setGifSending] = useState(false);
 
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [usernamesById, setUsernamesById] = useState<Record<string, string>>({});
@@ -95,6 +108,13 @@ export default function ChatSection() {
   const [mentionFilter, setMentionFilter] = useState("");
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [mentionIndex, setMentionIndex] = useState(0);
+  const [gifModalOpen, setGifModalOpen] = useState(false);
+  const [gifQuery, setGifQuery] = useState("");
+  const [gifResults, setGifResults] = useState<GifSearchItem[]>([]);
+  const [gifLoading, setGifLoading] = useState(false);
+  const [gifError, setGifError] = useState<string | null>(null);
+  const [gifOffset, setGifOffset] = useState(0);
+  const [selectedGif, setSelectedGif] = useState<GifSearchItem | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const typingStopTimer = useRef<number | null>(null);
@@ -278,7 +298,7 @@ export default function ChatSection() {
       setMessages((prev) =>
         prev.map((m) =>
           m.id === payload.id
-            ? { ...m, content: "", deletedAt: new Date().toISOString() }
+            ? { ...m, content: "", mediaUrl: null, deletedAt: new Date().toISOString() }
             : m,
         ),
       );
@@ -383,7 +403,7 @@ async function handleDelete(messageId: string) {
     setMessages((prev) =>
       prev.map((m) =>
         m.id === messageId
-          ? { ...m, content: "", deletedAt: new Date().toISOString() }
+          ? { ...m, content: "", mediaUrl: null, deletedAt: new Date().toISOString() }
           : m,
       ),
     );
@@ -441,8 +461,39 @@ function cancelEditing() {
 }
 
 
-  // Send message (REST)
-  async function handleSend() {
+  async function searchGifs(offset = 0, append = false) {
+    const q = gifQuery.trim();
+    if (!q) {
+      setGifResults([]);
+      setGifOffset(0);
+      setSelectedGif(null);
+      return;
+    }
+
+    setGifLoading(true);
+    setGifError(null);
+
+    try {
+      const data = await apiClient.request(
+        `/gif/search?q=${encodeURIComponent(q)}&limit=20&offset=${offset}`,
+      );
+
+      const items = (data?.items ?? []) as GifSearchItem[];
+      setGifResults((prev) => (append ? [...prev, ...items] : items));
+      setGifOffset(typeof data?.nextOffset === "number" ? data.nextOffset : 0);
+      setSelectedGif((prev) => {
+        if (append || prev) return prev;
+        return items[0] ?? null;
+      });
+    } catch (e: unknown) {
+      setGifError(e instanceof Error ? e.message : "Failed to search GIFs");
+    } finally {
+      setGifLoading(false);
+    }
+  }
+
+  // Send text message (REST)
+  async function handleSendText() {
     if (!channelId) return;
 
     const content = text.trim();
@@ -462,7 +513,7 @@ function cancelEditing() {
             "Content-Type": "application/json",
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
-          body: JSON.stringify({ content }),
+          body: JSON.stringify({ type: "text", content }),
         },
       );
 
@@ -482,6 +533,48 @@ function cancelEditing() {
       setError(e instanceof Error ? e.message : "Failed to send message");
     } finally {
       setSending(false);
+    }
+  }
+
+  async function handleSendGif() {
+    if (!channelId || !selectedGif) return;
+
+    setGifSending(true);
+    setError(null);
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/channels/${channelId}/messages`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            type: "gif",
+            mediaUrl: selectedGif.gifUrl,
+            content: selectedGif.title,
+          }),
+        },
+      );
+
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error(`${res.status} ${res.statusText} - ${t}`);
+      }
+
+      setGifModalOpen(false);
+      setSelectedGif(null);
+      setGifResults([]);
+      setGifQuery("");
+      setGifOffset(0);
+    } catch (e: unknown) {
+      setGifError(e instanceof Error ? e.message : "Failed to send GIF");
+    } finally {
+      setGifSending(false);
     }
   }
 
@@ -516,7 +609,8 @@ function cancelEditing() {
 
 {messages.map((m) => {
   const canDelete = !!myUserId && m.authorId === myUserId && !m.deletedAt;
-  const canEdit = !!myUserId && m.authorId === myUserId && !m.deletedAt;
+  const canEdit =
+    !!myUserId && m.authorId === myUserId && !m.deletedAt && m.type === "text";
   const isEditing = editingId === m.id;
   const wasEdited = m.updatedAt !== m.createdAt && !m.deletedAt;
 
@@ -595,7 +689,20 @@ function cancelEditing() {
           </div>
         ) : (
           <div className="text-sm leading-5">
-            {m.deletedAt ? <i className="opacity-60">(supprimé)</i> : renderContent(m.content)}
+            {m.deletedAt ? (
+              <i className="opacity-60">(supprimé)</i>
+            ) : m.type === "gif" && m.mediaUrl ? (
+              <a href={m.mediaUrl} target="_blank" rel="noreferrer" className="inline-block">
+                <img
+                  src={m.mediaUrl}
+                  alt={m.content || "GIF"}
+                  className="max-h-64 max-w-full rounded-md border border-border"
+                  loading="lazy"
+                />
+              </a>
+            ) : (
+              renderContent(m.content)
+            )}
           </div>
         )}
       </div>
@@ -633,6 +740,19 @@ function cancelEditing() {
             </div>
           )}
           <div className="flex gap-2 items-center">
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setGifModalOpen(true);
+                  setGifError(null);
+                }}
+                className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                aria-label="Open GIF search"
+              >
+                <ImageIcon className="w-5 h-5" />
+              </button>
+            </div>
             <div className="relative">
               <button
                 type="button"
@@ -684,13 +804,13 @@ function cancelEditing() {
                     return;
                   }
                 }
-                if (e.key === "Enter") handleSend();
+                if (e.key === "Enter") handleSendText();
               }}
               disabled={sending}
             />
             <button
               className="rounded bg-brand px-3 py-2 text-sm text-white disabled:opacity-50"
-              onClick={handleSend}
+              onClick={handleSendText}
               disabled={sending || !text.trim()}
             >
               Envoyer
@@ -698,6 +818,91 @@ function cancelEditing() {
           </div>
         </div>
       </div>
+
+      <Modal
+        open={gifModalOpen}
+        onClose={() => setGifModalOpen(false)}
+        title="Rechercher un GIF"
+      >
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <input
+              className="flex-1 rounded border border-border bg-background px-3 py-2 text-sm"
+              placeholder="Rechercher sur Giphy..."
+              value={gifQuery}
+              onChange={(e) => setGifQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") searchGifs(0, false);
+              }}
+            />
+            <button
+              type="button"
+              className="rounded bg-brand px-3 py-2 text-sm text-white disabled:opacity-50"
+              onClick={() => searchGifs(0, false)}
+              disabled={gifLoading || !gifQuery.trim()}
+            >
+              <Search className="h-4 w-4" />
+            </button>
+          </div>
+
+          {gifError && <p className="text-sm text-red-500">{gifError}</p>}
+
+          {selectedGif && (
+            <div className="rounded border border-border p-2">
+              <p className="mb-2 text-xs text-muted-foreground">Previsualisation</p>
+              <img
+                src={selectedGif.gifUrl}
+                alt={selectedGif.title || "GIF"}
+                className="max-h-56 w-full rounded object-contain"
+              />
+            </div>
+          )}
+
+          <div className="grid max-h-64 grid-cols-2 gap-2 overflow-y-auto rounded border border-border p-2">
+            {gifResults.map((gif) => (
+              <button
+                key={gif.id}
+                type="button"
+                onClick={() => setSelectedGif(gif)}
+                className={`overflow-hidden rounded border ${
+                  selectedGif?.id === gif.id ? "border-brand" : "border-border"
+                }`}
+              >
+                <img
+                  src={gif.previewUrl}
+                  alt={gif.title || "GIF"}
+                  className="h-24 w-full object-cover"
+                  loading="lazy"
+                />
+              </button>
+            ))}
+            {!gifLoading && gifResults.length === 0 && (
+              <p className="col-span-2 text-center text-sm text-muted-foreground">
+                Aucun GIF pour le moment.
+              </p>
+            )}
+          </div>
+
+          <div className="flex justify-between gap-2">
+            <button
+              type="button"
+              className="rounded border border-border px-3 py-2 text-sm"
+              onClick={() => searchGifs(gifOffset, true)}
+              disabled={gifLoading || !gifOffset || !gifQuery.trim()}
+            >
+              Charger plus
+            </button>
+            <button
+              type="button"
+              className="rounded bg-brand px-3 py-2 text-sm text-white disabled:opacity-50"
+              onClick={handleSendGif}
+              disabled={!selectedGif || gifSending}
+            >
+              Envoyer le GIF
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

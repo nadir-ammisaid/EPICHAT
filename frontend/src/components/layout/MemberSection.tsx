@@ -33,7 +33,6 @@ export default function MemberSection() {
   const pathname = usePathname();
   const { serverId } = parseDashboardPath(pathname ?? "");
   const [members, setMembers] = useState<ServerMember[]>([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [onlineStatus, setOnlineStatus] = useState<Record<string, string>>({});
 
@@ -58,16 +57,11 @@ export default function MemberSection() {
 
 
   useEffect(() => {
-    if (!serverId) {
-      setMembers([]);
-      setError(null);
-      return;
-    }
-    setLoading(true);
-    setError(null);
+    if (!serverId) return;
     apiClient
       .request(`/servers/${serverId}/members`)
       .then((data: ServerMember[]) => {
+        setError(null);
         const list = Array.isArray(data) ? data : [];
         setMembers(list);
         const statusMap: Record<string, string> = {};
@@ -79,8 +73,7 @@ export default function MemberSection() {
       .catch((err: Error) => {
         setError(err.message ?? "Impossible de charger les membres");
         setMembers([]);
-      })
-      .finally(() => setLoading(false));
+      });
   }, [serverId]);
 
   useEffect(() => {
@@ -134,16 +127,13 @@ export default function MemberSection() {
             Selectionnez un canal pour voir les membres du serveur.
           </p>
         )}
-        {serverId && loading && (
-          <p className="px-2 py-4 text-sm text-muted-foreground">Chargement...</p>
-        )}
         {serverId && error && (
           <p className="px-2 py-4 text-sm text-error">{error}</p>
         )}
-        {serverId && !loading && !error && members.length === 0 && (
+        {serverId && !error && members.length === 0 && (
           <p className="px-2 py-4 text-sm text-muted-foreground">Aucun membre.</p>
         )}
-        {serverId && !loading && !error && members.length > 0 && (
+        {serverId && !error && members.length > 0 && (
           <ul className="space-y-1">
             {sortedMembers.map((m) => {
               const status = onlineStatus[m.userId] ?? "offline";

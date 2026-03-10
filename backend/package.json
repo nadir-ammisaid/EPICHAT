@@ -7,13 +7,22 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "dev:local": "node ./node_modules/tsx/dist/cli.mjs watch src/index.ts",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "lint:local": "node ./node_modules/typescript/bin/tsc -p tsconfig.json --noEmit",
     "build": "tsc -p tsconfig.json",
+    "build:local": "node ./node_modules/typescript/bin/tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "test": "vitest",
+    "test:local": "node ./node_modules/vitest/vitest.mjs",
     "test:coverage": "vitest run --coverage",
+    "test:coverage:local": "node ./node_modules/vitest/vitest.mjs run --coverage",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:local": "node ./node_modules/tsx/dist/cli.mjs prisma/seed.ts",
     "db:setup": "npx prisma db push && npm run db:seed",
-    "db:studio": "npx prisma studio --port 5555 --browser none"
+    "db:setup:local": "node ./node_modules/prisma/build/index.js db push && npm run db:seed:local",
+    "db:studio": "npx prisma studio --port 5555 --browser none",
+    "db:studio:local": "node ./node_modules/prisma/build/index.js studio --port 5555 --browser none"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.3.0",
