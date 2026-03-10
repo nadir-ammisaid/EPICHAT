@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { MessageSquare } from "lucide-react";
+import { MessageSquareMore } from "lucide-react";
 import { getConversations, openConversation } from "@/lib/api/dm";
 import { apiClient } from "@/lib/api/client";
 import getInitials from "@/lib/utils/getInitials";
@@ -112,7 +112,7 @@ export default function DmBar() {
   return (
     <aside className="flex h-full shrink-0 flex-col border-r border-border bg-[#F3F7FB] md:min-w-64 md:max-w-65">
       <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-        <MessageSquare className="h-4 w-4 text-brand" />
+        <MessageSquareMore className="h-4 w-4 text-brand" />
         <span className="text-sm font-semibold">Messages privés</span>
       </div>
 

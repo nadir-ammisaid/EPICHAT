@@ -493,8 +493,8 @@ function cancelEditing() {
 
     const names = others.map((id) => usernamesById[id] ?? id);
 
-    if (names.length === 1) return `${names[0]} est en train de taper…`;
-    return `${names.slice(0, 2).join(", ")} sont en train de taper…`;
+    if (names.length === 1) return `${names[0]} est en train d'écrire…`;
+    return `${names.slice(0, 2).join(", ")} sont en train d'écrire…`;
   }, [typingUsers, myUserId, usernamesById]);
 
   if (!channelId) {

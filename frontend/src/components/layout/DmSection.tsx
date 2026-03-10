@@ -6,6 +6,7 @@ import { getSocket } from "@/lib/socket/socket";
 import { Trash2, Pencil, Check, X, Smile } from "lucide-react";
 import { EmojiPicker } from "@/components/ui/EmojiPicker";
 import {
+  getConversations,
   getConversationMessages,
   sendDmMessage,
   deleteDmMessage,
@@ -48,6 +49,8 @@ export default function DmSection() {
   const [editText, setEditText] = useState("");
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [myUserId, setMyUserId] = useState<string | null>(null);
+  const [userMap, setUserMap] = useState<Map<string, string>>(new Map());
+
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -60,6 +63,20 @@ export default function DmSection() {
     const token = localStorage.getItem("token");
     setMyUserId(getMyUserIdFromToken(token));
   }, []);
+
+  useEffect(() => {
+    if (!conversationId) return;
+    getConversations()
+      .then((convs) => {
+        const conv = convs.find((c) => c.id === conversationId);
+        if (!conv) return;
+        const map = new Map<string, string>();
+        map.set(conv.participant1.id, conv.participant1.username);
+        map.set(conv.participant2.id, conv.participant2.username);
+        setUserMap(map);
+      })
+      .catch(() => { });
+  }, [conversationId]);
 
   // Handle automatic scrolling
   useEffect(() => {
@@ -232,20 +249,21 @@ export default function DmSection() {
     }
   }
 
-  const typingText = useMemo(() => {
-    const others = myUserId ? typingUsers.filter((u) => u !== myUserId) : typingUsers;
-    if (!others.length) return null;
-    return others.length === 1
-      ? `${others[0]} is typing…`
-      : `${others.slice(0, 2).join(", ")} are typing…`;
-  }, [typingUsers, myUserId]);
+const typingText = useMemo(() => {
+  const others = myUserId ? typingUsers.filter((u) => u !== myUserId) : typingUsers;
+  if (!others.length) return null;
+  const names = others.map((id) => userMap.get(id) ?? id);
+  return `${names.join(", ")} est en train d'écrire…`;
+}, [typingUsers, myUserId, userMap]);
+
+
 
   if (!conversationId) {
     return (
       <div className="flex min-h-0 flex-1 flex-col border border-border bg-background">
         <div className="flex-1 overflow-y-auto p-4">
           <p className="text-sm text-muted-foreground">
-            Select a conversation to start chatting.
+            Selectionnez une conversation pour commencer à chatter.
           </p>
         </div>
       </div>

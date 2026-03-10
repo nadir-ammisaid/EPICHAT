@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { registerTypingHandlers } from "./typing.js";
 import { registerPresenceHandlers } from "./presence.js";
 import { registerChannelHandlers } from "./channel.js";
+import { registerDmHandlers } from "./dm.js";
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
@@ -37,6 +38,7 @@ export function initSocket(server: http.Server) {
     registerChannelHandlers(socket);
     registerTypingHandlers(io, socket);
     registerPresenceHandlers(io, socket);
+    registerDmHandlers(io, socket);
   });
 
   return io;

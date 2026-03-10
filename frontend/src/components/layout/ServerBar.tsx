@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Loader2, UserPlus, Copy, Check, Pencil, Trash2, Settings,MessageSquare } from "lucide-react";
+import { Loader2, UserPlus, Copy, Check, Pencil, Trash2, Settings, MessageSquareMore } from "lucide-react";
 import Image from "next/image";
 import { apiClient } from "@/lib/api/client";
 import { Button } from "@/components/ui/Button";
@@ -140,42 +140,43 @@ export default function ServerBar({ className = "" }: { className?: string }) {
       >
         <div className="flex flex-col gap-2 mt-2 w-full items-center">
 
-        <Link href="/dashboard" className="flex shrink-0" aria-label="Accueil">
+          <Link href="/dashboard" className="flex shrink-0" aria-label="Accueil">
             <Image
               src="/images/logo.png"
               alt="Epichat"
               width={100}
               height={100}
               className="rounded-lg object-cover"
-              />
+            />
           </Link>
-          <hr className="w-full border-border-muted"/>
+          <hr className="w-full border-border-muted" />
           <Link
-  href="/dashboard/dm"
-  className={`flex w-full items-center gap-3 rounded-lg px-4 py-2 transition-colors hover:bg-brand-muted/80 hover:cursor-pointer ${
-    pathname?.startsWith("/dashboard/dm") ? "bg-brand-hover font-medium" : "bg-brand-muted"
-  }`}
-  title="Messages privés"
->
-  <MessageSquare className="h-5 w-5 shrink-0" />
-  <span className="truncate text-sm">Messages privés</span>
-</Link>
+            href="/dashboard/dm"
+            className={`flex w-full items-center gap-3 rounded-lg px-4 py-2 transition-colors hover:bg-brand-muted/80 hover:cursor-pointer ${pathname?.startsWith("/dashboard/dm") ? "bg-brand-hover font-medium" : "bg-brand-muted"
+              }`}
+            title="Messages privés"
+          >
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-brand text-background">
+              <MessageSquareMore className="h-5 w-5" />
+            </span>
+            <span className="truncate text-sm">Messages privés</span>
+          </Link>
 
-              </div>
-              
-         {/* Server list */}
+        </div>
+
+        {/* Server list */}
         <div className="flex w-full flex-col gap-2 overflow-y-auto">
           {servers.map((server) => {
-            const isActive = serverIdFromPath === server.id;  
+            const isActive = serverIdFromPath === server.id;
 
             return (
               <div
                 key={server.id}
                 className={`
-                  flex items-center gap-1 rounded-lg
-                  bg-brand-muted text-foreground hover:bg-brand-muted/80
-                 hover:cursor-pointer transition-colors
-                  ${isActive ? "bg-brand-hover font-medium" : ""}
+flex items-center gap-1 rounded-lg
+text-foreground hover:bg-brand-muted/80
+hover:cursor-pointer transition-colors
+${isActive ? "bg-brand-hover font-medium" : "bg-brand-muted"}
                 `}
               >
                 <Link
@@ -211,7 +212,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
                     </button>
                     <button
                       type="button"
-                      onClick={() => {}}
+                      onClick={() => { }}
                       className="flex w-full items-center gap-2 px-4 hover:cursor-pointer hover:bg-brand-muted/10 py-2 text-left text-sm text-foreground hover:bg-muted"
                       role="menuitem"
                     >
@@ -233,11 +234,11 @@ export default function ServerBar({ className = "" }: { className?: string }) {
             );
           })}
         </div>
-            
-      
+
+
 
         {/* Create / Join */}
-        <div className="shrink-0 flex flex-col gap-2 w-full items-center">
+        <div className="shrink-0 flex flex-col gap-2 w-full items-center ">
           <Button
             type="button"
             onClick={() => setCreateOpen(true)}
@@ -251,7 +252,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
             type="button"
             variant="outline"
             size="sm"
-            className="w-full gap-2 items-center justify-center"
+            className="w-full gap-2 items-center justify-center !text-black hover:!text-brand-hover"
             onClick={() => {
               setJoinError(null);
               setInviteCode("");
