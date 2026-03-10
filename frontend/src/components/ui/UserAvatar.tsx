@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { LogOut, User, UserIcon, Circle } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
 import { Dropdown } from "@/components/ui/Dropdown";
@@ -60,7 +61,7 @@ export default function UserAvatar() {
       <Dropdown.Trigger className="relative flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full transition-opacity hover:opacity-90">
         <div className="h-full w-full overflow-hidden rounded-full border border-border bg-brand-muted/80">
           {username ? (
-            <img
+            <Image
               src={avatarUrl}
               alt={username}
               className="h-full w-full object-cover"
