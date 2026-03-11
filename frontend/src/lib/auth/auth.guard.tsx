@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { hasStoredToken } from "@/lib/auth/token";
 
@@ -9,21 +9,16 @@ const LOGIN_PATH = "/login";
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const hasToken = useSyncExternalStore(
-    () => () => {
-      // No external subscription needed; React re-checks snapshot after hydration.
-    },
-    hasStoredToken,
-    () => false,
-  );
+  const [isChecked, setIsChecked] = useState(false);
 
   useEffect(() => {
-    if (!hasToken) {
+    if (!hasStoredToken()) {
       router.replace(`${LOGIN_PATH}?from=${encodeURIComponent(pathname ?? "")}`);
     }
-  }, [hasToken, router, pathname]);
+    setIsChecked(true);
+  }, [router, pathname]);
 
-  if (!hasToken) {
+  if (!isChecked) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <p className="text-muted-foreground">Vérification de la session…</p>
