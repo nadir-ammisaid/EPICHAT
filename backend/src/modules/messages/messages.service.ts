@@ -1,5 +1,6 @@
 import { prisma } from "../../prisma/client.js";
 import HttpError from "../../shared/errors/httpError.js";
+import { buildPaginationArgs, paginateResult } from "../../shared/utils/pagination.js";
 
 type SendMessagePayload =
   | { type: "text"; content: string }
@@ -69,34 +70,14 @@ export async function getChannelMessages(
 
 
 
-  // Configure pagination and fetching
-  const args: any = {
-    // where: { channelId },
-    where: { channelId, deletedAt: null },
-    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-    take: limit,
-  };
-
-  if (before) {
-    args.cursor = { id: before };
-    args.skip = 1;
-  }
-
   const rows = await prisma.message.findMany({
-  ...args,
-  include: {
-    author: { select: { id: true, username: true } },
-  },
+  ...buildPaginationArgs(limit, before),
+  where: { channelId, deletedAt: null },
+  include: { author: { select: { id: true, username: true } } },
 });
 
-  // Format order (Oldest to Newest)
-  const messages = rows.reverse();
+return paginateResult(rows);
 
-  
-  const nextCursor = messages.at(0)?.id ?? null;
-
-
-  return { messages, nextCursor };
 }
 
 export async function deleteMessage(userId: string, messageId: string) {

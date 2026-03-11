@@ -41,9 +41,8 @@ export const getMessages = asyncHandler(async (req: Request, res: Response) => {
 export const sendMessage = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user.userId;
   const { id: conversationId } = conversationIdParamsSchema.parse(req.params);
-  const { content } = sendDmBodySchema.parse(req.body);
-  const message = await sendDmMessage(userId, conversationId, content);
-
+  const payload = sendDmBodySchema.parse(req.body);
+  const message = await sendDmMessage(userId, conversationId, payload);
   req.app.locals.io?.to(`dm:${conversationId}`).emit("dm:message:new", message);
 
   res.status(201).json(message);

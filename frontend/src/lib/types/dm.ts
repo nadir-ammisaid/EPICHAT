@@ -18,6 +18,8 @@ export type DirectMessage = {
   conversationId: string;
   authorId: string;
   content: string;
+  type: "text" | "gif";
+  mediaUrl: string | null; 
   createdAt: string;
   updatedAt: string | null;
   deletedAt: string | null;
