@@ -275,3 +275,61 @@ export async function updateMemberRole(
     },
   });
 }
+
+export async function kickMember(
+  serverId: string,
+  targetUserId: string,
+  requesterUserId: string,
+) {
+  const server = await prisma.server.findUnique({
+    where: { id: serverId },
+    select: { ownerId: true },
+  });
+
+  if (!server) {
+    throw new HttpError(404, "Server not found");
+  }
+
+  // Check that the person is owner ou admin
+  const requesterMembership = await getMembership(serverId, requesterUserId);
+  if (!requesterMembership) {
+    throw new HttpError(403, "Forbidden");
+  }
+
+  const requesterRole = requesterMembership.role as ServerRole;
+
+  if (requesterRole !== "owner" && requesterRole !== "admin") {
+    throw new HttpError(403, "Only owner or admin can kick members");
+  }
+
+  // Check that the person is member 
+  const targetMembership = await getMembership(serverId, targetUserId);
+  if (!targetMembership) {
+    throw new HttpError(404, "Member not found");
+  }
+
+  //  Don't kick the owner
+  if (targetUserId === server.ownerId) {
+    throw new HttpError(403, "Cannot kick the server owner");
+  }
+
+  // Stop an admin to kick another admin
+  if (
+    requesterRole === "admin" &&
+    targetMembership.role === "admin"
+  ) {
+    throw new HttpError(403, "Admins cannot kick other admins");
+  }
+
+  // Delete member
+  await prisma.serverMember.delete({
+    where: {
+      serverId_userId: {
+        serverId,
+        userId: targetUserId,
+      },
+    },
+  });
+
+  return true;
+}

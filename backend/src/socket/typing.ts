@@ -31,12 +31,10 @@ function removeTypingUser(channelId: string, userId: string) {
 }
 
 export function registerTypingHandlers(io: Server, socket: Socket) {
-  console.log("[typing] register pour user:", socket.data.user?.id);
 
   socket.on("typing:start", (payload: TypingPayload) => {
     const userId = socket.data.user?.id;
     const channelId = payload?.channelId?.trim();
-    console.log("[typing] typing:start - channelId:", channelId, "userId:", userId);
     if (!channelId || !userId) return;
 
     ensureSet(channelId).add(userId);
@@ -61,7 +59,6 @@ export function registerTypingHandlers(io: Server, socket: Socket) {
   socket.on("typing:stop", (payload: TypingPayload) => {
     const userId = socket.data.user?.id;
     const channelId = payload?.channelId?.trim();
-    console.log("[typing] typing:stop - channelId:", channelId, "userId:", userId);
     if (!channelId || !userId) return;
 
     const key = `${channelId}:${userId}`;

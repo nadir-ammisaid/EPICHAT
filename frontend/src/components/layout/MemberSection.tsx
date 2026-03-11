@@ -6,153 +6,222 @@ import parseDashboardPath from "@/lib/utils/parseDashboardPath";
 import { apiClient } from "@/lib/api/client";
 import getInitials from "@/lib/utils/getInitials";
 import { getSocket } from "@/lib/socket/socket";
+import { Dropdown } from "@/components/ui/Dropdown";
+import { Settings } from "lucide-react";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
+import { Select } from "@/components/ui/Select";
+import { useToast } from "@/components/ui/use-toast";
 
 type ServerMember = {
   userId: string;
-  role: string;
+  role: "owner" | "admin" | "member";
   user: { id: string; username: string; email?: string; status?: string };
-};
-
-type PresenceUpdate = {
-  serverId: string;
-  userId: string;
-  status: string;
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  online: "bg-green-500",
-  away: "bg-yellow-500",
-  busy: "bg-red-500",
-  offline: "bg-gray-400",
 };
 
 export default function MemberSection() {
   const pathname = usePathname();
   const { serverId } = parseDashboardPath(pathname ?? "");
+  const { toast, ToastContainer } = useToast();
+
+  // Decode JWT
+  let user: any = null;
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  if (token) {
+    try {
+      user = JSON.parse(atob(token.split(".")[1]));
+    } catch {}
+  }
+
   const [members, setMembers] = useState<ServerMember[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [onlineStatus, setOnlineStatus] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    if (!serverId) {
-      setMembers([]);
-      setError(null);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    apiClient
-      .request(`/servers/${serverId}/members`)
-      .then((data: ServerMember[]) => {
-        const list = Array.isArray(data) ? data : [];
-        setMembers(list);
-        const statusMap: Record<string, string> = {};
-        for (const m of list) {
-          statusMap[m.userId] = m.user?.status ?? "offline";
-        }
-        setOnlineStatus(statusMap);
-      })
-      .catch((err: Error) => {
-        setError(err.message ?? "Impossible de charger les membres");
-        setMembers([]);
-      })
-      .finally(() => setLoading(false));
-  }, [serverId]);
+  // Modal state
+  const [roleModalOpen, setRoleModalOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<ServerMember | null>(null);
+  const [newRole, setNewRole] = useState<"admin" | "member">("member");
 
   useEffect(() => {
     if (!serverId) return;
 
-    const socket = getSocket();
-    socket.emit("server:join", serverId);
-
-    const onPresenceInit = (payload: { serverId: string; presenceMap: Record<string, string> }) => {
-      if (payload.serverId !== serverId) return;
-      setOnlineStatus((prev) => ({ ...prev, ...payload.presenceMap }));
-    };
-
-    const onPresenceUpdate = (payload: PresenceUpdate) => {
-      if (payload.serverId !== serverId) return;
-      setOnlineStatus((prev) => ({
-        ...prev,
-        [payload.userId]: payload.status,
-      }));
-    };
-
-    socket.on("presence:init", onPresenceInit);
-    socket.on("presence:update", onPresenceUpdate);
-
-    return () => {
-      socket.off("presence:init", onPresenceInit);
-      socket.off("presence:update", onPresenceUpdate);
-      socket.emit("server:leave", serverId);
-    };
+    setLoading(true);
+    apiClient
+      .request(`/servers/${serverId}/members`)
+      .then((data: ServerMember[]) => setMembers(data))
+      .finally(() => setLoading(false));
   }, [serverId]);
 
-  const roleLabel: Record<string, string> = {
-    owner: "Proprietaire",
-    admin: "Admin",
-    member: "Membre",
-  };
+  // Current user's role
+  const currentMember = members.find((m) => m.userId === user?.userId);
+  const currentRole = currentMember?.role;
 
-  const sortedMembers = [...members].sort((a, b) => {
-    const statusA = onlineStatus[a.userId] ?? "offline";
-    const statusB = onlineStatus[b.userId] ?? "offline";
-    const order = ["online", "away", "busy", "offline"];
-    return order.indexOf(statusA) - order.indexOf(statusB);
-  });
+  // Permission
+  function canManage(member: ServerMember) {
+    if (!currentRole) return false;
+    if (member.userId === user?.userId) return false;
+    if (member.role === "owner") return false;
+    if (currentRole === "owner") return true;
+    if (currentRole === "admin") return member.role !== "owner";
+    return false;
+  }
+
+  // Kick
+  async function handleKick(member: ServerMember) {
+    if (member.userId === user?.userId) {
+      toast({ title: "You cannot kick yourself." });
+      return;
+    }
+
+    if (member.role === "owner") {
+      toast({ title: "You cannot kick the owner." });
+      return;
+    }
+
+    try {
+      await apiClient.request(`/servers/${serverId}/kick/${member.userId}`, {
+        method: "POST",
+      });
+
+      setMembers((prev) => prev.filter((m) => m.userId !== member.userId));
+      toast({ title: "Member kicked." });
+    } catch {
+      toast({ title: "Kick failed." });
+    }
+  }
+
+  // Update role
+  async function updateRole(serverId: string, userId: string, role: string) {
+    return apiClient.request(`/servers/${serverId}/members/${userId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role }),
+    });
+  }
+
+  // Open modal
+  function openRoleModal(member: ServerMember) {
+    if (member.userId === user?.userId) {
+      toast({ title: "You cannot change your own role." });
+      return;
+    }
+
+    if (member.role === "owner") {
+      toast({ title: "You cannot change the owner's role." });
+      return;
+    }
+
+    setSelectedMember(member);
+    setNewRole(member.role === "admin" ? "admin" : "member");
+    setRoleModalOpen(true);
+  }
+
+  // Confirm role change
+  async function confirmRoleChange() {
+    if (!selectedMember || !serverId) return;
+
+    try {
+      await updateRole(serverId, selectedMember.userId, newRole);
+
+      setMembers((prev) =>
+        prev.map((m) =>
+          m.userId === selectedMember.userId ? { ...m, role: newRole } : m
+        )
+      );
+
+      toast({ title: "Role updated." });
+      setRoleModalOpen(false);
+    } catch {
+      toast({ title: "Failed to update role." });
+    }
+  }
 
   return (
-    <div className="flex min-w-60 max-w-[280px] shrink-0 flex-col overflow-auto border-l border-border bg-background md:min-w-60 md:max-w-[280px]">
-      <h2 className="h3 shrink-0 border-b border-border px-3 py-2">Membres</h2>
-      <div className="min-h-0 flex-1 overflow-auto p-2">
-        {!serverId && (
-          <p className="px-2 py-4 text-sm text-muted-foreground">
-            Selectionnez un canal pour voir les membres du serveur.
-          </p>
-        )}
-        {serverId && loading && (
-          <p className="px-2 py-4 text-sm text-muted-foreground">Chargement...</p>
-        )}
-        {serverId && error && (
-          <p className="px-2 py-4 text-sm text-error">{error}</p>
-        )}
-        {serverId && !loading && !error && members.length === 0 && (
-          <p className="px-2 py-4 text-sm text-muted-foreground">Aucun membre.</p>
-        )}
-        {serverId && !loading && !error && members.length > 0 && (
-          <ul className="space-y-1">
-            {sortedMembers.map((m) => {
-              const status = onlineStatus[m.userId] ?? "offline";
-              return (
-                <li
-                  key={m.userId}
-                  className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted/60"
-                >
-                  <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-muted/80 text-xs font-semibold text-foreground">
-                    {getInitials(m.user?.username) ?? "?"}
-                    <span
-                      className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background ${STATUS_COLORS[status] ?? STATUS_COLORS.offline}`}
-                      title={status}
-                    />
-                  </span>
-                  <span className="min-w-0 flex-1 truncate font-medium text-foreground">
-                    {m.user?.username ?? "Utilisateur"}
-                  </span>
-                  {m.role && (
-                    <span
-                      className="shrink-0 rounded px-1.5 py-0.5 text-xs text-muted-foreground"
-                      title={m.role}
+    <>
+      <ToastContainer />
+
+      <Modal open={roleModalOpen} onClose={() => setRoleModalOpen(false)}>
+        <div className="p-4 space-y-4 bg-white text-black rounded-md shadow-xl">
+          <h2 className="text-lg font-semibold">Change role</h2>
+
+          <Select
+            value={newRole}
+            onChange={(e) => setNewRole(e.target.value as any)}
+          >
+            <option value="admin">Admin</option>
+            <option value="member">Member</option>
+          </Select>
+
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="secondary"
+              className="bg-neutral-200 text-black hover:bg-neutral-300"
+              onClick={() => setRoleModalOpen(false)}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              className="bg-black text-white hover:bg-neutral-800"
+              onClick={confirmRoleChange}
+            >
+              Confirm
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <div className="flex min-w-60 max-w-[280px] shrink-0 flex-col overflow-auto border-l border-border bg-white">
+        <h2 className="h3 border-b border-border px-3 py-2">Members</h2>
+
+        <div className="flex-1 overflow-auto p-2">
+          {loading && <p>Loading...</p>}
+
+          {members.map((m) => (
+            <div
+              key={m.userId}
+              className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-neutral-100"
+            >
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-muted/80 text-xs font-semibold text-white">
+                {getInitials(m.user.username)}
+              </span>
+
+              <span className="flex-1 truncate">{m.user.username}</span>
+
+              <span className="text-xs text-neutral-500">{m.role}</span>
+
+              {canManage(m) && (
+                <Dropdown>
+                  <Dropdown.Trigger>
+                    <button className="p-1 rounded hover:bg-neutral-200 text-neutral-600 hover:text-black">
+                      <Settings size={16} />
+                    </button>
+                  </Dropdown.Trigger>
+
+                  <Dropdown.Menu align="right">
+                    <button
+                      className="w-full px-3 py-2 text-left text-sm text-red-500 hover:bg-red-500/10"
+                      onClick={() => handleKick(m)}
                     >
-                      {roleLabel[m.role] ?? m.role}
-                    </span>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        )}
+                      Kick
+                    </button>
+
+                    {currentRole === "owner" && (
+                      <button
+                        className="w-full px-3 py-2 text-left text-sm hover:bg-neutral-200"
+                        onClick={() => openRoleModal(m)}
+                      >
+                        Change role
+                      </button>
+                    )}
+                  </Dropdown.Menu>
+                </Dropdown>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
