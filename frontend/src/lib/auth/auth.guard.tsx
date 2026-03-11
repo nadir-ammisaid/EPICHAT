@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { useRouter, usePathname } from "next/navigation";
 
 const LOGIN_PATH = "/login";
@@ -8,21 +8,24 @@ const LOGIN_PATH = "/login";
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
+  const hasToken = useSyncExternalStore(
+    () => () => {
+      // No external subscription needed; React re-checks snapshot after hydration.
+    },
+    () => {
+      if (typeof window === "undefined") return false;
+      return Boolean(localStorage.getItem("token"));
+    },
+    () => false,
+  );
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-    const hasToken = Boolean(localStorage.getItem("token"));
     if (!hasToken) {
       router.replace(`${LOGIN_PATH}?from=${encodeURIComponent(pathname ?? "")}`);
     }
-  }, [mounted, router, pathname]);
+  }, [hasToken, router, pathname]);
 
-  if (!mounted || !localStorage.getItem("token")) {
+  if (!hasToken) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <p className="text-muted-foreground">Vérification de la session…</p>
