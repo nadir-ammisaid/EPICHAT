@@ -9,16 +9,16 @@ const LOGIN_PATH = "/login";
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [isChecked, setIsChecked] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     if (!hasStoredToken()) {
       router.replace(`${LOGIN_PATH}?from=${encodeURIComponent(pathname ?? "")}`);
     }
-    setIsChecked(true);
+    queueMicrotask(() => setMounted(true));
   }, [router, pathname]);
 
-  if (!isChecked) {
+  if (!mounted) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <p className="text-muted-foreground">Vérification de la session…</p>
