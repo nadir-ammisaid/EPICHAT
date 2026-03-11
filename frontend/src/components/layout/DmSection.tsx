@@ -51,7 +51,6 @@ export default function DmSection() {
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [userMap, setUserMap] = useState<Map<string, string>>(new Map());
 
-
   const inputRef = useRef<HTMLInputElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -75,7 +74,7 @@ export default function DmSection() {
         map.set(conv.participant2.id, conv.participant2.username);
         setUserMap(map);
       })
-      .catch(() => { });
+      .catch(() => {});
   }, [conversationId]);
 
   // Handle automatic scrolling
@@ -83,7 +82,8 @@ export default function DmSection() {
     const el = scrollRef.current;
     if (!el) return;
     const onScroll = () => {
-      const distanceFromBottom = el.scrollHeight - (el.scrollTop + el.clientHeight);
+      const distanceFromBottom =
+        el.scrollHeight - (el.scrollTop + el.clientHeight);
       isNearBottomRef.current = distanceFromBottom < 120;
     };
     el.addEventListener("scroll", onScroll);
@@ -153,23 +153,31 @@ export default function DmSection() {
       });
     };
 
-    const onMessageDeleted = (payload: { id: string; conversationId: string }) => {
+    const onMessageDeleted = (payload: {
+      id: string;
+      conversationId: string;
+    }) => {
       if (payload.conversationId !== conversationId) return;
       setMessages((prev) =>
         prev.map((m) =>
-          m.id === payload.id ? { ...m, content: "", deletedAt: new Date().toISOString() } : m
-        )
+          m.id === payload.id
+            ? { ...m, content: "", deletedAt: new Date().toISOString() }
+            : m,
+        ),
       );
     };
 
     const onMessageUpdated = (message: DirectMessage) => {
       if (message.conversationId !== conversationId) return;
       setMessages((prev) =>
-        prev.map((m) => (m.id === message.id ? { ...m, ...message } : m))
+        prev.map((m) => (m.id === message.id ? { ...m, ...message } : m)),
       );
     };
 
-    const onTypingUpdate = (payload: { conversationId: string; userIds: string[] }) => {
+    const onTypingUpdate = (payload: {
+      conversationId: string;
+      userIds: string[];
+    }) => {
       if (payload.conversationId !== conversationId) return;
       setTypingUsers(payload.userIds ?? []);
     };
@@ -225,8 +233,10 @@ export default function DmSection() {
       await deleteDmMessage(messageId);
       setMessages((prev) =>
         prev.map((m) =>
-          m.id === messageId ? { ...m, content: "", deletedAt: new Date().toISOString() } : m
-        )
+          m.id === messageId
+            ? { ...m, content: "", deletedAt: new Date().toISOString() }
+            : m,
+        ),
       );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Delete error");
@@ -240,7 +250,7 @@ export default function DmSection() {
     try {
       const updated = await updateDmMessage(messageId, editText.trim());
       setMessages((prev) =>
-        prev.map((m) => (m.id === messageId ? { ...m, ...updated } : m))
+        prev.map((m) => (m.id === messageId ? { ...m, ...updated } : m)),
       );
       setEditingId(null);
       setEditText("");
@@ -249,20 +259,20 @@ export default function DmSection() {
     }
   }
 
-const typingText = useMemo(() => {
-  const others = myUserId ? typingUsers.filter((u) => u !== myUserId) : typingUsers;
-  if (!others.length) return null;
-  const names = others.map((id) => userMap.get(id) ?? id);
-  return `${names.join(", ")} est en train d'écrire…`;
-}, [typingUsers, myUserId, userMap]);
-
-
+  const typingText = useMemo(() => {
+    const others = myUserId
+      ? typingUsers.filter((u) => u !== myUserId)
+      : typingUsers;
+    if (!others.length) return null;
+    const names = others.map((id) => userMap.get(id) ?? id);
+    return `${names.join(", ")} est en train d'écrire…`;
+  }, [typingUsers, myUserId, userMap]);
 
   if (!conversationId) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col border border-border bg-background">
+      <div className="border-border bg-background flex min-h-0 flex-1 flex-col border">
         <div className="flex-1 overflow-y-auto p-4">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Selectionnez une conversation pour commencer à chatter.
           </p>
         </div>
@@ -271,45 +281,56 @@ const typingText = useMemo(() => {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col border border-border bg-background">
+    <div className="border-border bg-background flex min-h-0 flex-1 flex-col border">
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
         {loading && <p className="text-sm">Loading…</p>}
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <p className="text-sm text-red-500">{error}</p>}
 
         {messages.map((m) => {
           const canAct = !!myUserId && m.authorId === myUserId && !m.deletedAt;
           const isEditing = editingId === m.id;
-          const wasEdited = m.updatedAt && m.updatedAt !== m.createdAt && !m.deletedAt;
+          const wasEdited =
+            m.updatedAt && m.updatedAt !== m.createdAt && !m.deletedAt;
 
           return (
-            <div key={m.id} className="group mb-2 flex items-start gap-1 px-1 py-1 hover:bg-muted/40">
-              <div className="w-12 shrink-0 flex justify-start gap-0.5">
+            <div
+              key={m.id}
+              className="group hover:bg-muted/40 mb-2 flex items-start gap-1 px-1 py-1"
+            >
+              <div className="flex w-12 shrink-0 justify-start gap-0.5">
                 {canAct && !isEditing ? (
                   <button
                     type="button"
-                    className="mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-background/70"
-                    onClick={() => { setEditingId(m.id); setEditText(m.content); }}
+                    className="hover:bg-background/70 mt-0.5 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+                    onClick={() => {
+                      setEditingId(m.id);
+                      setEditText(m.content);
+                    }}
                   >
                     <Pencil className="h-4 w-4 opacity-70 hover:opacity-100" />
                   </button>
                 ) : (
-                  <span className="mt-0.5 invisible p-0.5"><Pencil className="h-4 w-4" /></span>
+                  <span className="invisible mt-0.5 p-0.5">
+                    <Pencil className="h-4 w-4" />
+                  </span>
                 )}
                 {canAct && !isEditing ? (
                   <button
                     type="button"
-                    className="mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-background/70"
+                    className="hover:bg-background/70 mt-0.5 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
                     onClick={() => handleDelete(m.id)}
                   >
                     <Trash2 className="h-4 w-4 opacity-70 hover:opacity-100" />
                   </button>
                 ) : (
-                  <span className="mt-0.5 invisible p-0.5"><Trash2 className="h-4 w-4" /></span>
+                  <span className="invisible mt-0.5 p-0.5">
+                    <Trash2 className="h-4 w-4" />
+                  </span>
                 )}
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="text-[11px] opacity-60 flex gap-1">
+                <div className="flex gap-1 text-[11px] opacity-60">
                   <span>{m.author?.username ?? m.authorId}</span>
                   <span>-</span>
                   <span>{formatDate(m.createdAt)}</span>
@@ -317,27 +338,45 @@ const typingText = useMemo(() => {
                 </div>
 
                 {isEditing ? (
-                  <div className="flex gap-2 items-center mt-1">
+                  <div className="mt-1 flex items-center gap-2">
                     <input
-                      className="flex-1 rounded border border-border bg-background px-2 py-1 text-sm"
+                      className="border-border bg-background flex-1 rounded border px-2 py-1 text-sm"
                       value={editText}
                       onChange={(e) => setEditText(e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") handleEdit(m.id);
-                        if (e.key === "Escape") { setEditingId(null); setEditText(""); }
+                        if (e.key === "Escape") {
+                          setEditingId(null);
+                          setEditText("");
+                        }
                       }}
                       autoFocus
                     />
-                    <button type="button" className="p-1 rounded hover:bg-muted" onClick={() => handleEdit(m.id)}>
+                    <button
+                      type="button"
+                      className="hover:bg-muted rounded p-1"
+                      onClick={() => handleEdit(m.id)}
+                    >
                       <Check className="h-4 w-4 text-green-500" />
                     </button>
-                    <button type="button" className="p-1 rounded hover:bg-muted" onClick={() => { setEditingId(null); setEditText(""); }}>
+                    <button
+                      type="button"
+                      className="hover:bg-muted rounded p-1"
+                      onClick={() => {
+                        setEditingId(null);
+                        setEditText("");
+                      }}
+                    >
                       <X className="h-4 w-4 text-red-500" />
                     </button>
                   </div>
                 ) : (
                   <div className="text-sm leading-5">
-                    {m.deletedAt ? <i className="opacity-60">(deleted)</i> : m.content}
+                    {m.deletedAt ? (
+                      <i className="opacity-60">(deleted)</i>
+                    ) : (
+                      m.content
+                    )}
                   </div>
                 )}
               </div>
@@ -347,17 +386,17 @@ const typingText = useMemo(() => {
         <div ref={bottomRef} />
       </div>
 
-      <div className="px-4 pb-2 text-xs opacity-70 h-5">{typingText ?? ""}</div>
+      <div className="h-5 px-4 pb-2 text-xs opacity-70">{typingText ?? ""}</div>
 
-      <div className="border-t border-border p-3">
-        <div className="flex gap-2 items-center">
+      <div className="border-border border-t p-3">
+        <div className="flex items-center gap-2">
           <div className="relative">
             <button
               type="button"
               onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
-              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+              className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-md p-2 transition-colors"
             >
-              <Smile className="w-5 h-5" />
+              <Smile className="h-5 w-5" />
             </button>
             <EmojiPicker
               isOpen={isEmojiPickerOpen}
@@ -371,15 +410,17 @@ const typingText = useMemo(() => {
           </div>
           <input
             ref={inputRef}
-            className="flex-1 rounded border border-border bg-background px-3 py-2 text-sm"
+            className="border-border bg-background flex-1 rounded border px-3 py-2 text-sm"
             placeholder="Write a message…"
             value={text}
             onChange={(e) => handleTypingChange(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") handleSend(); }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSend();
+            }}
             disabled={sending}
           />
           <button
-            className="rounded bg-brand px-3 py-2 text-sm text-white disabled:opacity-50"
+            className="bg-brand rounded px-3 py-2 text-sm text-white disabled:opacity-50"
             onClick={handleSend}
             disabled={sending || !text.trim()}
           >

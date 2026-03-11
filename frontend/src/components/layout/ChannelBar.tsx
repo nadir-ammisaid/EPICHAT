@@ -20,7 +20,7 @@ export default function ChannelBar() {
   const pathname = usePathname();
   const { serverId, channelId } = useMemo(
     () => parseDashboardPath(pathname ?? ""),
-    [pathname]
+    [pathname],
   );
 
   const [serverName, setServerName] = useState<string | null>(null);
@@ -81,10 +81,12 @@ export default function ChannelBar() {
   const activeLine = useMemo(() => {
     if (!serverId || !channelId || !channelDetails?.name) return null;
 
-    const date = channelDetails.createdAt ? formatDateFR(channelDetails.createdAt) : null;
+    const date = channelDetails.createdAt
+      ? formatDateFR(channelDetails.createdAt)
+      : null;
 
-    return `Canal actif : #${channelDetails.name}${ 
-      date ?` créé le ${date}` : ""
+    return `Canal actif : #${channelDetails.name}${
+      date ? ` créé le ${date}` : ""
     }`;
   }, [serverId, channelId, channelDetails]);
 
@@ -171,12 +173,8 @@ export default function ChannelBar() {
 
   return (
     <>
-      <aside className="flex h-full shrink-0 flex-col border-r border-border bg-[#F3F7FB] md:min-w-64 md:max-w-65">
-        <ChannelSearch
-          query={query}
-          setQuery={setQuery}
-          disabled={!serverId}
-        />
+      <aside className="border-border flex h-full shrink-0 flex-col border-r bg-[#F3F7FB] md:max-w-65 md:min-w-64">
+        <ChannelSearch query={query} setQuery={setQuery} disabled={!serverId} />
 
         <ChannelHeader
           serverId={serverId}
@@ -199,10 +197,7 @@ export default function ChannelBar() {
           onOpenDelete={openDelete}
         />
 
-        <ChannelFooter
-          serverId={serverId}
-          count={channels.length}
-        />
+        <ChannelFooter serverId={serverId} count={channels.length} />
       </aside>
 
       <ChannelModals

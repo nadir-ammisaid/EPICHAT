@@ -16,14 +16,16 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       children,
       ...props
     },
-    ref
+    ref,
   ) => {
-    const baseStyles = "rounded-md font-medium transition-colors hover:cursor-pointer";
-    
+    const baseStyles =
+      "rounded-md font-medium transition-colors hover:cursor-pointer";
+
     const variants = {
       primary: "bg-brand text-white hover:bg-brand-active",
       secondary: "text-border-muted hover:text-brand-hover",
-      outline: "border border-border-muted text-border-muted hover:text-brand-hover",
+      outline:
+        "border border-border-muted text-border-muted hover:text-brand-hover",
     };
 
     const sizes = {
@@ -43,7 +45,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {children}
       </button>
     );
-  }
+  },
 );
 
 Button.displayName = "Button";

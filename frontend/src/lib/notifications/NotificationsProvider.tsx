@@ -76,11 +76,12 @@ export function NotificationsProvider({
   const channelIdRef = useRef(channelId);
   const serverIdRef = useRef(serverId);
   const myUsernameRef = useRef(myUsername);
-  const notificationsRef = useRef<NotificationItem[]>([]);
-  channelIdRef.current = channelId;
-  serverIdRef.current = serverId;
-  myUsernameRef.current = myUsername;
-  notificationsRef.current = notifications;
+
+  useEffect(() => {
+    channelIdRef.current = channelId;
+    serverIdRef.current = serverId;
+    myUsernameRef.current = myUsername;
+  }, [channelId, serverId, myUsername]);
 
   log("Provider render", {
     pathname,

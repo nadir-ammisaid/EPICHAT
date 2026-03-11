@@ -64,10 +64,11 @@ export async function getChannelMessages(
   const membership = await prisma.serverMember.findUnique({
     where: { serverId_userId: { serverId: channel.serverId, userId } },
   });
-  if (!membership) throw new HttpError(403, "Access denied: You must be a member of this server to view this channel.");
-
-
-
+  if (!membership)
+    throw new HttpError(
+      403,
+      "Access denied: You must be a member of this server to view this channel.",
+    );
 
   // Configure pagination and fetching
   const args: any = {
@@ -83,18 +84,16 @@ export async function getChannelMessages(
   }
 
   const rows = await prisma.message.findMany({
-  ...args,
-  include: {
-    author: { select: { id: true, username: true } },
-  },
-});
+    ...args,
+    include: {
+      author: { select: { id: true, username: true } },
+    },
+  });
 
   // Format order (Oldest to Newest)
   const messages = rows.reverse();
 
-  
   const nextCursor = messages.at(0)?.id ?? null;
-
 
   return { messages, nextCursor };
 }
@@ -142,8 +141,10 @@ export async function updateMessage(
     include: { channel: true },
   });
   if (!message) throw new HttpError(404, "Message not found");
-  if (message.deletedAt) throw new HttpError(400, "Cannot edit a deleted message");
-  if (message.type !== "text") throw new HttpError(400, "Only text messages can be edited");
+  if (message.deletedAt)
+    throw new HttpError(400, "Cannot edit a deleted message");
+  if (message.type !== "text")
+    throw new HttpError(400, "Only text messages can be edited");
 
   if (message.authorId !== userId) {
     throw new HttpError(403, "You can only edit your own messages");

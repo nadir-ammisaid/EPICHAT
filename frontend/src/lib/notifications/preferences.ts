@@ -41,11 +41,13 @@ export function useNotificationPreferences() {
   const [prefs, setPrefs] = useState<NotificationPreferences>(defaultPrefs);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
   useEffect(() => {
     if (!mounted) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPrefs({
       enabled: readBool(NOTIFICATION_PREF_KEYS.enabled, DEFAULT_ENABLED),
       dm: readBool(NOTIFICATION_PREF_KEYS.dm, DEFAULT_DM),

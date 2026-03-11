@@ -18,6 +18,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const [hasToken, setHasToken] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
@@ -26,6 +27,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     const token = Boolean(
       typeof window !== "undefined" && localStorage.getItem("token"),
     );
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHasToken(token);
     if (!token) {
       router.replace(
