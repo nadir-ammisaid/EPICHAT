@@ -2,6 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { hasStoredToken } from "@/lib/auth/token";
 
 const LOGIN_PATH = "/login";
 
@@ -12,10 +13,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     () => () => {
       // No external subscription needed; React re-checks snapshot after hydration.
     },
-    () => {
-      if (typeof window === "undefined") return false;
-      return Boolean(localStorage.getItem("token"));
-    },
+    hasStoredToken,
     () => false,
   );
 
