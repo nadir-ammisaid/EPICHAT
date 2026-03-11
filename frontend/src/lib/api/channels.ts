@@ -20,18 +20,26 @@ export async function listServerChannels(serverId: string): Promise<Channel[]> {
   return Array.isArray(data) ? (data as Channel[]) : [];
 }
 
-export async function createChannel(serverId: string, name: string): Promise<Channel> {
+export async function createChannel(
+  serverId: string,
+  name: string,
+): Promise<Channel> {
   return apiClient.request(`/servers/${serverId}/channels`, {
     method: "POST",
     body: JSON.stringify({ name }),
   });
 }
 
-export async function getChannelDetails(channelId: string): Promise<ChannelDetails> {
+export async function getChannelDetails(
+  channelId: string,
+): Promise<ChannelDetails> {
   return apiClient.request(`/channels/${channelId}`);
 }
 
-export async function renameChannel(channelId: string, name: string): Promise<Partial<Channel>> {
+export async function renameChannel(
+  channelId: string,
+  name: string,
+): Promise<Partial<Channel>> {
   return apiClient.request(`/channels/${channelId}`, {
     method: "PUT",
     body: JSON.stringify({ name }),

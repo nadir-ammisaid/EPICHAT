@@ -1,6 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect, KeyboardEvent as ReactKeyboardEvent } from "react";
+import {
+  useState,
+  useRef,
+  useEffect,
+  KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 import { Smile, Send } from "lucide-react";
 import { EmojiPicker } from "./EmojiPicker";
 
@@ -112,17 +117,17 @@ export function MessageInput({
   }, []);
 
   return (
-    <div className="relative flex items-end gap-2 p-3 border-t border-border bg-background">
+    <div className="border-border bg-background relative flex items-end gap-2 border-t p-3">
       {/* Emoji picker toggle */}
       <div className="relative">
         <button
           type="button"
           onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
           disabled={disabled}
-          className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors disabled:opacity-50"
+          className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-md p-2 transition-colors disabled:opacity-50"
           aria-label="Open emoji picker"
         >
-          <Smile className="w-5 h-5" />
+          <Smile className="h-5 w-5" />
         </button>
 
         <EmojiPicker
@@ -141,7 +146,7 @@ export function MessageInput({
         placeholder={placeholder}
         disabled={disabled}
         rows={1}
-        className="flex-1 px-3 py-2 text-sm bg-muted border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
+        className="bg-muted border-border focus:ring-primary flex-1 resize-none rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:outline-none disabled:opacity-50"
         style={{ maxHeight: "120px" }}
       />
 
@@ -150,10 +155,10 @@ export function MessageInput({
         type="button"
         onClick={handleSend}
         disabled={disabled || !message.trim()}
-        className="p-2 text-primary-foreground bg-primary hover:bg-primary/90 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="text-primary-foreground bg-primary hover:bg-primary/90 rounded-md p-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
         aria-label="Send message"
       >
-        <Send className="w-5 h-5" />
+        <Send className="h-5 w-5" />
       </button>
     </div>
   );

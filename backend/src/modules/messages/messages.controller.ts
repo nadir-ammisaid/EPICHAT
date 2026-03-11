@@ -12,7 +12,7 @@ import { deleteMessage as deleteMessageService } from "./messages.service.js";
 import { getChannelMessages as getChannelMessagesService } from "./messages.service.js";
 import { updateMessage as updateMessageService } from "./messages.service.js";
 import type { Request, Response } from "express";
-import HttpError from "../../shared/errors/httpError.js";
+import { prisma } from "../../prisma/client.js";
 
 // Create msg
 export const sendMessage = asyncHandler(async (req: Request, res: Response) => {
@@ -22,12 +22,33 @@ export const sendMessage = asyncHandler(async (req: Request, res: Response) => {
 
   const normalizedPayload =
     payload.type === "gif"
-      ? { type: "gif" as const, mediaUrl: payload.mediaUrl, content: payload.content }
+      ? {
+          type: "gif" as const,
+          mediaUrl: payload.mediaUrl,
+          content: payload.content,
+        }
       : { type: "text" as const, content: payload.content };
 
-  const message = await sendMessageService(userId, channelId, normalizedPayload);
+  const message = await sendMessageService(
+    userId,
+    channelId,
+    normalizedPayload,
+  );
 
-  req.app.locals.io?.to(`channel:${channelId}`).emit("message:new", message);
+  const io = req.app.locals.io;
+  if (io) {
+    // Clients dans le canal courant
+    io.to(`channel:${channelId}`).emit("message:new", message);
+
+    // Clients connectés au serveur (vue /dashboard, autres canaux)
+    const channel = await prisma.channel.findUnique({
+      where: { id: channelId },
+      select: { serverId: true },
+    });
+    if (channel?.serverId) {
+      io.to(`server:${channel.serverId}`).emit("message:new", message);
+    }
+  }
 
   res.status(201).json(message);
 });

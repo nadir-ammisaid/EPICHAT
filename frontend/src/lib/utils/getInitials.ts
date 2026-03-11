@@ -1,4 +1,6 @@
-export default function getInitials(username: string | null | undefined): string | null {
+export default function getInitials(
+  username: string | null | undefined,
+): string | null {
   if (!username || !username.trim()) return null;
   const parts = username.trim().split(/\s+/);
   if (parts.length >= 2) {

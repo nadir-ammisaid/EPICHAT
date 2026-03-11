@@ -18,6 +18,9 @@ authRouter.post("/login", asyncHandler(loginController));
 authRouter.post("/logout", requireAuth, asyncHandler(logoutController));
 authRouter.get("/me", requireAuth, asyncHandler(meController));
 authRouter.patch("/me", requireAuth, asyncHandler(updateProfileController));
-authRouter.patch("/me/status", requireAuth, asyncHandler(updateStatusController));
+authRouter.patch(
+  "/me/status",
+  requireAuth,
+  asyncHandler(updateStatusController),
+);
 authRouter.delete("/me", requireAuth, asyncHandler(deleteAccountController));
-

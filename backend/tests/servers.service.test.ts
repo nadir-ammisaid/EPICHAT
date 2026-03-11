@@ -31,19 +31,29 @@ describe("servers.service", () => {
     it("should create a server with owner as member", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      const mockServer = { id: "server-123", name: "Test Server", ownerId: "user-123" };
+      const mockServer = {
+        id: "server-123",
+        name: "Test Server",
+        ownerId: "user-123",
+      };
 
-      (prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(async (fn) => {
-        const tx = {
-          server: {
-            create: vi.fn().mockResolvedValue(mockServer),
-          },
-          serverMember: {
-            create: vi.fn().mockResolvedValue({ serverId: "server-123", userId: "user-123", role: "owner" }),
-          },
-        };
-        return fn(tx);
-      });
+      (prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(
+        async (fn) => {
+          const tx = {
+            server: {
+              create: vi.fn().mockResolvedValue(mockServer),
+            },
+            serverMember: {
+              create: vi.fn().mockResolvedValue({
+                serverId: "server-123",
+                userId: "user-123",
+                role: "owner",
+              }),
+            },
+          };
+          return fn(tx);
+        },
+      );
 
       const result = await serversService.createServer({
         name: "Test Server",
@@ -59,7 +69,9 @@ describe("servers.service", () => {
     it("should return server for member", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         role: "member",
       });
 
@@ -68,7 +80,10 @@ describe("servers.service", () => {
         name: "Test Server",
       });
 
-      const result = await serversService.getServerById("server-123", "user-123");
+      const result = await serversService.getServerById(
+        "server-123",
+        "user-123",
+      );
 
       expect(result).toBeDefined();
       expect(result?.id).toBe("server-123");
@@ -77,10 +92,12 @@ describe("servers.service", () => {
     it("should throw 403 for non-member", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue(null);
 
       await expect(
-        serversService.getServerById("server-123", "user-123")
+        serversService.getServerById("server-123", "user-123"),
       ).rejects.toThrow();
     });
   });
@@ -89,11 +106,16 @@ describe("servers.service", () => {
     it("should return member role", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         role: "admin",
       });
 
-      const result = await serversService.getServerMember("server-123", "user-123");
+      const result = await serversService.getServerMember(
+        "server-123",
+        "user-123",
+      );
 
       expect(result).toBeDefined();
       expect(result?.role).toBe("admin");
@@ -102,9 +124,14 @@ describe("servers.service", () => {
     it("should return null for non-member", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue(null);
 
-      const result = await serversService.getServerMember("server-123", "user-123");
+      const result = await serversService.getServerMember(
+        "server-123",
+        "user-123",
+      );
 
       expect(result).toBeNull();
     });
@@ -123,7 +150,11 @@ describe("servers.service", () => {
         name: "Updated Name",
       });
 
-      const result = await serversService.updateServer("server-123", { name: "Updated Name" }, "user-123");
+      const result = await serversService.updateServer(
+        "server-123",
+        { name: "Updated Name" },
+        "user-123",
+      );
 
       expect(result.name).toBe("Updated Name");
     });
@@ -137,7 +168,9 @@ describe("servers.service", () => {
       });
 
       // User is admin
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         role: "admin",
       });
 
@@ -146,7 +179,11 @@ describe("servers.service", () => {
         name: "Updated Name",
       });
 
-      const result = await serversService.updateServer("server-123", { name: "Updated Name" }, "user-123");
+      const result = await serversService.updateServer(
+        "server-123",
+        { name: "Updated Name" },
+        "user-123",
+      );
 
       expect(result.name).toBe("Updated Name");
     });
@@ -154,10 +191,16 @@ describe("servers.service", () => {
     it("should throw 404 for non-existent server", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(
+        null,
+      );
 
       await expect(
-        serversService.updateServer("server-123", { name: "New Name" }, "user-123")
+        serversService.updateServer(
+          "server-123",
+          { name: "New Name" },
+          "user-123",
+        ),
       ).rejects.toThrow();
     });
 
@@ -169,10 +212,16 @@ describe("servers.service", () => {
       });
 
       // User is not a member
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue(null);
 
       await expect(
-        serversService.updateServer("server-123", { name: "New Name" }, "user-123")
+        serversService.updateServer(
+          "server-123",
+          { name: "New Name" },
+          "user-123",
+        ),
       ).rejects.toThrow();
     });
 
@@ -184,12 +233,18 @@ describe("servers.service", () => {
       });
 
       // User is just a member, not admin
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         role: "member",
       });
 
       await expect(
-        serversService.updateServer("server-123", { name: "New Name" }, "user-123")
+        serversService.updateServer(
+          "server-123",
+          { name: "New Name" },
+          "user-123",
+        ),
       ).rejects.toThrow();
     });
   });
@@ -207,7 +262,7 @@ describe("servers.service", () => {
       });
 
       await expect(
-        serversService.deleteServer("server-123", "user-123")
+        serversService.deleteServer("server-123", "user-123"),
       ).resolves.not.toThrow();
     });
 
@@ -219,7 +274,7 @@ describe("servers.service", () => {
       });
 
       await expect(
-        serversService.deleteServer("server-123", "user-123")
+        serversService.deleteServer("server-123", "user-123"),
       ).rejects.toThrow();
     });
 
@@ -231,17 +286,19 @@ describe("servers.service", () => {
       });
 
       await expect(
-        serversService.deleteServer("server-123", "admin-user")
+        serversService.deleteServer("server-123", "admin-user"),
       ).rejects.toThrow();
     });
 
     it("should throw 404 for non-existent server", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(
+        null,
+      );
 
       await expect(
-        serversService.deleteServer("server-123", "user-123")
+        serversService.deleteServer("server-123", "user-123"),
       ).rejects.toThrow();
     });
   });
@@ -265,9 +322,13 @@ describe("servers.service", () => {
     it("should allow user to join server", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue(null);
 
-      (prisma.serverMember.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        prisma.serverMember.create as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         serverId: "server-123",
         userId: "user-123",
         role: "member",
@@ -281,12 +342,14 @@ describe("servers.service", () => {
     it("should throw 409 if already a member", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         role: "member",
       });
 
       await expect(
-        serversService.joinServer("server-123", "user-123")
+        serversService.joinServer("server-123", "user-123"),
       ).rejects.toThrow();
     });
   });
@@ -307,7 +370,9 @@ describe("servers.service", () => {
     it("should return null if not exists", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(
+        null,
+      );
 
       const result = await serversService.getServerExists("server-123");
 
@@ -319,7 +384,9 @@ describe("servers.service", () => {
     it("should allow member to leave", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         role: "member",
       });
 
@@ -327,27 +394,33 @@ describe("servers.service", () => {
         ownerId: "other-user",
       });
 
-      (prisma.serverMember.delete as ReturnType<typeof vi.fn>).mockResolvedValue({});
+      (
+        prisma.serverMember.delete as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({});
 
       await expect(
-        serversService.leaveServer("server-123", "user-123")
+        serversService.leaveServer("server-123", "user-123"),
       ).resolves.not.toThrow();
     });
 
     it("should throw 404 if not a member", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue(null);
 
       await expect(
-        serversService.leaveServer("server-123", "user-123")
+        serversService.leaveServer("server-123", "user-123"),
       ).rejects.toThrow();
     });
 
     it("should throw 403 for owner trying to leave", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         role: "owner",
       });
 
@@ -356,7 +429,7 @@ describe("servers.service", () => {
       });
 
       await expect(
-        serversService.leaveServer("server-123", "user-123")
+        serversService.leaveServer("server-123", "user-123"),
       ).rejects.toThrow();
     });
   });
@@ -365,16 +438,31 @@ describe("servers.service", () => {
     it("should return members for server member", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         role: "member",
       });
 
-      (prisma.serverMember.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
-        { userId: "user-1", role: "owner", user: { id: "user-1", username: "owner" } },
-        { userId: "user-2", role: "member", user: { id: "user-2", username: "member" } },
+      (
+        prisma.serverMember.findMany as ReturnType<typeof vi.fn>
+      ).mockResolvedValue([
+        {
+          userId: "user-1",
+          role: "owner",
+          user: { id: "user-1", username: "owner" },
+        },
+        {
+          userId: "user-2",
+          role: "member",
+          user: { id: "user-2", username: "member" },
+        },
       ]);
 
-      const result = await serversService.getServerMembers("server-123", "user-123");
+      const result = await serversService.getServerMembers(
+        "server-123",
+        "user-123",
+      );
 
       expect(result).toHaveLength(2);
     });
@@ -382,10 +470,12 @@ describe("servers.service", () => {
     it("should throw 403 for non-member", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue(null);
 
       await expect(
-        serversService.getServerMembers("server-123", "user-123")
+        serversService.getServerMembers("server-123", "user-123"),
       ).rejects.toThrow();
     });
   });
@@ -398,11 +488,15 @@ describe("servers.service", () => {
         ownerId: "owner-123",
       });
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         role: "member",
       });
 
-      (prisma.serverMember.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        prisma.serverMember.update as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         userId: "target-user",
         role: "admin",
         user: { id: "target-user", username: "target" },
@@ -412,7 +506,7 @@ describe("servers.service", () => {
         "server-123",
         "target-user",
         "admin",
-        "owner-123"
+        "owner-123",
       );
 
       expect(result.role).toBe("admin");
@@ -421,10 +515,17 @@ describe("servers.service", () => {
     it("should throw 404 for non-existent server", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(
+        null,
+      );
 
       await expect(
-        serversService.updateMemberRole("server-123", "target-user", "admin", "owner-123")
+        serversService.updateMemberRole(
+          "server-123",
+          "target-user",
+          "admin",
+          "owner-123",
+        ),
       ).rejects.toThrow();
     });
 
@@ -436,7 +537,12 @@ describe("servers.service", () => {
       });
 
       await expect(
-        serversService.updateMemberRole("server-123", "target-user", "admin", "not-owner")
+        serversService.updateMemberRole(
+          "server-123",
+          "target-user",
+          "admin",
+          "not-owner",
+        ),
       ).rejects.toThrow();
     });
 
@@ -447,10 +553,17 @@ describe("servers.service", () => {
         ownerId: "owner-123",
       });
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue(null);
 
       await expect(
-        serversService.updateMemberRole("server-123", "target-user", "admin", "owner-123")
+        serversService.updateMemberRole(
+          "server-123",
+          "target-user",
+          "admin",
+          "owner-123",
+        ),
       ).rejects.toThrow();
     });
 
@@ -461,12 +574,19 @@ describe("servers.service", () => {
         ownerId: "owner-123",
       });
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         role: "member",
       });
 
       await expect(
-        serversService.updateMemberRole("server-123", "target-user", "owner", "owner-123")
+        serversService.updateMemberRole(
+          "server-123",
+          "target-user",
+          "owner",
+          "owner-123",
+        ),
       ).rejects.toThrow();
     });
 
@@ -477,12 +597,19 @@ describe("servers.service", () => {
         ownerId: "owner-123",
       });
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         role: "owner",
       });
 
       await expect(
-        serversService.updateMemberRole("server-123", "owner-123", "admin", "owner-123")
+        serversService.updateMemberRole(
+          "server-123",
+          "owner-123",
+          "admin",
+          "owner-123",
+        ),
       ).rejects.toThrow();
     });
   });
