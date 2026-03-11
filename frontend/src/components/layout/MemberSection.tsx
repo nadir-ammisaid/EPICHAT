@@ -1,14 +1,14 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useState,useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import parseDashboardPath from "@/lib/utils/parseDashboardPath";
 import { apiClient } from "@/lib/api/client";
 import getInitials from "@/lib/utils/getInitials";
 import { getSocket } from "@/lib/socket/socket";
+import { subscribeToPresence } from "@/lib/hooks/useGlobalPresence";
 import { useRouter } from "next/navigation";
 import { openConversation } from "@/lib/api/dm";
-
 
 type ServerMember = {
   userId: string;
@@ -37,21 +37,22 @@ export default function MemberSection() {
   const [onlineStatus, setOnlineStatus] = useState<Record<string, string>>({});
 
   const router = useRouter();
-const myUserId = useMemo(() => {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) return null;
-    return JSON.parse(atob(token.split(".")[1])).userId ?? null;
-  } catch { return null; }
-}, []);
+  const myUserId = useMemo(() => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return null;
+      return JSON.parse(atob(token.split(".")[1])).userId ?? null;
+    } catch {
+      return null;
+    }
+  }, []);
 
   async function handleOpenDm(targetUserId: string) {
     try {
       const conv = await openConversation(targetUserId);
       router.push(`/dashboard/dm/${conv.id}`);
-    } catch { }
+    } catch {}
   }
-
 
   useEffect(() => {
     if (!serverId) return;
@@ -101,6 +102,22 @@ const myUserId = useMemo(() => {
       socket.emit("server:leave", serverId);
     };
   }, [serverId]);
+
+  // S'inscrire aux mises à jour de présence globale
+  useEffect(() => {
+    if (!serverId) return;
+
+    const unsubscribe = subscribeToPresence((globalMap) => {
+      // Mettre à jour les statuts basés sur la map globale
+      const newStatus: Record<string, string> = {};
+      for (const member of members) {
+        newStatus[member.userId] = globalMap.get(member.userId) ?? "offline";
+      }
+      setOnlineStatus(newStatus);
+    });
+
+    return unsubscribe;
+  }, [serverId, members]);
 
   const roleLabel: Record<string, string> = {
     owner: "Proprietaire",

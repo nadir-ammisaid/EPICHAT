@@ -15,6 +15,7 @@ import { apiClient } from "@/lib/api/client";
 import DmBar from "@/components/layout/DmBar";
 import DmSection from "@/components/layout/DmSection";
 import { getConversations } from "@/lib/api/dm";
+import { useInitializeGlobalPresence } from "@/lib/hooks/useGlobalPresence";
 import getInitials from "@/lib/utils/getInitials";
 
 
@@ -26,6 +27,9 @@ export default function DashboardShell() {
   const inviteHandled = useRef(false);
 
   const [dmContact, setDmContact] = useState<{ username: string; status: string } | null>(null);
+
+  // Inizialiser les listeners de présence globaux au démarrage
+  useInitializeGlobalPresence();
 
 useEffect(() => {
   async function load() {
