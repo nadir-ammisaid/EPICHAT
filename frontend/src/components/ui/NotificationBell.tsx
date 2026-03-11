@@ -11,7 +11,8 @@ type Props = {
 
 export default function NotificationBell({ className = "" }: Props) {
   const router = useRouter();
-  const { hasUnread, notifications, clearAll } = useNotifications();
+  const { hasUnread, notifications, clearAll, removeNotification } =
+    useNotifications();
 
   const hasItems = notifications.length > 0;
 
@@ -53,7 +54,7 @@ export default function NotificationBell({ className = "" }: Props) {
                     if (n.href) {
                       router.push(n.href);
                     }
-                    clearAll();
+                      removeNotification(n.id);
                   }}
                 >
                   <span className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-blue-500/10 text-blue-500">

@@ -47,6 +47,7 @@ type NotificationsContextValue = {
   markAllRead: () => void;
   notifications: NotificationItem[];
   clearAll: () => void;
+  removeNotification: (id: string) => void;
 };
 
 const NotificationsContext = createContext<
@@ -241,7 +242,7 @@ export function NotificationsProvider({
           type: "dm",
           title: `Nouveau message de ${authorName}`,
           body,
-          href: undefined,
+          href: `/dashboard/dm/${message.conversationId}`,
           createdAt: new Date().toISOString(),
         };
 
@@ -279,6 +280,13 @@ export function NotificationsProvider({
     clearAll() {
       setHasUnread(false);
       setNotifications([]);
+    },
+    removeNotification(id) {
+      setNotifications((prev) => {
+        const next = prev.filter((n) => n.id !== id);
+        setHasUnread(next.length > 0);
+        return next;
+      });
     },
   };
 
