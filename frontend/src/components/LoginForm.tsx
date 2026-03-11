@@ -54,6 +54,7 @@ export default function LoginForm() {
 
             if (data.accessToken) {
                 localStorage.setItem("token", data.accessToken);
+                setIsLoading(false);
                 router.push("/dashboard");
             } else {
                 setError("Identifiants invalides");
