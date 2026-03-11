@@ -146,9 +146,6 @@ export function NotificationsProvider({
       });
 
       if (!isCurrentChannel) {
-        setHasUnread(true);
-        log("→ setHasUnread(true)");
-
         const authorName = message.author?.username ?? "Quelqu'un";
         const body = snippet(message.content || "");
         const isMentionNotification =
@@ -156,51 +153,51 @@ export function NotificationsProvider({
           isMention(message.content || "", currentMyUsername) &&
           prefs.mentions;
 
-        (async () => {
-          try {
-            const channel = await getChannelDetails(message.channelId);
-            const server = channel.serverId
-              ? await getServerDetails(channel.serverId).catch(() => null)
-              : null;
+        // Pour les canaux, on ne badge + dropdown QUE pour les mentions
+        if (isMentionNotification) {
+          setHasUnread(true);
+          log("→ setHasUnread(true) (mention)");
 
-            const title = isMentionNotification
-              ? server
+          (async () => {
+            try {
+              const channel = await getChannelDetails(message.channelId);
+              const server = channel.serverId
+                ? await getServerDetails(channel.serverId).catch(() => null)
+                : null;
+
+              const title = server
                 ? `Nouvelle mention dans ${server.name}`
-                : `Nouvelle mention dans #${channel.name}`
-              : server
-                ? `Nouveau message ${server.name}`
-                : `Nouveau message dans #${channel.name}`;
+                : `Nouvelle mention dans #${channel.name}`;
 
-            const href =
-              channel.serverId && message.channelId
-                ? `/dashboard/${channel.serverId}/${message.channelId}`
-                : undefined;
+              const href =
+                channel.serverId && message.channelId
+                  ? `/dashboard/${channel.serverId}/${message.channelId}`
+                  : undefined;
 
-            const next: NotificationItem = {
-              id: message.id,
-              type: "channel",
-              title,
-              body: `${authorName}: ${body}`,
-              href,
-              createdAt: new Date().toISOString(),
-            };
+              const next: NotificationItem = {
+                id: message.id,
+                type: "channel",
+                title,
+                body: `${authorName}: ${body}`,
+                href,
+                createdAt: new Date().toISOString(),
+              };
 
-            setNotifications((prev) => [next, ...prev].slice(0, 20));
-          } catch (e) {
-            log("Erreur lors de la récupération des infos canal/serveur", e);
-            const fallback: NotificationItem = {
-              id: message.id,
-              type: "channel",
-              title: isMentionNotification
-                ? "Nouvelle mention"
-                : "Nouveau message",
-              body: `${authorName}: ${body}`,
-              href: undefined,
-              createdAt: new Date().toISOString(),
-            };
-            setNotifications((prev) => [fallback, ...prev].slice(0, 20));
-          }
-        })();
+              setNotifications((prev) => [next, ...prev].slice(0, 20));
+            } catch (e) {
+              log("Erreur lors de la récupération des infos canal/serveur", e);
+              const fallback: NotificationItem = {
+                id: message.id,
+                type: "channel",
+                title: "Nouvelle mention",
+                body: `${authorName}: ${body}`,
+                href: undefined,
+                createdAt: new Date().toISOString(),
+              };
+              setNotifications((prev) => [fallback, ...prev].slice(0, 20));
+            }
+          })();
+        }
       }
 
       if (!prefs.enabled || isCurrentChannel) {
@@ -211,14 +208,13 @@ export function NotificationsProvider({
         return;
       }
 
-      const authorName = message.author?.username ?? "Quelqu'un";
-      const body = snippet(message.content || "");
-
       if (
         currentMyUsername &&
         isMention(message.content || "", currentMyUsername) &&
         prefs.mentions
       ) {
+        const authorName = message.author?.username ?? "Quelqu'un";
+        const body = snippet(message.content || "");
         log("→ notif mention", authorName);
         showNativeNotification("Tu as été mentionné", {
           body: `${authorName}: ${body}`,
@@ -226,12 +222,6 @@ export function NotificationsProvider({
         });
         return;
       }
-
-      log("→ notif nouveau message", authorName);
-      showNativeNotification("Nouveau message", {
-        body: `${authorName}: ${body}`,
-        tag: `channel-${message.channelId}-${message.id}`,
-      });
     };
 
     const onDmMessageNew = (message: DmMessagePayload) => {

@@ -1,11 +1,13 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import parseDashboardPath from "@/lib/utils/parseDashboardPath";
 import { apiClient } from "@/lib/api/client";
 import getInitials from "@/lib/utils/getInitials";
 import { getSocket } from "@/lib/socket/socket";
+import { useRouter } from "next/navigation";
+import { openConversation } from "@/lib/api/dm";
 
 type ServerMember = {
   userId: string;
@@ -32,6 +34,24 @@ export default function MemberSection() {
   const [members, setMembers] = useState<ServerMember[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [onlineStatus, setOnlineStatus] = useState<Record<string, string>>({});
+
+  const router = useRouter();
+  const myUserId = useMemo(() => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return null;
+      return JSON.parse(atob(token.split(".")[1])).userId ?? null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  async function handleOpenDm(targetUserId: string) {
+    try {
+      const conv = await openConversation(targetUserId);
+      router.push(`/dashboard/dm/${conv.id}`);
+    } catch {}
+  }
 
   useEffect(() => {
     if (!serverId) return;
@@ -128,7 +148,12 @@ export default function MemberSection() {
               return (
                 <li
                   key={m.userId}
-                  className="hover:bg-muted/60 flex items-center gap-2 rounded-md px-2 py-1.5 text-sm"
+                  className={`group hover:bg-muted/60 relative flex items-center gap-2 rounded-md px-2 py-1.5 text-sm ${
+                    m.userId !== myUserId ? "cursor-pointer" : ""
+                  }`}
+                  onClick={() => {
+                    if (m.userId !== myUserId) handleOpenDm(m.userId);
+                  }}
                 >
                   <span className="bg-brand-muted/80 text-foreground relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
                     {getInitials(m.user?.username) ?? "?"}
@@ -147,6 +172,18 @@ export default function MemberSection() {
                     >
                       {roleLabel[m.role] ?? m.role}
                     </span>
+                  )}
+                  {m.userId !== myUserId && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenDm(m.userId);
+                      }}
+                      className="bg-brand absolute top-1/2 right-2 z-10 -translate-y-1/2 rounded px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100"
+                    >
+                      Envoyer un message
+                    </button>
                   )}
                 </li>
               );
