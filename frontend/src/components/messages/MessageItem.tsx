@@ -100,11 +100,12 @@ export function MessageItem({
             {deletedAt ? (
               <i className="opacity-60">(supprimé)</i>
             ) : type === "gif" && mediaUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
               <a href={mediaUrl} target="_blank" rel="noreferrer" className="inline-block">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={mediaUrl} alt={content || "GIF"}
                   className="max-h-64 max-w-full rounded-md border border-border" loading="lazy" />
               </a>
+
             ) : renderTextContent ? (
               renderTextContent(content)
             ) : (
@@ -113,6 +114,6 @@ export function MessageItem({
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 }
