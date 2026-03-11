@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { usePathname } from "next/navigation";
 import parseDashboardPath from "@/lib/utils/parseDashboardPath";
 import { getSocket } from "@/lib/socket/socket";
@@ -38,14 +39,18 @@ export default function ChatSection() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const typingStopTimer = useRef<number | null>(null);
 
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [channelId]);
+
   const { messages, loading, error, editingId, editText, setEditText,
-          handleDelete, handleEdit, startEditing, cancelEditing, typingText }
+    handleDelete, handleEdit, startEditing, cancelEditing, typingText }
     = useChannelMessages(channelId, myUserId);
 
   const { scrollRef, bottomRef } = useScrollToBottom(channelId, messages.length);
 
   const { showMentions, setShowMentions, mentionIndex, setMentionIndex,
-          filteredMembers, onTextChange, insertMention }
+    filteredMembers, onTextChange, insertMention }
     = useMentions(members, text, setText, inputRef);
 
   useEffect(() => {
@@ -64,7 +69,7 @@ export default function ChatSection() {
             username: m.user?.username ?? m.username,
           })));
         }
-      } catch {}
+      } catch { }
     }
     fetchMembers();
   }, [serverId]);
@@ -99,7 +104,8 @@ export default function ChatSection() {
     } catch (e: unknown) {
       console.error(e instanceof Error ? e.message : "Failed to send message");
     } finally {
-      setSending(false);
+      flushSync(() => setSending(false));
+      inputRef.current?.focus();
     }
   }
 

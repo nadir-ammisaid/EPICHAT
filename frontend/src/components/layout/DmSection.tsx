@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { flushSync } from "react-dom";
 import { usePathname } from "next/navigation";
 import { getSocket } from "@/lib/socket/socket";
 import { MessageInputBar } from "@/components/messages/MessageInputBar";
@@ -18,12 +19,14 @@ export default function DmSection() {
   const [sending, setSending] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const typingStopTimer = useRef<number | null>(null);
-
   const { messages, loading, error, editingId, editText, setEditText,
           handleDelete, handleEdit, startEditing, cancelEditing, typingText }
     = useDmMessages(conversationId, myUserId);
-
   const { scrollRef, bottomRef } = useScrollToBottom(conversationId, messages.length);
+
+useEffect(() => {
+  inputRef.current?.focus();
+}, [conversationId]);
 
   function handleTypingChange(nextValue: string) {
     setText(nextValue);
@@ -46,7 +49,9 @@ export default function DmSection() {
     } catch (e) {
       console.error(e instanceof Error ? e.message : "Send error");
     } finally {
-      setSending(false);
+      flushSync(() => setSending(false));
+      inputRef.current?.focus();
+
     }
   }
 
