@@ -10,7 +10,13 @@ import getRandomAvatar from "@/lib/utils/getRandomAvatar";
 import { Button, Input, Modal } from "@/components/ui";
 import Loader from "@/components/ui/Loader";
 import AuthGuard from "@/lib/auth/auth.guard";
-import { ArrowLeft, MessageCircleWarning, RefreshCw } from "lucide-react";
+import { useNotificationPreferences } from "@/lib/notifications/preferences";
+import {
+  getPermission,
+  requestPermission,
+  isSupported as isNotificationsSupported,
+} from "@/lib/notifications/native";
+import { ArrowLeft, Bell, MessageCircleWarning, RefreshCw } from "lucide-react";
 
 const AVATAR_SEED_STORAGE_KEY = "epichat.avatarSeed";
 const AVATAR_SEED_UPDATED_EVENT = "epichat:avatar-seed-updated";
@@ -34,6 +40,17 @@ export default function ProfilePage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [avatarSeed, setAvatarSeed] = useState<string>("");
+  const [notificationPermission, setNotificationPermission] = useState<
+    "granted" | "denied" | "default"
+  >("default");
+
+  const {
+    preferences: notifPrefs,
+    setEnabled: setNotifEnabled,
+    setDm: setNotifDm,
+    setMentions: setNotifMentions,
+    mounted: notifMounted,
+  } = useNotificationPreferences();
 
   useEffect(() => {
     apiClient
@@ -50,6 +67,16 @@ export default function ProfilePage() {
       setAvatarSeed(localStorage.getItem(AVATAR_SEED_STORAGE_KEY) ?? "");
     }
   }, [router]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && isNotificationsSupported()) {
+      setNotificationPermission(getPermission());
+    }
+  }, [notifMounted]);
+
+  const handleRequestNotificationPermission = () => {
+    requestPermission().then((p) => setNotificationPermission(p));
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,6 +207,73 @@ export default function ProfilePage() {
             </form>
           </div>
         </section>
+
+        {notifMounted && (
+          <section className="border-border flex w-full flex-col gap-4 rounded-lg border p-6 md:p-8">
+            <h2 className="h4 flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Notifications
+            </h2>
+            <div className="flex flex-col gap-4">
+              <label className="text-foreground flex cursor-pointer items-center justify-between gap-4 text-sm">
+                <span>Activer les notifications</span>
+                <input
+                  type="checkbox"
+                  checked={notifPrefs.enabled}
+                  onChange={(e) => setNotifEnabled(e.target.checked)}
+                  className="border-border h-4 w-4 rounded"
+                />
+              </label>
+              <label className="text-foreground flex cursor-pointer items-center justify-between gap-4 text-sm">
+                <span>Notifications pour les messages directs (DM)</span>
+                <input
+                  type="checkbox"
+                  checked={notifPrefs.dm}
+                  onChange={(e) => setNotifDm(e.target.checked)}
+                  disabled={!notifPrefs.enabled}
+                  className="border-border h-4 w-4 rounded disabled:opacity-50"
+                />
+              </label>
+              <label className="text-foreground flex cursor-pointer items-center justify-between gap-4 text-sm">
+                <span>Notifications pour les mentions (@moi)</span>
+                <input
+                  type="checkbox"
+                  checked={notifPrefs.mentions}
+                  onChange={(e) => setNotifMentions(e.target.checked)}
+                  disabled={!notifPrefs.enabled}
+                  className="border-border h-4 w-4 rounded disabled:opacity-50"
+                />
+              </label>
+            </div>
+            {isNotificationsSupported() ? (
+              <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-sm">
+                <span>
+                  Permission navigateur :{" "}
+                  {notificationPermission === "granted"
+                    ? "Autorisées"
+                    : notificationPermission === "denied"
+                      ? "Refusées"
+                      : "Non demandées"}
+                </span>
+                {notificationPermission === "default" && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRequestNotificationPermission}
+                  >
+                    Autoriser les notifications
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-sm">
+                Les notifications ne sont pas prises en charge par ce
+                navigateur.
+              </p>
+            )}
+          </section>
+        )}
 
         <section className="border-border flex w-full flex-col items-center justify-between gap-4 rounded-lg border p-6 md:flex-row">
           <span className="flex items-center gap-2 text-center md:text-left">

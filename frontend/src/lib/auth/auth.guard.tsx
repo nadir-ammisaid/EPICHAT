@@ -6,24 +6,35 @@ import { hasStoredToken } from "@/lib/auth/token";
 
 const LOGIN_PATH = "/login";
 
+const LoadingShell = () => (
+  <div className="bg-background flex h-screen items-center justify-center">
+    <p className="text-muted-foreground">Vérification de la session…</p>
+  </div>
+);
+
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const [hasToken, setHasToken] = useState(false);
 
   useEffect(() => {
-    if (!hasStoredToken()) {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    const token = hasStoredToken();
+    setHasToken(token);
+
+    if (!token) {
       router.replace(`${LOGIN_PATH}?from=${encodeURIComponent(pathname ?? "")}`);
     }
-    queueMicrotask(() => setMounted(true));
-  }, [router, pathname]);
+  }, [mounted, router, pathname]);
 
-  if (!mounted) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <p className="text-muted-foreground">Vérification de la session…</p>
-      </div>
-    );
+  if (!mounted || !hasToken) {
+    return <LoadingShell />;
   }
 
   return <>{children}</>;

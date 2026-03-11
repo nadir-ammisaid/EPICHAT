@@ -20,7 +20,7 @@ export default function ChannelHeader({
   canCreate,
 }: Props) {
   return (
-    <div className="border-b border-border px-4 py-3">
+    <div className="border-border border-b px-4 py-3">
       <p className="truncate text-sm font-semibold text-slate-900">
         {serverId ? `Serveur : ${serverName ?? "—"}` : "Sélectionne un serveur"}
       </p>
@@ -32,13 +32,11 @@ export default function ChannelHeader({
       )}
 
       {activeLine && (
-        <p className="mt-1 truncate text-[11px] text-slate-500">
-          {activeLine}
-        </p>
+        <p className="mt-1 truncate text-[11px] text-slate-500">{activeLine}</p>
       )}
 
       <div className="mt-3 flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+        <p className="text-xs font-semibold tracking-wide text-slate-600 uppercase">
           Canaux
         </p>
 

@@ -2,7 +2,6 @@
 
 import { getSocket } from "./socket";
 
-
 export const SOCKET_EVENTS = {
   CHANNEL_JOIN: "channel:join",
   CHANNEL_LEAVE: "channel:leave",
@@ -10,11 +9,13 @@ export const SOCKET_EVENTS = {
   MESSAGE_NEW: "message:new",
   MESSAGE_DELETED: "message:deleted",
 
+  DM_JOIN: "dm:join",
+  DM_MESSAGE_NEW: "dm:message:new",
+
   TYPING_START: "typing:start",
   TYPING_STOP: "typing:stop",
   TYPING_UPDATE: "typing:update",
 } as const;
-
 
 export type MessagePayload = {
   id: string;
@@ -26,6 +27,15 @@ export type MessagePayload = {
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
+  author?: { id: string; username: string };
+};
+
+export type DmMessagePayload = {
+  id: string;
+  conversationId: string;
+  authorId: string;
+  content: string;
+  author: { id: string; username: string };
 };
 
 export function onMessageNew(handler: (msg: MessagePayload) => void) {

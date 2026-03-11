@@ -1,7 +1,10 @@
 import React from "react";
 import { Eye, EyeOff } from "lucide-react";
 
-interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {
+interface InputProps extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  "size"
+> {
   label?: string;
   error?: string;
   fullWidth?: boolean;
@@ -9,11 +12,26 @@ interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, className = "", id, fullWidth = true, size = "md", ...props }, ref) => {
+  (
+    {
+      label,
+      error,
+      className = "",
+      id,
+      fullWidth = true,
+      size = "md",
+      ...props
+    },
+    ref,
+  ) => {
     const inputId = id || props.name;
     const isPasswordField = props.type === "password";
     const [showPassword, setShowPassword] = React.useState(false);
-    const resolvedType = isPasswordField ? (showPassword ? "text" : "password") : props.type;
+    const resolvedType = isPasswordField
+      ? showPassword
+        ? "text"
+        : "password"
+      : props.type;
 
     const sizes = {
       sm: "px-2 py-1 text-sm",
@@ -26,10 +44,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className={widthClass}>
         {label && (
-          <label
-            htmlFor={inputId}
-            className="block text-sm font-medium mb-1"
-          >
+          <label htmlFor={inputId} className="mb-1 block text-sm font-medium">
             {label}
           </label>
         )}
@@ -37,7 +52,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             id={inputId}
-            className={`${widthClass} ${sizes[size]} border border-border rounded-md ${
+            className={`${widthClass} ${sizes[size]} border-border rounded-md border ${
               error ? "border-error" : ""
             } ${isPasswordField ? "pr-11" : ""} ${className}`}
             {...props}
@@ -47,20 +62,26 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
-              aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              className="text-muted-foreground hover:text-foreground absolute inset-y-0 right-0 flex items-center pr-3"
+              aria-label={
+                showPassword
+                  ? "Masquer le mot de passe"
+                  : "Afficher le mot de passe"
+              }
               title={showPassword ? "Masquer" : "Afficher"}
             >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
             </button>
           )}
         </div>
-        {error && (
-          <p className="mt-1 text-sm text-error">{error}</p>
-        )}
+        {error && <p className="text-error mt-1 text-sm">{error}</p>}
       </div>
     );
-  }
+  },
 );
 
 Input.displayName = "Input";

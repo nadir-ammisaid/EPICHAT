@@ -18,12 +18,11 @@ export async function api(endpoint: string, options: RequestInit = {}) {
   }
   if (!res.ok) throw new Error(data.message || "Request failed");
   return data;
-};
+}
 
 export const apiClient = {
   async request(endpoint: string, options: RequestInit = {}) {
     const token = getStoredToken();
-    
     const headers: HeadersInit = {
       "Content-Type": "application/json",
       ...(token && { Authorization: `Bearer ${token}` }),
@@ -39,7 +38,6 @@ export const apiClient = {
     if (response.status === 401) {
       clearStoredToken();
     }
-    
     if (!response.ok) {
       throw new Error(data.message || "Erreur lors de la requête");
     }

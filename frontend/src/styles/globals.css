@@ -3,14 +3,14 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --brand: #0463CA;
-  --brand-hover: #0487E2;
-  --brand-active: #09B1EC;
-  --brand-muted:#77A3D2;
-  --border: #D0D0E0;
-  --border-muted: #B8B8D0;
-  --success: #4DAA57;
-  --error: #A41623;
+  --brand: #0463ca;
+  --brand-hover: #0487e2;
+  --brand-active: #09b1ec;
+  --brand-muted: #77a3d2;
+  --border: #d0d0e0;
+  --border-muted: #b8b8d0;
+  --success: #4daa57;
+  --error: #a41623;
 }
 
 @theme inline {
@@ -28,7 +28,7 @@
 
 body {
   font-family: var(--font-archivo);
-  background-color: #F3F7FB;
+  background-color: #f3f7fb;
   color: var(--foreground);
 }
 
