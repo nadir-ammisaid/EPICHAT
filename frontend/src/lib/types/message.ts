@@ -1,3 +1,9 @@
+export type Reaction = {
+  emoji: string;
+  count: number;
+  userIds: string[];
+};
+
 export type Message = {
   id: string;
   channelId: string;
@@ -9,4 +15,5 @@ export type Message = {
   updatedAt: string;
   deletedAt: string | null;
   author?: { username: string };
+  reactions?: Reaction[];
 };

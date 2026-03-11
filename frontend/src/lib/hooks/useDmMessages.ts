@@ -2,13 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { getSocket } from "@/lib/socket/socket";
-import {
-  getConversations,
-  getConversationMessages,
-  deleteDmMessage,
-  updateDmMessage,
-} from "@/lib/api/dm";
+import {getConversations,getConversationMessages,deleteDmMessage,updateDmMessage} from "@/lib/api/dm";
 import type { DirectMessage } from "@/lib/types/dm";
+import type { Reaction } from "@/lib/types/message";
 
 export function useDmMessages(conversationId: string | null, myUserId: string | null) {
   const [messages, setMessages] = useState<DirectMessage[]>([]);
@@ -31,7 +27,7 @@ export function useDmMessages(conversationId: string | null, myUserId: string | 
         map.set(conv.participant2.id, conv.participant2.username);
         setUserMap(map);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [conversationId]);
 
   // Fetch initial messages
@@ -110,12 +106,21 @@ export function useDmMessages(conversationId: string | null, myUserId: string | 
     socket.on("dm:message:deleted", onMessageDeleted);
     socket.on("dm:message:updated", onMessageUpdated);
     socket.on("dm:typing:update", onTypingUpdate);
+    const onReactionUpdate = (payload: { messageId: string; reactions: Reaction[] }) => {
+      setMessages((prev) =>
+        prev.map((m) => m.id === payload.messageId ? { ...m, reactions: payload.reactions } : m)
+      );
+    };
+    socket.on("dm:message:reaction", onReactionUpdate);
+
 
     return () => {
       socket.off("dm:message:new", onMessageNew);
       socket.off("dm:message:deleted", onMessageDeleted);
       socket.off("dm:message:updated", onMessageUpdated);
       socket.off("dm:typing:update", onTypingUpdate);
+      socket.off("dm:message:reaction", onReactionUpdate);
+
     };
   }, [conversationId]);
 
@@ -147,6 +152,14 @@ export function useDmMessages(conversationId: string | null, myUserId: string | 
       setError(e instanceof Error ? e.message : "Edit error");
     }
   }
+  async function handleToggleDmReaction(messageId: string, emoji: string) {
+    const token = localStorage.getItem("token");
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dm/messages/${messageId}/reactions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify({ emoji }),
+    });
+  }
 
   function startEditing(message: DirectMessage) {
     setEditingId(message.id);
@@ -168,7 +181,7 @@ export function useDmMessages(conversationId: string | null, myUserId: string | 
   return {
     messages, loading, error,
     editingId, editText, setEditText,
-    handleDelete, handleEdit,
+    handleDelete, handleEdit, handleToggleDmReaction,
     startEditing, cancelEditing,
     typingText,
   };

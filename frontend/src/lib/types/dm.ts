@@ -1,3 +1,5 @@
+import type { Reaction } from "./message";
+
 export type DmParticipant = {
   id: string;
   username: string;
@@ -27,4 +29,5 @@ export type DirectMessage = {
     id: string;
     username: string;
   };
+  reactions?: Reaction[];
 };

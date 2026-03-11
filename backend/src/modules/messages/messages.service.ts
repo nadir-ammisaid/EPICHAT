@@ -73,7 +73,7 @@ export async function getChannelMessages(
   const rows = await prisma.message.findMany({
   ...buildPaginationArgs(limit, before),
   where: { channelId, deletedAt: null },
-  include: { author: { select: { id: true, username: true } } },
+  include: { author: { select: { id: true, username: true } }, reactions: true },
 });
 
 return paginateResult(rows);
