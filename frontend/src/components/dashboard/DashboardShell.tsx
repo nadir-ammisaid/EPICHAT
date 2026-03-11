@@ -9,6 +9,7 @@ import ChatSection from "@/components/layout/ChatSection";
 import MemberSection from "@/components/layout/MemberSection";
 import UserBar from "@/components/layout/UserBar";
 import UserAvatar from "@/components/ui/UserAvatar";
+import NotificationBell from "@/components/ui/NotificationBell";
 import parseDashboardPath from "@/lib/utils/parseDashboardPath";
 import { ArrowLeftIcon } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
@@ -105,7 +106,10 @@ export default function DashboardShell() {
                 ) : (
                   <div />
                 )}
-                <UserAvatar />
+                <div className="flex items-center gap-2">
+                  <NotificationBell />
+                  <UserAvatar />
+                </div>
               </div>
               <DmSection />
             </div>
