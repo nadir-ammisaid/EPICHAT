@@ -6,11 +6,18 @@ import { usePathname } from "next/navigation";
 import parseDashboardPath from "@/lib/utils/parseDashboardPath";
 import { getSocket } from "@/lib/socket/socket";
 import { SOCKET_EVENTS } from "@/lib/socket/socket.events";
-import { Trash2, Pencil, Check, X, Smile, Image as ImageIcon, Search } from "lucide-react";
+import {
+  Trash2,
+  Pencil,
+  Check,
+  X,
+  Smile,
+  Image as ImageIcon,
+  Search,
+} from "lucide-react";
 import { EmojiPicker } from "@/components/ui/EmojiPicker";
 import { Modal } from "@/components/ui/Modal";
 import { apiClient } from "@/lib/api/client";
-
 
 type Message = {
   id: string;
@@ -58,7 +65,7 @@ function renderContent(content: string) {
     parts.push(
       <span key={match.index} className="text-brand font-medium">
         {match[0]}
-      </span>
+      </span>,
     );
     lastIndex = match.index + match[0].length;
   }
@@ -98,7 +105,9 @@ export default function ChatSection() {
   const [gifSending, setGifSending] = useState(false);
 
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
-  const [usernamesById, setUsernamesById] = useState<Record<string, string>>({});
+  const [usernamesById, setUsernamesById] = useState<Record<string, string>>(
+    {},
+  );
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
@@ -119,19 +128,18 @@ export default function ChatSection() {
 
   const typingStopTimer = useRef<number | null>(null);
 
-
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const isNearBottomRef = useRef(true);
-
 
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
 
     const onScroll = () => {
-      const distanceFromBottom = el.scrollHeight - (el.scrollTop + el.clientHeight);
-      isNearBottomRef.current = distanceFromBottom < 120; 
+      const distanceFromBottom =
+        el.scrollHeight - (el.scrollTop + el.clientHeight);
+      isNearBottomRef.current = distanceFromBottom < 120;
     };
 
     el.addEventListener("scroll", onScroll);
@@ -140,19 +148,16 @@ export default function ChatSection() {
     return () => el.removeEventListener("scroll", onScroll);
   }, [channelId]);
 
-
   useEffect(() => {
     isNearBottomRef.current = true;
     bottomRef.current?.scrollIntoView({ behavior: "auto" });
   }, [channelId]);
-
 
   useEffect(() => {
     if (!isNearBottomRef.current) return;
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
 
- 
   const [myUserId, setMyUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -178,10 +183,16 @@ export default function ChatSection() {
           const data = await res.json();
           const list = data?.members ?? data ?? [];
           setMembers(
-            list.map((m: { user?: { id: string; username: string }; userId?: string; username?: string }) => ({
-              id: m.user?.id ?? m.userId,
-              username: m.user?.username ?? m.username,
-            })),
+            list.map(
+              (m: {
+                user?: { id: string; username: string };
+                userId?: string;
+                username?: string;
+              }) => ({
+                id: m.user?.id ?? m.userId,
+                username: m.user?.username ?? m.username,
+              }),
+            ),
           );
         }
       } catch {}
@@ -298,13 +309,21 @@ export default function ChatSection() {
       setMessages((prev) =>
         prev.map((m) =>
           m.id === payload.id
-            ? { ...m, content: "", mediaUrl: null, deletedAt: new Date().toISOString() }
+            ? {
+                ...m,
+                content: "",
+                mediaUrl: null,
+                deletedAt: new Date().toISOString(),
+              }
             : m,
         ),
       );
     };
 
-    const onTypingUpdate = (payload: { channelId: string; userIds: string[] }) => {
+    const onTypingUpdate = (payload: {
+      channelId: string;
+      userIds: string[];
+    }) => {
       if (payload.channelId !== channelId) return;
       setTypingUsers(payload.userIds ?? []);
     };
@@ -328,7 +347,6 @@ export default function ChatSection() {
       socket.off("message:updated", onMessageUpdated);
     };
   }, [channelId]);
-
 
   function handleTypingChange(nextValue: string) {
     setText(nextValue);
@@ -376,90 +394,92 @@ export default function ChatSection() {
     setMentionFilter("");
     inputRef.current?.focus();
   }
-async function handleDelete(messageId: string) {
-  if (!messageId) return;
+  async function handleDelete(messageId: string) {
+    if (!messageId) return;
 
-  setError(null);
+    setError(null);
 
-  try {
-    const token = localStorage.getItem("token");
+    try {
+      const token = localStorage.getItem("token");
 
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/messages/${messageId}`,
-      {
-        method: "DELETE",
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/messages/${messageId}`,
+        {
+          method: "DELETE",
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
         },
-      },
-    );
+      );
 
-    if (!res.ok) {
-      const t = await res.text();
-      throw new Error(`${res.status} ${res.statusText} - ${t}`);
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error(`${res.status} ${res.statusText} - ${t}`);
+      }
+
+      // soft delete
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === messageId
+            ? {
+                ...m,
+                content: "",
+                mediaUrl: null,
+                deletedAt: new Date().toISOString(),
+              }
+            : m,
+        ),
+      );
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to delete message");
     }
-
-    // soft delete
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.id === messageId
-          ? { ...m, content: "", mediaUrl: null, deletedAt: new Date().toISOString() }
-          : m,
-      ),
-    );
-
-
-  } catch (e: unknown) {
-    setError(e instanceof Error ? e.message : "Failed to delete message");
   }
-}
 
-async function handleEdit(messageId: string) {
-  if (!messageId || !editText.trim()) return;
+  async function handleEdit(messageId: string) {
+    if (!messageId || !editText.trim()) return;
 
-  setError(null);
+    setError(null);
 
-  try {
-    const token = localStorage.getItem("token");
+    try {
+      const token = localStorage.getItem("token");
 
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/messages/${messageId}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/messages/${messageId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ content: editText.trim() }),
         },
-        body: JSON.stringify({ content: editText.trim() }),
-      },
-    );
+      );
 
-    if (!res.ok) {
-      const t = await res.text();
-      throw new Error(`${res.status} ${res.statusText} - ${t}`);
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error(`${res.status} ${res.statusText} - ${t}`);
+      }
+
+      const updated = await res.json();
+      setMessages((prev) =>
+        prev.map((m) => (m.id === messageId ? { ...m, ...updated } : m)),
+      );
+      setEditingId(null);
+      setEditText("");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Failed to edit message");
     }
+  }
 
-    const updated = await res.json();
-    setMessages((prev) =>
-      prev.map((m) => (m.id === messageId ? { ...m, ...updated } : m)),
-    );
+  function startEditing(message: Message) {
+    setEditingId(message.id);
+    setEditText(message.content);
+  }
+
+  function cancelEditing() {
     setEditingId(null);
     setEditText("");
-  } catch (e: unknown) {
-    setError(e instanceof Error ? e.message : "Failed to edit message");
   }
-}
-
-function startEditing(message: Message) {
-  setEditingId(message.id);
-  setEditText(message.content);
-}
-
-function cancelEditing() {
-  setEditingId(null);
-  setEditText("");
-}
-
 
   async function searchGifs(offset = 0, append = false) {
     const q = gifQuery.trim();
@@ -522,7 +542,6 @@ function cancelEditing() {
         throw new Error(`${res.status} ${res.statusText} - ${t}`);
       }
 
-
       setText("");
 
       if (myUserId) {
@@ -581,7 +600,9 @@ function cancelEditing() {
   const typingText = useMemo(() => {
     if (!typingUsers.length) return null;
 
-    const others = myUserId ? typingUsers.filter((u) => u !== myUserId) : typingUsers;
+    const others = myUserId
+      ? typingUsers.filter((u) => u !== myUserId)
+      : typingUsers;
     if (!others.length) return null;
 
     const names = others.map((id) => usernamesById[id] ?? id);
@@ -592,142 +613,151 @@ function cancelEditing() {
 
   if (!channelId) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col border border-border bg-background">
+      <div className="border-border bg-background flex min-h-0 flex-1 flex-col border">
         <div className="flex-1 overflow-y-auto p-4">
-          <p className="text-sm text-muted-foreground">Selectionnez un canal pour commencer à chatter.</p>
+          <p className="text-muted-foreground text-sm">
+            Selectionnez un canal pour commencer à chatter.
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col border border-border bg-background">
-
+    <div className="border-border bg-background flex min-h-0 flex-1 flex-col border">
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
         {loading && <p className="text-sm">Loading…</p>}
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <p className="text-sm text-red-500">{error}</p>}
 
-{messages.map((m) => {
-  const canDelete = !!myUserId && m.authorId === myUserId && !m.deletedAt;
-  const canEdit =
-    !!myUserId && m.authorId === myUserId && !m.deletedAt && m.type === "text";
-  const isEditing = editingId === m.id;
-  const wasEdited = m.updatedAt !== m.createdAt && !m.deletedAt;
+        {messages.map((m) => {
+          const canDelete =
+            !!myUserId && m.authorId === myUserId && !m.deletedAt;
+          const canEdit =
+            !!myUserId &&
+            m.authorId === myUserId &&
+            !m.deletedAt &&
+            m.type === "text";
+          const isEditing = editingId === m.id;
+          const wasEdited = m.updatedAt !== m.createdAt && !m.deletedAt;
 
-  return (
-    <div
-      key={m.id}
-      className="group mb-2 flex items-start gap-1 px-1 py-1 hover:bg-muted/40"
-    >
-      <div className="w-12 shrink-0 flex justify-start gap-0.5">
-        {canEdit && !isEditing ? (
-          <button
-            type="button"
-            className="mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-background/70"
-            title="Edit message"
-            onClick={() => startEditing(m)}
-          >
-            <Pencil className="h-4 w-4 opacity-70 hover:opacity-100" />
-          </button>
-        ) : (
-          <span className="mt-0.5 invisible p-0.5">
-            <Pencil className="h-4 w-4" />
-          </span>
-        )}
-        {canDelete && !isEditing ? (
-          <button
-            type="button"
-            className="mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-background/70"
-            title="Delete message"
-            onClick={() => handleDelete(m.id)}
-          >
-            <Trash2 className="h-4 w-4 opacity-70 hover:opacity-100" />
-          </button>
-        ) : (
-          <span className="mt-0.5 invisible p-0.5">
-            <Trash2 className="h-4 w-4" />
-          </span>
-        )}
-      </div>
-
-      <div className="min-w-0 flex-1">
-        <div className="text-[11px] opacity-60 flex gap-1">
-          <span>{m.author?.username ?? m.authorId}</span>
-          <span>-</span>
-          <span>{formatDate(m.createdAt)}</span>
-          {wasEdited && <span className="italic">(modifié)</span>}
-        </div>
-
-        {isEditing ? (
-          <div className="flex gap-2 items-center mt-1">
-            <input
-              className="flex-1 rounded border border-border bg-background px-2 py-1 text-sm"
-              value={editText}
-              onChange={(e) => setEditText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleEdit(m.id);
-                if (e.key === "Escape") cancelEditing();
-              }}
-              autoFocus
-            />
-            <button
-              type="button"
-              className="p-1 rounded hover:bg-muted"
-              title="Save"
-              onClick={() => handleEdit(m.id)}
+          return (
+            <div
+              key={m.id}
+              className="group hover:bg-muted/40 mb-2 flex items-start gap-1 px-1 py-1"
             >
-              <Check className="h-4 w-4 text-green-500" />
-            </button>
-            <button
-              type="button"
-              className="p-1 rounded hover:bg-muted"
-              title="Cancel"
-              onClick={cancelEditing}
-            >
-              <X className="h-4 w-4 text-red-500" />
-            </button>
-          </div>
-        ) : (
-          <div className="text-sm leading-5">
-            {m.deletedAt ? (
-              <i className="opacity-60">(supprimé)</i>
-            ) : m.type === "gif" && m.mediaUrl ? (
-              <a href={m.mediaUrl} target="_blank" rel="noreferrer" className="inline-block">
-                <img
-                  src={m.mediaUrl}
-                  alt={m.content || "GIF"}
-                  className="max-h-64 max-w-full rounded-md border border-border"
-                  loading="lazy"
-                />
-              </a>
-            ) : (
-              renderContent(m.content)
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-})}
+              <div className="flex w-12 shrink-0 justify-start gap-0.5">
+                {canEdit && !isEditing ? (
+                  <button
+                    type="button"
+                    className="hover:bg-background/70 mt-0.5 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+                    title="Edit message"
+                    onClick={() => startEditing(m)}
+                  >
+                    <Pencil className="h-4 w-4 opacity-70 hover:opacity-100" />
+                  </button>
+                ) : (
+                  <span className="invisible mt-0.5 p-0.5">
+                    <Pencil className="h-4 w-4" />
+                  </span>
+                )}
+                {canDelete && !isEditing ? (
+                  <button
+                    type="button"
+                    className="hover:bg-background/70 mt-0.5 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+                    title="Delete message"
+                    onClick={() => handleDelete(m.id)}
+                  >
+                    <Trash2 className="h-4 w-4 opacity-70 hover:opacity-100" />
+                  </button>
+                ) : (
+                  <span className="invisible mt-0.5 p-0.5">
+                    <Trash2 className="h-4 w-4" />
+                  </span>
+                )}
+              </div>
 
+              <div className="min-w-0 flex-1">
+                <div className="flex gap-1 text-[11px] opacity-60">
+                  <span>{m.author?.username ?? m.authorId}</span>
+                  <span>-</span>
+                  <span>{formatDate(m.createdAt)}</span>
+                  {wasEdited && <span className="italic">(modifié)</span>}
+                </div>
+
+                {isEditing ? (
+                  <div className="mt-1 flex items-center gap-2">
+                    <input
+                      className="border-border bg-background flex-1 rounded border px-2 py-1 text-sm"
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleEdit(m.id);
+                        if (e.key === "Escape") cancelEditing();
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      className="hover:bg-muted rounded p-1"
+                      title="Save"
+                      onClick={() => handleEdit(m.id)}
+                    >
+                      <Check className="h-4 w-4 text-green-500" />
+                    </button>
+                    <button
+                      type="button"
+                      className="hover:bg-muted rounded p-1"
+                      title="Cancel"
+                      onClick={cancelEditing}
+                    >
+                      <X className="h-4 w-4 text-red-500" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="text-sm leading-5">
+                    {m.deletedAt ? (
+                      <i className="opacity-60">(supprimé)</i>
+                    ) : m.type === "gif" && m.mediaUrl ? (
+                      <a
+                        href={m.mediaUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-block"
+                      >
+                        <img
+                          src={m.mediaUrl}
+                          alt={m.content || "GIF"}
+                          className="border-border max-h-64 max-w-full rounded-md border"
+                          loading="lazy"
+                        />
+                      </a>
+                    ) : (
+                      renderContent(m.content)
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
 
         <div ref={bottomRef} />
       </div>
 
+      <div className="h-5 px-4 pb-2 text-xs opacity-70">{typingText ?? ""}</div>
 
-      <div className="px-4 pb-2 text-xs opacity-70 h-5">{typingText ?? ""}</div>
-
-
-      <div className="border-t border-border p-3">
+      <div className="border-border border-t p-3">
         <div className="relative">
           {showMentions && filteredMembers.length > 0 && (
-            <div className="absolute bottom-full left-0 mb-1 w-48 rounded border border-border bg-background shadow-lg max-h-40 overflow-y-auto">
+            <div className="border-border bg-background absolute bottom-full left-0 mb-1 max-h-40 w-48 overflow-y-auto rounded border shadow-lg">
               {filteredMembers.slice(0, 8).map((member, idx) => (
                 <button
                   key={member.id}
                   type="button"
-                  className={`w-full px-3 py-2 text-left text-sm hover:bg-muted ${
-                    idx === mentionIndex ? "bg-brand/20 text-brand font-medium" : ""
+                  className={`hover:bg-muted w-full px-3 py-2 text-left text-sm ${
+                    idx === mentionIndex
+                      ? "bg-brand/20 text-brand font-medium"
+                      : ""
                   }`}
                   onMouseDown={(e) => {
                     e.preventDefault();
@@ -739,7 +769,7 @@ function cancelEditing() {
               ))}
             </div>
           )}
-          <div className="flex gap-2 items-center">
+          <div className="flex items-center gap-2">
             <div className="relative">
               <button
                 type="button"
@@ -747,20 +777,20 @@ function cancelEditing() {
                   setGifModalOpen(true);
                   setGifError(null);
                 }}
-                className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-md p-2 transition-colors"
                 aria-label="Open GIF search"
               >
-                <ImageIcon className="w-5 h-5" />
+                <ImageIcon className="h-5 w-5" />
               </button>
             </div>
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
-                className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-md p-2 transition-colors"
                 aria-label="Open emoji picker"
               >
-                <Smile className="w-5 h-5" />
+                <Smile className="h-5 w-5" />
               </button>
               <EmojiPicker
                 isOpen={isEmojiPickerOpen}
@@ -774,7 +804,7 @@ function cancelEditing() {
             </div>
             <input
               ref={inputRef}
-              className="flex-1 rounded border border-border bg-background px-3 py-2 text-sm"
+              className="border-border bg-background flex-1 rounded border px-3 py-2 text-sm"
               placeholder="Ecrire un message..."
               value={text}
               onChange={(e) => handleTypingChange(e.target.value)}
@@ -783,14 +813,18 @@ function cancelEditing() {
                   if (e.key === "ArrowDown") {
                     e.preventDefault();
                     setMentionIndex((prev) =>
-                      prev < Math.min(filteredMembers.length - 1, 7) ? prev + 1 : 0,
+                      prev < Math.min(filteredMembers.length - 1, 7)
+                        ? prev + 1
+                        : 0,
                     );
                     return;
                   }
                   if (e.key === "ArrowUp") {
                     e.preventDefault();
                     setMentionIndex((prev) =>
-                      prev > 0 ? prev - 1 : Math.min(filteredMembers.length - 1, 7),
+                      prev > 0
+                        ? prev - 1
+                        : Math.min(filteredMembers.length - 1, 7),
                     );
                     return;
                   }
@@ -809,7 +843,7 @@ function cancelEditing() {
               disabled={sending}
             />
             <button
-              className="rounded bg-brand px-3 py-2 text-sm text-white disabled:opacity-50"
+              className="bg-brand rounded px-3 py-2 text-sm text-white disabled:opacity-50"
               onClick={handleSendText}
               disabled={sending || !text.trim()}
             >
@@ -827,7 +861,7 @@ function cancelEditing() {
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <input
-              className="flex-1 rounded border border-border bg-background px-3 py-2 text-sm"
+              className="border-border bg-background flex-1 rounded border px-3 py-2 text-sm"
               placeholder="Rechercher sur Giphy..."
               value={gifQuery}
               onChange={(e) => setGifQuery(e.target.value)}
@@ -837,7 +871,7 @@ function cancelEditing() {
             />
             <button
               type="button"
-              className="rounded bg-brand px-3 py-2 text-sm text-white disabled:opacity-50"
+              className="bg-brand rounded px-3 py-2 text-sm text-white disabled:opacity-50"
               onClick={() => searchGifs(0, false)}
               disabled={gifLoading || !gifQuery.trim()}
             >
@@ -848,8 +882,10 @@ function cancelEditing() {
           {gifError && <p className="text-sm text-red-500">{gifError}</p>}
 
           {selectedGif && (
-            <div className="rounded border border-border p-2">
-              <p className="mb-2 text-xs text-muted-foreground">Previsualisation</p>
+            <div className="border-border rounded border p-2">
+              <p className="text-muted-foreground mb-2 text-xs">
+                Previsualisation
+              </p>
               <img
                 src={selectedGif.gifUrl}
                 alt={selectedGif.title || "GIF"}
@@ -858,7 +894,7 @@ function cancelEditing() {
             </div>
           )}
 
-          <div className="grid max-h-64 grid-cols-2 gap-2 overflow-y-auto rounded border border-border p-2">
+          <div className="border-border grid max-h-64 grid-cols-2 gap-2 overflow-y-auto rounded border p-2">
             {gifResults.map((gif) => (
               <button
                 key={gif.id}
@@ -877,7 +913,7 @@ function cancelEditing() {
               </button>
             ))}
             {!gifLoading && gifResults.length === 0 && (
-              <p className="col-span-2 text-center text-sm text-muted-foreground">
+              <p className="text-muted-foreground col-span-2 text-center text-sm">
                 Aucun GIF pour le moment.
               </p>
             )}
@@ -886,7 +922,7 @@ function cancelEditing() {
           <div className="flex justify-between gap-2">
             <button
               type="button"
-              className="rounded border border-border px-3 py-2 text-sm"
+              className="border-border rounded border px-3 py-2 text-sm"
               onClick={() => searchGifs(gifOffset, true)}
               disabled={gifLoading || !gifOffset || !gifQuery.trim()}
             >
@@ -894,7 +930,7 @@ function cancelEditing() {
             </button>
             <button
               type="button"
-              className="rounded bg-brand px-3 py-2 text-sm text-white disabled:opacity-50"
+              className="bg-brand rounded px-3 py-2 text-sm text-white disabled:opacity-50"
               onClick={handleSendGif}
               disabled={!selectedGif || gifSending}
             >

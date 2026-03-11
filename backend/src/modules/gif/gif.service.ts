@@ -69,7 +69,9 @@ export async function searchGifs(
     .map((item) => {
       const gifUrl = item.images?.original?.url;
       const previewUrl =
-        item.images?.fixed_width?.url ?? item.images?.preview_gif?.url ?? gifUrl;
+        item.images?.fixed_width?.url ??
+        item.images?.preview_gif?.url ??
+        gifUrl;
 
       if (!gifUrl || !previewUrl) return null;
 

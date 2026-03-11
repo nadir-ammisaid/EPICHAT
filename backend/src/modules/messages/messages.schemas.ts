@@ -20,7 +20,11 @@ export const sendMessageBodySchema = z
   .union([textMessageSchema, gifMessageSchema, legacyTextMessageSchema])
   .transform((payload) => {
     if ("type" in payload) return payload;
-    return { type: "text" as const, content: payload.content, mediaUrl: undefined };
+    return {
+      type: "text" as const,
+      content: payload.content,
+      mediaUrl: undefined,
+    };
   });
 
 export const channelIdParamsSchema = z.object({

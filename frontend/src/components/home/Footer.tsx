@@ -17,34 +17,37 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="mb-4 text-sm font-semibold uppercase tracking-wide text-white/90">
+            <h4 className="mb-4 text-sm font-semibold tracking-wide text-white/90 uppercase">
               Navigation
             </h4>
             <ul className="space-y-3 text-sm text-white/80">
               <li>
-                <a href="#pourquoi" className="hover:text-white transition">
+                <a href="#pourquoi" className="transition hover:text-white">
                   Pourquoi EpiChat
                 </a>
               </li>
               <li>
-                <a href="#fonctionnalites" className="hover:text-white transition">
+                <a
+                  href="#fonctionnalites"
+                  className="transition hover:text-white"
+                >
                   Fonctionnalités
                 </a>
               </li>
               <li>
-                <a href="#securite" className="hover:text-white transition">
+                <a href="#securite" className="transition hover:text-white">
                   Sécurité & accès
                 </a>
               </li>
               <li>
-                <a href="#pourqui" className="hover:text-white transition">
+                <a href="#pourqui" className="transition hover:text-white">
                   Pour qui ?
                 </a>
               </li>
             </ul>
           </div>
           <div>
-            <h4 className="mb-4 text-sm font-semibold uppercase tracking-wide text-white/90">
+            <h4 className="mb-4 text-sm font-semibold tracking-wide text-white/90 uppercase">
               Projet
             </h4>
             <ul className="space-y-3 text-sm text-white/80">
@@ -55,7 +58,7 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="mb-4 text-sm font-semibold uppercase tracking-wide text-white/90">
+            <h4 className="mb-4 text-sm font-semibold tracking-wide text-white/90 uppercase">
               Réalisé par
             </h4>
             <ul className="space-y-3 text-sm text-white/80">
@@ -65,7 +68,6 @@ export default function Footer() {
               <li>Michaël GIRARDET</li>
             </ul>
           </div>
-
         </div>
       </div>
       <div className="bg-[#2448C8] py-4">

@@ -14,7 +14,10 @@ export async function createInvite(serverId: string, userId: string) {
     },
   });
   if (!membership) {
-    throw new HttpError(403, "You must be a member of this server to create an invite");
+    throw new HttpError(
+      403,
+      "You must be a member of this server to create an invite",
+    );
   }
 
   let code: string;

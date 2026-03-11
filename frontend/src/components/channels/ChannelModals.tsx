@@ -74,21 +74,36 @@ export default function ChannelModals({
             disabled={createLoading}
           />
 
-          {createError && <p className="text-sm text-error">{createError}</p>}
+          {createError && <p className="text-error text-sm">{createError}</p>}
 
           <div className="flex gap-2">
-            <Button type="button" variant="outline" className="flex-1" onClick={onCloseCreate} disabled={createLoading}>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={onCloseCreate}
+              disabled={createLoading}
+            >
               Annuler
             </Button>
 
-            <Button type="submit" variant="primary" className="flex-1" disabled={createLoading || !newChannelName.trim()}>
+            <Button
+              type="submit"
+              variant="primary"
+              className="flex-1"
+              disabled={createLoading || !newChannelName.trim()}
+            >
               {createLoading ? "Création…" : "Créer"}
             </Button>
           </div>
         </form>
       </Modal>
 
-      <Modal open={renameOpen} onClose={onCloseRename} title="Renommer le canal">
+      <Modal
+        open={renameOpen}
+        onClose={onCloseRename}
+        title="Renommer le canal"
+      >
         <form onSubmit={onSubmitRename} className="flex flex-col gap-3">
           <Input
             label="Nouveau nom"
@@ -99,30 +114,52 @@ export default function ChannelModals({
             disabled={renameLoading}
           />
 
-          {renameError && <p className="text-sm text-error">{renameError}</p>}
+          {renameError && <p className="text-error text-sm">{renameError}</p>}
 
           <div className="flex gap-2">
-            <Button type="button" variant="outline" className="flex-1" onClick={onCloseRename} disabled={renameLoading}>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={onCloseRename}
+              disabled={renameLoading}
+            >
               Annuler
             </Button>
 
-            <Button type="submit" variant="primary" className="flex-1" disabled={renameLoading || !renameValue.trim()}>
+            <Button
+              type="submit"
+              variant="primary"
+              className="flex-1"
+              disabled={renameLoading || !renameValue.trim()}
+            >
               {renameLoading ? "En cours…" : "Renommer"}
             </Button>
           </div>
         </form>
       </Modal>
 
-      <Modal open={deleteOpen} onClose={onCloseDelete} title="Supprimer le canal">
+      <Modal
+        open={deleteOpen}
+        onClose={onCloseDelete}
+        title="Supprimer le canal"
+      >
         <div className="flex flex-col gap-3">
           <p className="text-sm text-slate-700">
-            Tu es sûr de vouloir supprimer <span className="font-semibold">#{selected?.name}</span> ?
+            Tu es sûr de vouloir supprimer{" "}
+            <span className="font-semibold">#{selected?.name}</span> ?
           </p>
 
-          {deleteError && <p className="text-sm text-error">{deleteError}</p>}
+          {deleteError && <p className="text-error text-sm">{deleteError}</p>}
 
           <div className="flex gap-2">
-            <Button type="button" variant="outline" className="flex-1" onClick={onCloseDelete} disabled={deleteLoading}>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={onCloseDelete}
+              disabled={deleteLoading}
+            >
               Annuler
             </Button>
 

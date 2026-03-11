@@ -8,21 +8,17 @@ type Props = {
   disabled: boolean;
 };
 
-export default function ChannelSearch({
-  query,
-  setQuery,
-  disabled,
-}: Props) {
+export default function ChannelSearch({ query, setQuery, disabled }: Props) {
   return (
-    <div className="border-b border-border px-3 py-3">
+    <div className="border-border border-b px-3 py-3">
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Rechercher un canal"
           disabled={disabled}
-          className="w-full rounded-xl border border-border bg-white/70 py-2 pl-9 pr-3 text-sm text-slate-800 outline-none transition focus:bg-white focus:ring-2 focus:ring-blue-200 disabled:opacity-50"
+          className="border-border w-full rounded-xl border bg-white/70 py-2 pr-3 pl-9 text-sm text-slate-800 transition outline-none focus:bg-white focus:ring-2 focus:ring-blue-200 disabled:opacity-50"
         />
       </div>
     </div>

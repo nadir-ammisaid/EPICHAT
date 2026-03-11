@@ -1,14 +1,13 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useState,useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import parseDashboardPath from "@/lib/utils/parseDashboardPath";
 import { apiClient } from "@/lib/api/client";
 import getInitials from "@/lib/utils/getInitials";
 import { getSocket } from "@/lib/socket/socket";
 import { useRouter } from "next/navigation";
 import { openConversation } from "@/lib/api/dm";
-
 
 type ServerMember = {
   userId: string;
@@ -37,21 +36,22 @@ export default function MemberSection() {
   const [onlineStatus, setOnlineStatus] = useState<Record<string, string>>({});
 
   const router = useRouter();
-const myUserId = useMemo(() => {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) return null;
-    return JSON.parse(atob(token.split(".")[1])).userId ?? null;
-  } catch { return null; }
-}, []);
+  const myUserId = useMemo(() => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return null;
+      return JSON.parse(atob(token.split(".")[1])).userId ?? null;
+    } catch {
+      return null;
+    }
+  }, []);
 
   async function handleOpenDm(targetUserId: string) {
     try {
       const conv = await openConversation(targetUserId);
       router.push(`/dashboard/dm/${conv.id}`);
-    } catch { }
+    } catch {}
   }
-
 
   useEffect(() => {
     if (!serverId) return;
@@ -77,9 +77,17 @@ const myUserId = useMemo(() => {
     if (!serverId) return;
 
     const socket = getSocket();
-    socket.emit("server:join", serverId);
 
-    const onPresenceInit = (payload: { serverId: string; presenceMap: Record<string, string> }) => {
+    const joinServer = () => {
+      socket.emit("server:join", serverId);
+    };
+    joinServer();
+    socket.on("connect", joinServer);
+
+    const onPresenceInit = (payload: {
+      serverId: string;
+      presenceMap: Record<string, string>;
+    }) => {
       if (payload.serverId !== serverId) return;
       setOnlineStatus((prev) => ({ ...prev, ...payload.presenceMap }));
     };
@@ -96,6 +104,7 @@ const myUserId = useMemo(() => {
     socket.on("presence:update", onPresenceUpdate);
 
     return () => {
+      socket.off("connect", joinServer);
       socket.off("presence:init", onPresenceInit);
       socket.off("presence:update", onPresenceUpdate);
       socket.emit("server:leave", serverId);
@@ -116,19 +125,21 @@ const myUserId = useMemo(() => {
   });
 
   return (
-    <div className="flex min-w-60 max-w-[280px] shrink-0 flex-col overflow-auto border-l border-border bg-background md:min-w-60 md:max-w-[280px]">
-      <h2 className="h3 shrink-0 border-b border-border px-3 py-2">Membres</h2>
+    <div className="border-border bg-background flex max-w-[280px] min-w-60 shrink-0 flex-col overflow-auto border-l md:max-w-[280px] md:min-w-60">
+      <h2 className="h3 border-border shrink-0 border-b px-3 py-2">Membres</h2>
       <div className="min-h-0 flex-1 overflow-auto p-2">
         {!serverId && (
-          <p className="px-2 py-4 text-sm text-muted-foreground">
+          <p className="text-muted-foreground px-2 py-4 text-sm">
             Selectionnez un canal pour voir les membres du serveur.
           </p>
         )}
         {serverId && error && (
-          <p className="px-2 py-4 text-sm text-error">{error}</p>
+          <p className="text-error px-2 py-4 text-sm">{error}</p>
         )}
         {serverId && !error && members.length === 0 && (
-          <p className="px-2 py-4 text-sm text-muted-foreground">Aucun membre.</p>
+          <p className="text-muted-foreground px-2 py-4 text-sm">
+            Aucun membre.
+          </p>
         )}
         {serverId && !error && members.length > 0 && (
           <ul className="space-y-1">
@@ -137,24 +148,26 @@ const myUserId = useMemo(() => {
               return (
                 <li
                   key={m.userId}
-                  className={`group relative flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted/60 ${m.userId !== myUserId ? "cursor-pointer" : ""
-                    }`}
-                  onClick={() => { if (m.userId !== myUserId) handleOpenDm(m.userId); }}
+                  className={`group hover:bg-muted/60 relative flex items-center gap-2 rounded-md px-2 py-1.5 text-sm ${
+                    m.userId !== myUserId ? "cursor-pointer" : ""
+                  }`}
+                  onClick={() => {
+                    if (m.userId !== myUserId) handleOpenDm(m.userId);
+                  }}
                 >
-
-                  <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-muted/80 text-xs font-semibold text-foreground">
+                  <span className="bg-brand-muted/80 text-foreground relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
                     {getInitials(m.user?.username) ?? "?"}
                     <span
-                      className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background ${STATUS_COLORS[status] ?? STATUS_COLORS.offline}`}
+                      className={`border-background absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 ${STATUS_COLORS[status] ?? STATUS_COLORS.offline}`}
                       title={status}
                     />
                   </span>
-                  <span className="min-w-0 flex-1 truncate font-medium text-foreground">
+                  <span className="text-foreground min-w-0 flex-1 truncate font-medium">
                     {m.user?.username ?? "Utilisateur"}
                   </span>
                   {m.role && (
                     <span
-                      className="shrink-0 rounded px-1.5 py-0.5 text-xs text-muted-foreground"
+                      className="text-muted-foreground shrink-0 rounded px-1.5 py-0.5 text-xs"
                       title={m.role}
                     >
                       {roleLabel[m.role] ?? m.role}
@@ -163,13 +176,15 @@ const myUserId = useMemo(() => {
                   {m.userId !== myUserId && (
                     <button
                       type="button"
-                      onClick={(e) => { e.stopPropagation(); handleOpenDm(m.userId); }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-10 rounded bg-brand px-2 py-1 text-xs text-white whitespace-nowrap"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenDm(m.userId);
+                      }}
+                      className="bg-brand absolute top-1/2 right-2 z-10 -translate-y-1/2 rounded px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100"
                     >
                       Envoyer un message
                     </button>
                   )}
-
                 </li>
               );
             })}

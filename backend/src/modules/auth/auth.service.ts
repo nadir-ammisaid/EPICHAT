@@ -1,7 +1,11 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { prisma } from "../../prisma/client.js";
-import type { LoginInput, SignupInput, UpdateProfileInput } from "./auth.schemas.js";
+import type {
+  LoginInput,
+  SignupInput,
+  UpdateProfileInput,
+} from "./auth.schemas.js";
 
 const SALT_ROUNDS = 10;
 
