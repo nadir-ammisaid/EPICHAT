@@ -1,5 +1,11 @@
 import { prisma } from "../../prisma/client.js";
 import HttpError from "../../shared/errors/httpError.js";
+import { buildPaginationArgs, paginateResult } from "../../shared/utils/pagination.js";
+
+type SendMessagePayload =
+  | { type: "text"; content: string; mediaUrl?: undefined }
+  | { type: "gif"; mediaUrl: string; content?: string };
+
 
 // sorted ids to guarantee uniqueness
 function sortedPair(a: string, b: string) {
@@ -7,10 +13,7 @@ function sortedPair(a: string, b: string) {
 }
 
 // Create or retrieve an existing conversation between two users
-export async function getOrCreateConversation(
-  userId: string,
-  targetUserId: string,
-) {
+export async function getOrCreateConversation(userId: string, targetUserId: string) {
   if (userId === targetUserId)
     throw new HttpError(400, "Cannot create a conversation with yourself");
 
@@ -22,18 +25,13 @@ export async function getOrCreateConversation(
     },
   });
   if (!sharedServer)
-    throw new HttpError(
-      403,
-      "You must share a server with this user to message them",
-    );
+    throw new HttpError(403, "You must share a server with this user to message them");
 
   const { p1, p2 } = sortedPair(userId, targetUserId);
 
   // Upsert: creates it if it does not exist, otherwise returns the existing one
   return prisma.directConversation.upsert({
-    where: {
-      participant1Id_participant2Id: { participant1Id: p1, participant2Id: p2 },
-    },
+    where: { participant1Id_participant2Id: { participant1Id: p1, participant2Id: p2 } },
     create: { participant1Id: p1, participant2Id: p2 },
     update: {},
     include: {
@@ -70,59 +68,44 @@ export async function getConversationMessages(
   if (!conversation) throw new HttpError(404, "Conversation not found");
 
   // Checks that the user is indeed a participant
-  if (
-    conversation.participant1Id !== userId &&
-    conversation.participant2Id !== userId
-  )
+  if (conversation.participant1Id !== userId && conversation.participant2Id !== userId)
     throw new HttpError(403, "Access denied");
 
-  const args: any = {
-    where: { conversationId, deletedAt: null },
-    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-    take: limit,
-    include: { author: { select: { id: true, username: true } } },
-  };
+const rows = await prisma.directMessage.findMany({
+  ...buildPaginationArgs(limit, before),
+  where: { conversationId, deletedAt: null },
+  include: { author: { select: { id: true, username: true } } },
+});
 
-  if (before) {
-    args.cursor = { id: before };
-    args.skip = 1;
-  }
+return paginateResult(rows);
 
-  const rows = await prisma.directMessage.findMany(args);
-  const messages = rows.reverse();
-  const nextCursor = messages.at(0)?.id ?? null;
-
-  return { messages, nextCursor };
 }
 
 // Send a message in a conversation
-export async function sendDmMessage(
-  userId: string,
-  conversationId: string,
-  content: string,
-) {
+export async function sendDmMessage(userId: string, conversationId: string, payload: SendMessagePayload) {
   const conversation = await prisma.directConversation.findUnique({
     where: { id: conversationId },
   });
   if (!conversation) throw new HttpError(404, "Conversation not found");
 
-  if (
-    conversation.participant1Id !== userId &&
-    conversation.participant2Id !== userId
-  )
+  if (conversation.participant1Id !== userId && conversation.participant2Id !== userId)
     throw new HttpError(403, "Access denied");
 
+  const data =
+    payload.type === "gif"
+      ? { conversationId, authorId: userId, type: "gif" as const, content: payload.content ?? "", mediaUrl: payload.mediaUrl }
+      : { conversationId, authorId: userId, type: "text" as const, content: payload.content, mediaUrl: null };
+
   return prisma.directMessage.create({
-    data: { conversationId, authorId: userId, content },
+    data,
     include: { author: { select: { id: true, username: true } } },
   });
+
 }
 
 // Delete a message (soft delete, author only)
 export async function deleteDmMessage(userId: string, messageId: string) {
-  const message = await prisma.directMessage.findUnique({
-    where: { id: messageId },
-  });
+  const message = await prisma.directMessage.findUnique({ where: { id: messageId } });
   if (!message) throw new HttpError(404, "Message not found");
   if (message.authorId !== userId)
     throw new HttpError(403, "You can only delete your own messages");
@@ -136,17 +119,10 @@ export async function deleteDmMessage(userId: string, messageId: string) {
 }
 
 // Edit a message (author only)
-export async function updateDmMessage(
-  userId: string,
-  messageId: string,
-  content: string,
-) {
-  const message = await prisma.directMessage.findUnique({
-    where: { id: messageId },
-  });
+export async function updateDmMessage(userId: string, messageId: string, content: string) {
+  const message = await prisma.directMessage.findUnique({ where: { id: messageId } });
   if (!message) throw new HttpError(404, "Message not found");
-  if (message.deletedAt)
-    throw new HttpError(400, "Cannot edit a deleted message");
+  if (message.deletedAt) throw new HttpError(400, "Cannot edit a deleted message");
   if (message.authorId !== userId)
     throw new HttpError(403, "You can only edit your own messages");
 

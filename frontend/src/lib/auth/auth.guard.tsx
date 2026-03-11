@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { hasStoredToken } from "@/lib/auth/token";
 
 const LOGIN_PATH = "/login";
+const subscribe = () => () => {};
 
 const LoadingShell = () => (
   <div className="bg-background flex h-screen items-center justify-center">
@@ -14,30 +16,18 @@ const LoadingShell = () => (
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
-  const [hasToken, setHasToken] = useState(false);
+  const isClient = useSyncExternalStore(subscribe, () => true, () => false);
+  const hasToken = isClient && hasStoredToken();
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-  }, []);
+    if (!isClient || hasToken) return;
 
-  useEffect(() => {
-    if (!mounted) return;
-    const token = Boolean(
-      typeof window !== "undefined" && localStorage.getItem("token"),
-    );
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setHasToken(token);
-    if (!token) {
-      router.replace(
-        `${LOGIN_PATH}?from=${encodeURIComponent(pathname ?? "")}`,
-      );
+    if (!hasToken) {
+      router.replace(`${LOGIN_PATH}?from=${encodeURIComponent(pathname ?? "")}`);
     }
-  }, [mounted, router, pathname]);
+  }, [hasToken, isClient, router, pathname]);
 
-  // Même rendu serveur et premier rendu client pour éviter le hydration mismatch
-  if (!mounted || !hasToken) {
+  if (!isClient || !hasToken) {
     return <LoadingShell />;
   }
 
