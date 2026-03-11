@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { hasStoredToken } from "@/lib/auth/token";
 
 const LOGIN_PATH = "/login";
+const subscribe = () => () => {};
 
 const LoadingShell = () => (
   <div className="bg-background flex h-screen items-center justify-center">
@@ -15,25 +16,18 @@ const LoadingShell = () => (
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [mounted, setMounted] = useState(false);
-  const [hasToken, setHasToken] = useState(false);
+  const isClient = useSyncExternalStore(subscribe, () => true, () => false);
+  const hasToken = isClient && hasStoredToken();
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (!isClient || hasToken) return;
 
-  useEffect(() => {
-    if (!mounted) return;
-
-    const token = hasStoredToken();
-    setHasToken(token);
-
-    if (!token) {
+    if (!hasToken) {
       router.replace(`${LOGIN_PATH}?from=${encodeURIComponent(pathname ?? "")}`);
     }
-  }, [mounted, router, pathname]);
+  }, [hasToken, isClient, router, pathname]);
 
-  if (!mounted || !hasToken) {
+  if (!isClient || !hasToken) {
     return <LoadingShell />;
   }
 
