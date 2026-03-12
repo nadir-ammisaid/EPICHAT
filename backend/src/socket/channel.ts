@@ -5,10 +5,7 @@ function toRoom(channelId: string) {
 }
 
 export function registerChannelHandlers(socket: Socket) {
-  console.log("[channel] register pour socket:", socket.id);
-
   socket.on("channel:join", (rawChannelId: string) => {
-    console.log("[channel] channel:join - channelId:", rawChannelId);
     if (typeof rawChannelId !== "string") return;
     const channelId = rawChannelId.trim();
     if (!channelId) return;
@@ -16,7 +13,6 @@ export function registerChannelHandlers(socket: Socket) {
   });
 
   socket.on("channel:leave", (rawChannelId: string) => {
-    console.log("[channel] channel:leave - channelId:", rawChannelId);
     if (typeof rawChannelId !== "string") return;
     const channelId = rawChannelId.trim();
     if (!channelId) return;
