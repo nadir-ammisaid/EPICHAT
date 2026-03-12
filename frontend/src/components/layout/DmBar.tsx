@@ -65,7 +65,7 @@ export default function DmBar() {
           ),
         );
 
-        // userId → conversationId
+        // userId
         const convMap = new Map<string, string>();
         for (const conv of conversations) {
           const otherId =
@@ -75,7 +75,7 @@ export default function DmBar() {
           convMap.set(otherId, conv.id);
         }
 
-        // Dédupliquer, exclure soi-même
+        
         const seen = new Set<string>();
         const result: ContactUser[] = [];
         for (const list of memberLists) {
@@ -91,7 +91,7 @@ export default function DmBar() {
           }
         }
 
-        // Ceux avec conversation en premier, puis alphabétique
+        // sort
         result.sort((a, b) => {
           if (a.conversationId && !b.conversationId) return -1;
           if (!a.conversationId && b.conversationId) return 1;
