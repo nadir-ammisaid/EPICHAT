@@ -26,7 +26,7 @@ export async function emitNewMemberSystemMessage(
 
   if (!user) return;
 
-  const content = `${user.username} a rejoint le serveur !, Bienvenue sur le serveur !`;
+  const content = `${user.username} a rejoint le serveur. Bienvenue !`;
 
   const message = await prisma.message.create({
     data: {

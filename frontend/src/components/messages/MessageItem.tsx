@@ -69,13 +69,13 @@ export function MessageItem({
   }
 
   return (
-    <div className="group mb-2 flex items-start gap-1 px-1 py-1 hover:bg-muted/40">
+    <div className="group hover:bg-muted/40 mb-2 flex items-start gap-1 px-1 py-1">
       {/* Actions colonne gauche */}
       <div className="flex w-16 shrink-0 justify-start gap-0.5">
         {canEdit && !isEditing ? (
           <button
             type="button"
-            className="mt-0.5 rounded p-0.5 opacity-0 transition-opacity hover:bg-background/70 group-hover:opacity-100"
+            className="hover:bg-background/70 mt-0.5 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
             onClick={onEditStart}
           >
             <Pencil className="h-4 w-4 opacity-70 hover:opacity-100" />
@@ -89,7 +89,7 @@ export function MessageItem({
         {canDelete && !isEditing ? (
           <button
             type="button"
-            className="mt-0.5 rounded p-0.5 opacity-0 transition-opacity hover:bg-background/70 group-hover:opacity-100"
+            className="hover:bg-background/70 mt-0.5 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
             onClick={onDelete}
           >
             <Trash2 className="h-4 w-4 opacity-70 hover:opacity-100" />
@@ -104,13 +104,13 @@ export function MessageItem({
           <div className="relative mt-0.5">
             <button
               type="button"
-              className="rounded p-0.5 opacity-0 transition-opacity hover:bg-background/70 group-hover:opacity-100"
+              className="hover:bg-background/70 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
               onClick={() => setShowQuickPicker((v) => !v)}
             >
               <SmilePlus className="h-4 w-4 opacity-70 hover:opacity-100" />
             </button>
             {showQuickPicker && (
-              <div className="absolute bottom-full left-0 z-10 mb-1 flex gap-1 rounded-lg border border-border bg-background p-1 shadow-lg">
+              <div className="border-border bg-background absolute bottom-full left-0 z-10 mb-1 flex gap-1 rounded-lg border p-1 shadow-lg">
                 {QUICK_EMOJIS.map((e) => (
                   <button
                     key={e}
@@ -126,7 +126,7 @@ export function MessageItem({
                 ))}
                 <button
                   type="button"
-                  className="px-1 text-xs text-muted-foreground hover:text-foreground"
+                  className="text-muted-foreground hover:text-foreground px-1 text-xs"
                   onClick={() => {
                     setShowQuickPicker(false);
                     setShowFullPicker(true);
@@ -171,14 +171,14 @@ export function MessageItem({
             />
             <button
               type="button"
-              className="rounded p-1 hover:bg-muted"
+              className="hover:bg-muted rounded p-1"
               onClick={onEditConfirm}
             >
               <Check className="h-4 w-4 text-green-500" />
             </button>
             <button
               type="button"
-              className="rounded p-1 hover:bg-muted"
+              className="hover:bg-muted rounded p-1"
               onClick={onEditCancel}
             >
               <X className="h-4 w-4 text-red-500" />
