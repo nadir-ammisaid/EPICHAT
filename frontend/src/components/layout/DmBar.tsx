@@ -133,7 +133,7 @@ export default function DmBar() {
         )}
 
         {contacts.map((contact) => {
-          const isActive = contact.conversationId === activeConversationId;
+          const isActive = activeConversationId !== null && contact.conversationId === activeConversationId;
           return (
             <button
               key={contact.userId}
