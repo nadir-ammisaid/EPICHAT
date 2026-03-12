@@ -5,7 +5,9 @@ export function subscribeToPresence(callback: (statusMap: Map<string, string>) =
   presenceSubscribers.add(callback);
   // Envoyer la map actuelle immédiatement
   callback(new Map(globalPresenceMap));
-  return () => presenceSubscribers.delete(callback);
+  return () => {
+    presenceSubscribers.delete(callback);
+  };
 }
 
 export function getPresenceMap() {
