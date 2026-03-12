@@ -55,11 +55,58 @@ npm run dev
 
 ## Testing
 
+Backend tests:
+
 ```bash
 cd backend
 npm test              # Run tests
 npm run test:coverage # Run with coverage report
 ```
+
+Frontend tests:
+
+```bash
+cd frontend
+npm test              # Run Vitest suite (unit + interaction tests)
+npm run test:coverage # Run coverage (thresholds enforced at 80%)
+```
+
+Frontend tests with Docker Compose:
+
+```bash
+# From repository root
+docker compose run --rm --no-deps frontend npm run test
+docker compose run --rm --no-deps frontend npm run test:coverage
+```
+
+Coverage reports are generated in:
+
+- `backend/coverage/`
+- `frontend/coverage/`
+
+## CI/CD
+
+GitHub Actions workflows:
+
+- `.github/workflows/ci.yml`
+: Runs on push and pull request for `main`, `dev`, `stage`.
+: Executes backend and frontend pipelines:
+  - install dependencies
+  - lint
+  - tests
+  - tests with coverage
+  - build
+
+- `.github/workflows/release-build.yml`
+: Runs on tag push (`v*`).
+: Builds and pushes Docker images (`backend`, `frontend`) to GHCR.
+
+Active quality gates in CI:
+
+- frontend test suite (Vitest + Testing Library)
+- frontend coverage threshold enforced by Vitest config
+- backend test and coverage pipeline
+- backend and frontend build validation
 
 ## API Endpoints
 
