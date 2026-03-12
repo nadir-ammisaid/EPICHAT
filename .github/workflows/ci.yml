@@ -82,9 +82,8 @@ jobs:
       - name: Build frontend
         run: npm run build
 
-      # Uncomment when frontend tests are implemented :
-      # - name: Run frontend tests
-      #   run: npm run test
-      #
-      # - name: Run frontend tests with coverage
-      #   run: npm run test:coverage
+      - name: Run frontend tests
+        run: npm run test
+
+      - name: Run frontend tests with coverage
+        run: npm run test:coverage

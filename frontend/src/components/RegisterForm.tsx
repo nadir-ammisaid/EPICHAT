@@ -19,10 +19,10 @@ export default function RegisterForm() {
 
     const formData = new FormData(e.currentTarget);
     const raw = {
-      email: formData.get("email") ?? "",
-      username: formData.get("username") ?? "",
-      password: formData.get("password") ?? "",
-      confirmPassword: formData.get("confirmPassword") ?? "",
+      email: formData.get("email") as string,
+      username: formData.get("username") as string,
+      password: formData.get("password") as string,
+      confirmPassword: formData.get("confirmPassword") as string,
     };
 
     const result = registerSchema.safeParse(raw);
