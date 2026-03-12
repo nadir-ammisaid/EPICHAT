@@ -78,8 +78,13 @@ export default function MemberSection() {
         const data = await apiClient.request(`/servers/${serverId}/members`);
         setError(null);
 
-        const list = Array.isArray(data) ? data : [];
-        setMembers(list);
+    const list = (Array.isArray(data) ? data : []).map((m) => ({
+      ...m,
+      role: m.role as "owner" | "admin" | "member",
+    }));
+
+    setMembers(list);
+
 
         const statusMap: Record<string, string> = {};
         for (const m of list) {
