@@ -78,13 +78,8 @@ export default function MemberSection() {
         const data = await apiClient.request(`/servers/${serverId}/members`);
         setError(null);
 
-    const list = (Array.isArray(data) ? data : []).map((m) => ({
-      ...m,
-      role: m.role as "owner" | "admin" | "member",
-    }));
-
-    setMembers(list);
-
+        const list = Array.isArray(data) ? data : [];
+        setMembers(list);
 
         const statusMap: Record<string, string> = {};
         for (const m of list) {
@@ -161,7 +156,7 @@ export default function MemberSection() {
     if (member.userId === myUserId) return false;
     if (member.role === "owner") return false;
     if (currentRole === "owner") return true;
-    if (currentRole === "admin") return member.role !== "owner";
+    if (currentRole === "admin") return true;
     return false;
   }
 
