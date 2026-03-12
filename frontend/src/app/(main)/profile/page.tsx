@@ -50,6 +50,7 @@ export default function ProfilePage() {
     setEnabled: setNotifEnabled,
     setDm: setNotifDm,
     setMentions: setNotifMentions,
+    setSystemJoins: setNotifSystemJoins,
     mounted: notifMounted,
   } = useNotificationPreferences();
 
@@ -242,6 +243,18 @@ export default function ProfilePage() {
                   type="checkbox"
                   checked={notifPrefs.mentions}
                   onChange={(e) => setNotifMentions(e.target.checked)}
+                  disabled={!notifPrefs.enabled}
+                  className="border-border h-4 w-4 rounded disabled:opacity-50"
+                />
+              </label>
+              <label className="text-foreground flex cursor-pointer items-center justify-between gap-4 text-sm">
+                <span>
+                  Afficher les messages système de nouveau membre dans le chat
+                </span>
+                <input
+                  type="checkbox"
+                  checked={notifPrefs.systemJoins}
+                  onChange={(e) => setNotifSystemJoins(e.target.checked)}
                   disabled={!notifPrefs.enabled}
                   className="border-border h-4 w-4 rounded disabled:opacity-50"
                 />

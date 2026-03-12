@@ -18,6 +18,7 @@ import {
   getServerExists,
   kickMember,
 } from "./servers.service.js";
+import { emitNewMemberSystemMessage } from "./serverSystemMessages.js";
 
 export async function createServerController(req: Request, res: Response) {
   const parsed = createServerSchema.safeParse(req.body ?? {});
@@ -72,6 +73,11 @@ export async function joinServerController(req: Request, res: Response) {
   }
 
   const member = await joinServer(serverId, userId);
+
+  // Message système "nouveau membre" dans le canal par défaut
+  const io = req.app.locals.io;
+  await emitNewMemberSystemMessage(io, serverId, userId);
+
   res.status(201).json(member);
 }
 

@@ -1,9 +1,11 @@
+// Cleaned version without merge artefacts
 "use client";
-import React from "react";
-import { useState } from "react";
+
+import React, { useState } from "react";
 import { EmojiPicker } from "@/components/ui/EmojiPicker";
 import { Check, Pencil, Trash2, X, SmilePlus } from "lucide-react";
 import { formatDate } from "@/lib/utils/formatDate";
+import type { MessageType } from "@/lib/types/message";
 
 type MessageItemProps = {
   id: string;
@@ -12,7 +14,7 @@ type MessageItemProps = {
   createdAt: string;
   updatedAt?: string | null;
   deletedAt?: string | null;
-  type?: "text" | "gif";
+  type?: MessageType;
   mediaUrl?: string | null;
   canEdit: boolean;
   canDelete: boolean;
@@ -56,69 +58,99 @@ export function MessageItem({
   const [showFullPicker, setShowFullPicker] = useState(false);
   const QUICK_EMOJIS = ["👍", "❤️", "😂", "😮", "🔥"];
 
+  if (type === "system_new_member") {
+    return (
+      <div className="my-2 flex justify-center">
+        <div className="system-message bg-muted text-muted-foreground rounded-md px-3 py-1 text-center text-xs italic">
+          {content}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="group mb-2 flex items-start gap-1 px-1 py-1 hover:bg-muted/40">
-      <div className="w-16 shrink-0 flex justify-start gap-0.5">
+    <div className="group hover:bg-muted/40 mb-2 flex items-start gap-1 px-1 py-1">
+      {/* Actions colonne gauche */}
+      <div className="flex w-16 shrink-0 justify-start gap-0.5">
         {canEdit && !isEditing ? (
-          <button type="button"
-            className="mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-background/70"
-            onClick={onEditStart}>
+          <button
+            type="button"
+            className="hover:bg-background/70 mt-0.5 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+            onClick={onEditStart}
+          >
             <Pencil className="h-4 w-4 opacity-70 hover:opacity-100" />
           </button>
         ) : (
-          <span className="mt-0.5 invisible p-0.5"><Pencil className="h-4 w-4" /></span>
+          <span className="invisible mt-0.5 p-0.5">
+            <Pencil className="h-4 w-4" />
+          </span>
         )}
+
         {canDelete && !isEditing ? (
-          <button type="button"
-            className="mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-background/70"
-            onClick={onDelete}>
+          <button
+            type="button"
+            className="hover:bg-background/70 mt-0.5 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+            onClick={onDelete}
+          >
             <Trash2 className="h-4 w-4 opacity-70 hover:opacity-100" />
           </button>
         ) : (
-          <span className="mt-0.5 invisible p-0.5"><Trash2 className="h-4 w-4" /></span>
+          <span className="invisible mt-0.5 p-0.5">
+            <Trash2 className="h-4 w-4" />
+          </span>
         )}
-          {!isEditing && onToggleReaction && (
-        <div className="relative flex items-start">
-          <button
-            type="button"
-            className="mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-background/70"
-            onClick={() => setShowQuickPicker((v) => !v)}
-          >
-            <SmilePlus className="h-4 w-4 opacity-70 hover:opacity-100" />
 
-          </button>
-          {showQuickPicker && (
-            <div className="absolute bottom-full left-0 mb-1 flex gap-1 bg-background border border-border rounded-lg p-1 shadow-lg z-10">
-              {QUICK_EMOJIS.map((e) => (
+        {!isEditing && onToggleReaction && (
+          <div className="relative mt-0.5">
+            <button
+              type="button"
+              className="hover:bg-background/70 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+              onClick={() => setShowQuickPicker((v) => !v)}
+            >
+              <SmilePlus className="h-4 w-4 opacity-70 hover:opacity-100" />
+            </button>
+            {showQuickPicker && (
+              <div className="border-border bg-background absolute bottom-full left-0 z-10 mb-1 flex gap-1 rounded-lg border p-1 shadow-lg">
+                {QUICK_EMOJIS.map((e) => (
+                  <button
+                    key={e}
+                    type="button"
+                    className="p-0.5 text-base transition-transform hover:scale-125"
+                    onClick={() => {
+                      onToggleReaction(e);
+                      setShowQuickPicker(false);
+                    }}
+                  >
+                    {e}
+                  </button>
+                ))}
                 <button
-                  key={e}
                   type="button"
-                  className="text-base hover:scale-125 transition-transform p-0.5"
-                  onClick={() => { onToggleReaction(e); setShowQuickPicker(false); }}
+                  className="text-muted-foreground hover:text-foreground px-1 text-xs"
+                  onClick={() => {
+                    setShowQuickPicker(false);
+                    setShowFullPicker(true);
+                  }}
                 >
-                  {e}
+                  +
                 </button>
-              ))}
-              <button
-                type="button"
-                className="text-xs text-muted-foreground hover:text-foreground px-1"
-                onClick={() => { setShowQuickPicker(false); setShowFullPicker(true); }}
-              >
-                +
-              </button>
-            </div>
-          )}
-          <EmojiPicker
-            isOpen={showFullPicker}
-            onClose={() => setShowFullPicker(false)}
-            onEmojiSelect={(emoji) => { onToggleReaction(emoji); setShowFullPicker(false); }}
-          />
-        </div>
-      )}
+              </div>
+            )}
+            <EmojiPicker
+              isOpen={showFullPicker}
+              onClose={() => setShowFullPicker(false)}
+              onEmojiSelect={(emoji) => {
+                onToggleReaction(emoji);
+                setShowFullPicker(false);
+              }}
+            />
+          </div>
+        )}
       </div>
 
+      {/* Contenu message */}
       <div className="min-w-0 flex-1">
-        <div className="text-[11px] opacity-60 flex gap-1">
+        <div className="flex gap-1 text-[11px] opacity-60">
           <span>{authorName}</span>
           <span>-</span>
           <span>{formatDate(createdAt)}</span>
@@ -126,9 +158,9 @@ export function MessageItem({
         </div>
 
         {isEditing ? (
-          <div className="flex gap-2 items-center mt-1">
+          <div className="mt-1 flex items-center gap-2">
             <input
-              className="flex-1 rounded border border-border bg-background px-2 py-1 text-sm"
+              className="border-border bg-background flex-1 rounded border px-2 py-1 text-sm"
               value={editText}
               onChange={(e) => onEditTextChange(e.target.value)}
               onKeyDown={(e) => {
@@ -137,10 +169,18 @@ export function MessageItem({
               }}
               autoFocus
             />
-            <button type="button" className="p-1 rounded hover:bg-muted" onClick={onEditConfirm}>
+            <button
+              type="button"
+              className="hover:bg-muted rounded p-1"
+              onClick={onEditConfirm}
+            >
               <Check className="h-4 w-4 text-green-500" />
             </button>
-            <button type="button" className="p-1 rounded hover:bg-muted" onClick={onEditCancel}>
+            <button
+              type="button"
+              className="hover:bg-muted rounded p-1"
+              onClick={onEditCancel}
+            >
               <X className="h-4 w-4 text-red-500" />
             </button>
           </div>
@@ -149,12 +189,20 @@ export function MessageItem({
             {deletedAt ? (
               <i className="opacity-60">(supprimé)</i>
             ) : type === "gif" && mediaUrl ? (
-              <a href={mediaUrl} target="_blank" rel="noreferrer" className="inline-block">
+              <a
+                href={mediaUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-block"
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={mediaUrl} alt={content || "GIF"}
-                  className="max-h-64 max-w-full rounded-md border border-border" loading="lazy" />
+                <img
+                  src={mediaUrl}
+                  alt={content || "GIF"}
+                  className="border-border max-h-64 max-w-full rounded-md border"
+                  loading="lazy"
+                />
               </a>
-
             ) : renderTextContent ? (
               renderTextContent(content)
             ) : (
@@ -162,17 +210,23 @@ export function MessageItem({
             )}
           </div>
         )}
+
         {reactions && reactions.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1">
+          <div className="mt-1 flex flex-wrap gap-1">
             {reactions.map((r) => {
-              const reacted = myUserId ? (r.userIds ?? []).includes(myUserId) : false;
+              const reacted = myUserId
+                ? (r.userIds ?? []).includes(myUserId)
+                : false;
               return (
                 <button
                   key={r.emoji}
                   type="button"
                   onClick={() => onToggleReaction?.(r.emoji)}
-                  className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs border transition-colors ${reacted ? "bg-brand/20 border-brand text-brand" : "bg-muted border-border hover:bg-muted/70"
-                    }`}
+                  className={`flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-xs transition-colors ${
+                    reacted
+                      ? "border-brand bg-brand/20 text-brand"
+                      : "border-border bg-muted hover:bg-muted/70"
+                  }`}
                 >
                   <span>{r.emoji}</span>
                   <span>{r.count}</span>
@@ -181,8 +235,7 @@ export function MessageItem({
             })}
           </div>
         )}
-
       </div>
-    </div >
+    </div>
   );
 }

@@ -22,7 +22,7 @@ export type MessagePayload = {
   channelId: string;
   authorId: string;
   content: string;
-  type: "text" | "gif";
+  type: "text" | "gif" | "system_new_member";
   mediaUrl: string | null;
   createdAt: string;
   updatedAt: string;

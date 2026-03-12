@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import HttpError from "../../shared/errors/httpError.js";
 import { createInvite, joinByInviteCode } from "./invites.service.js";
+import { emitNewMemberSystemMessage } from "../servers/serverSystemMessages.js";
 
 export async function createInviteController(req: Request, res: Response) {
   const serverId = (req.params.serverId ?? req.params.id) as string;
@@ -19,5 +20,9 @@ export async function joinByInviteCodeController(req: Request, res: Response) {
   }
 
   const member = await joinByInviteCode(code, userId);
+
+  const io = req.app.locals.io;
+  await emitNewMemberSystemMessage(io, member.serverId, userId);
+
   res.status(201).json(member);
 }
