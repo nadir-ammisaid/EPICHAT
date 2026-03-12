@@ -20,7 +20,7 @@ export default function DmSection() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const typingStopTimer = useRef<number | null>(null);
   const { messages, loading, error, editingId, editText, setEditText,
-          handleDelete, handleEdit, startEditing, cancelEditing, typingText }
+        handleDelete, handleEdit, handleToggleDmReaction, startEditing, cancelEditing, typingText }
     = useDmMessages(conversationId, myUserId);
   const { scrollRef, bottomRef } = useScrollToBottom(conversationId, messages.length);
 
@@ -92,6 +92,9 @@ useEffect(() => {
             onEditConfirm={() => handleEdit(m.id)}
             onEditTextChange={setEditText}
             onDelete={() => handleDelete(m.id)}
+            reactions={m.reactions}
+            myUserId={myUserId ?? undefined}
+            onToggleReaction={(emoji) => handleToggleDmReaction(m.id, emoji)}
           />
         ))}
         <div ref={bottomRef} />

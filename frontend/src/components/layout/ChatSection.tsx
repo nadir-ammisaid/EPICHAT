@@ -58,6 +58,7 @@ export default function ChatSection() {
     setEditText,
     handleDelete,
     handleEdit,
+    handleToggleReaction,
     startEditing,
     cancelEditing,
     typingText,
@@ -177,7 +178,7 @@ export default function ChatSection() {
     <div className="border-border bg-background flex min-h-0 flex-1 flex-col border">
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
         {loading && <p className="text-sm">Loading…</p>}
-        {error && <p className="text-sm text-red-500">{error}</p>}
+        {error && <p className="text-red-500 text-sm">{error}</p>}
         {messages
           .filter((m) => {
             if (!notifMounted) return true;
@@ -211,6 +212,9 @@ export default function ChatSection() {
               onEditConfirm={() => handleEdit(m.id)}
               onEditTextChange={setEditText}
               onDelete={() => handleDelete(m.id)}
+              reactions={m.reactions}
+              myUserId={myUserId ?? undefined}
+              onToggleReaction={(emoji) => handleToggleReaction(m.id, emoji)}
               renderTextContent={renderContent}
             />
           ))}

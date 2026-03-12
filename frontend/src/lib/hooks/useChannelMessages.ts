@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { getSocket } from "@/lib/socket/socket";
 import { SOCKET_EVENTS } from "@/lib/socket/socket.events";
-import type { Message } from "@/lib/types/message";
+import type { Message, Reaction } from "@/lib/types/message";
 
 export function useChannelMessages(channelId: string | null, myUserId: string | null) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -93,11 +93,20 @@ export function useChannelMessages(channelId: string | null, myUserId: string | 
     socket.on(SOCKET_EVENTS.MESSAGE_DELETED, onMessageDeleted);
     socket.on(SOCKET_EVENTS.TYPING_UPDATE, onTypingUpdate);
     socket.on("message:updated", onMessageUpdated);
+    const onReactionUpdate = (payload: { messageId: string; reactions: Reaction[] }) => {
+      setMessages((prev) =>
+        prev.map((m) => m.id === payload.messageId ? { ...m, reactions: payload.reactions } : m)
+      );
+    };
+    socket.on("message:reaction", onReactionUpdate);
+
     return () => {
       socket.off(SOCKET_EVENTS.MESSAGE_NEW, onMessageNew);
       socket.off(SOCKET_EVENTS.MESSAGE_DELETED, onMessageDeleted);
       socket.off(SOCKET_EVENTS.TYPING_UPDATE, onTypingUpdate);
       socket.off("message:updated", onMessageUpdated);
+      socket.off("message:reaction", onReactionUpdate);
+
     };
   }, [channelId]);
 
@@ -132,6 +141,14 @@ export function useChannelMessages(channelId: string | null, myUserId: string | 
       setEditText("");
     } catch (e: unknown) { setError(e instanceof Error ? e.message : "Failed to edit message"); }
   }
+  async function handleToggleReaction(messageId: string, emoji: string) {
+    const token = localStorage.getItem("token");
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/messages/${messageId}/reactions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify({ emoji }),
+    });
+  }
 
   function startEditing(message: Message) { setEditingId(message.id); setEditText(message.content); }
   function cancelEditing() { setEditingId(null); setEditText(""); }
@@ -145,5 +162,6 @@ export function useChannelMessages(channelId: string | null, myUserId: string | 
     return `${names.slice(0, 2).join(", ")} sont en train d'écrire…`;
   }, [typingUsers, myUserId, usernamesById]);
 
-  return { messages, loading, error, editingId, editText, setEditText, handleDelete, handleEdit, startEditing, cancelEditing, typingText };
+  return { messages, loading, error, editingId, editText, setEditText, handleDelete, handleEdit, handleToggleReaction, startEditing, cancelEditing, typingText };
+
 }

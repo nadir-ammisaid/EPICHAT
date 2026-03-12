@@ -74,7 +74,7 @@ export async function getConversationMessages(
 const rows = await prisma.directMessage.findMany({
   ...buildPaginationArgs(limit, before),
   where: { conversationId, deletedAt: null },
-  include: { author: { select: { id: true, username: true } } },
+  include: { author: { select: { id: true, username: true } }, reactions: true },
 });
 
 return paginateResult(rows);

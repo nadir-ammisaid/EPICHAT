@@ -30,6 +30,8 @@ model User {
   dmAsParticipant1  DirectConversation[] @relation("DmParticipant1")
   dmAsParticipant2  DirectConversation[] @relation("DmParticipant2")
   directMessages    DirectMessage[]
+  messageReactions MessageReaction[]
+  dmReactions DmReaction[]
 
 
   @@map("users")
@@ -94,7 +96,7 @@ model Message {
   // Relations
   channel Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   author  User    @relation("MessageAuthor", fields: [authorId], references: [id])
-
+  reactions MessageReaction[]
   @@map("messages")
 }
 
@@ -145,6 +147,30 @@ model DirectMessage {
   // Relations
   conversation DirectConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   author       User               @relation(fields: [authorId], references: [id])
+  reactions DmReaction[]
 
   @@map("direct_messages")
+}
+model MessageReaction {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+  @@unique([messageId, userId, emoji])
+  @@map("message_reactions")
+}
+
+model DmReaction {
+  id              String        @id @default(uuid())
+  directMessageId String
+  userId          String
+  emoji           String
+  createdAt       DateTime      @default(now())
+  directMessage   DirectMessage @relation(fields: [directMessageId], references: [id], onDelete: Cascade)
+  user            User          @relation(fields: [userId], references: [id])
+  @@unique([directMessageId, userId, emoji])
+  @@map("dm_reactions")
 }
