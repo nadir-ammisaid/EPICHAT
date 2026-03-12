@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { LogOut, User, UserIcon, Circle } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import { disconnectSocket } from "@/lib/socket/socket";
 import { Dropdown } from "@/components/ui/Dropdown";
 import getRandomAvatar from "@/lib/utils/getRandomAvatar";
 
@@ -67,12 +68,11 @@ export default function UserAvatar() {
   }, []);
 
   const handleLogout = () => {
-    apiClient
-      .request("/auth/me/status", {
-        method: "PATCH",
-        body: JSON.stringify({ status: "offline" }),
-      })
-      .catch(() => {});
+    apiClient.request("/auth/me/status", {
+      method: "PATCH",
+      body: JSON.stringify({ status: "offline" }),
+    }).catch(() => {});
+    disconnectSocket();
     localStorage.removeItem("token");
     router.push("/login");
   };
@@ -90,7 +90,7 @@ export default function UserAvatar() {
   return (
     <Dropdown>
       <Dropdown.Trigger className="relative flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full transition-opacity hover:opacity-90">
-        <div className="border-border bg-brand-muted/80 h-full w-full overflow-hidden rounded-full border">
+        <div className="h-full w-full overflow-hidden rounded-full border border-border bg-brand-muted/80">
           {username ? (
             <Image
               src={avatarUrl}
@@ -102,24 +102,20 @@ export default function UserAvatar() {
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center">
-              <User className="text-foreground h-6 w-6" />
+              <User className="h-6 w-6 text-foreground" />
             </div>
           )}
         </div>
         <span
-          className={`border-background absolute -right-1 -bottom-1 z-10 h-5 w-5 rounded-full border-[3px] ${
-            status === "online"
-              ? "bg-green-500"
-              : status === "away"
-                ? "bg-yellow-500"
-                : status === "busy"
-                  ? "bg-red-500"
-                  : "bg-gray-400"
+          className={`absolute -bottom-1 -right-1 z-10 h-5 w-5 rounded-full border-[3px] border-background ${
+            status === "online" ? "bg-green-500" :
+            status === "away" ? "bg-yellow-500" :
+            status === "busy" ? "bg-red-500" : "bg-gray-400"
           }`}
         />
       </Dropdown.Trigger>
       <Dropdown.Menu position="bottom" align="right">
-        <div className="text-muted-foreground border-border border-b px-4 py-2 text-xs">
+        <div className="px-4 py-2 text-xs text-muted-foreground border-b border-border">
           Statut
         </div>
         {STATUS_OPTIONS.map((opt) => (
@@ -127,7 +123,7 @@ export default function UserAvatar() {
             key={opt.value}
             type="button"
             onClick={() => handleStatusChange(opt.value)}
-            className={`hover:bg-brand-muted/10 flex w-full items-center gap-2 px-4 py-2 text-left text-sm transition-colors ${
+            className={`flex w-full items-center gap-2 px-4 py-2 text-left text-sm transition-colors hover:bg-brand-muted/10 ${
               status === opt.value ? "bg-brand-muted/20" : ""
             }`}
           >
@@ -135,25 +131,22 @@ export default function UserAvatar() {
             {opt.label}
           </button>
         ))}
-        <div className="border-border border-t" />
-        <Link
-          href="/profile"
-          className="text-foreground hover:bg-brand-muted/10 flex w-full items-center gap-2 px-4 py-2 text-left text-sm transition-colors"
-          role="menuitem"
-        >
-          <UserIcon className="text-foreground h-4 w-4" />
+        <div className="border-t border-border" />
+        <Link href="/profile" className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-foreground transition-colors hover:bg-brand-muted/10" role="menuitem">
+          <UserIcon className="h-4 w-4 text-foreground" />
           Mon Profil
         </Link>
         <button
           type="button"
           onClick={handleLogout}
-          className="hover:bg-error/10 text-error flex w-full items-center gap-2 px-4 py-2 text-left text-sm transition-colors hover:cursor-pointer"
+          className="flex w-full items-center hover:bg-error/10 text-error hover:cursor-pointer gap-2 px-4 py-2 text-left text-sm transition-colors"
           role="menuitem"
         >
-          <LogOut className="text-error h-4 w-4" />
+          <LogOut className="h-4 w-4 text-error" />
           Deconnexion
         </button>
       </Dropdown.Menu>
     </Dropdown>
   );
 }
+

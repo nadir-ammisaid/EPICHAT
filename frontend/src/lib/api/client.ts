@@ -18,7 +18,7 @@ export async function api(endpoint: string, options: RequestInit = {}) {
   }
   if (!res.ok) throw new Error(data.message || "Request failed");
   return data;
-}
+};
 
 export const apiClient = {
   async request(endpoint: string, options: RequestInit = {}) {

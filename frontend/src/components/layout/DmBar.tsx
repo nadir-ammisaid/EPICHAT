@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { MessageSquareMore } from "lucide-react";
 import { getConversations, openConversation } from "@/lib/api/dm";
 import { apiClient } from "@/lib/api/client";
+import { subscribeToPresence } from "@/lib/hooks/useGlobalPresence";
 import getInitials from "@/lib/utils/getInitials";
 
 function statusColor(status: string) {
@@ -105,6 +106,21 @@ export default function DmBar() {
     }
 
     load();
+  }, []);
+
+  // S'inscrire aux mises à jour de présence globale
+  useEffect(() => {
+    const unsubscribe = subscribeToPresence((globalMap) => {
+      // Mettre à jour les statuts basés sur la map globale
+      setContacts((prev) =>
+        prev.map((contact) => ({
+          ...contact,
+          status: globalMap.get(contact.userId) ?? "offline",
+        }))
+      );
+    });
+
+    return unsubscribe;
   }, []);
 
   async function handleClick(contact: ContactUser) {

@@ -18,7 +18,7 @@ import {
 import { getNotificationPreferences } from "@/lib/notifications/preferences";
 import { showNotification as showNativeNotification } from "@/lib/notifications/native";
 import { apiClient } from "@/lib/api/client";
-import { getConversations } from "@/lib/api/dm";
+import { getConversations, getConversationMessages } from "@/lib/api/dm";
 import { getChannelDetails } from "@/lib/api/channels";
 import { getServerDetails } from "@/lib/api/servers";
 
@@ -27,6 +27,7 @@ const log = (...args: unknown[]) =>
   DEBUG_NOTIF && console.log("[Notifications]", ...args);
 
 const MAX_BODY_LENGTH = 80;
+const DM_NOTIFIED_IDS_STORAGE_KEY = "epichat:notifiedDmMessageIds";
 
 function snippet(text: string): string {
   const t = text.replace(/\s+/g, " ").trim();
@@ -63,6 +64,25 @@ type NotificationItem = {
   createdAt: string;
 };
 
+function readNotifiedDmIds(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem(DM_NOTIFIED_IDS_STORAGE_KEY);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return new Set();
+    return new Set(parsed.filter((v) => typeof v === "string"));
+  } catch {
+    return new Set();
+  }
+}
+
+function writeNotifiedDmIds(ids: Set<string>) {
+  if (typeof window === "undefined") return;
+  const arr = Array.from(ids).slice(-500);
+  localStorage.setItem(DM_NOTIFIED_IDS_STORAGE_KEY, JSON.stringify(arr));
+}
+
 export function NotificationsProvider({
   children,
 }: {
@@ -71,18 +91,22 @@ export function NotificationsProvider({
   const [hasUnread, setHasUnread] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [myUsername, setMyUsername] = useState<string | null>(null);
+  const [myUserId, setMyUserId] = useState<string | null>(null);
   const pathname = usePathname();
   const { serverId, channelId } = parseDashboardPath(pathname ?? "");
 
   const channelIdRef = useRef(channelId);
   const serverIdRef = useRef(serverId);
   const myUsernameRef = useRef(myUsername);
+  const myUserIdRef = useRef(myUserId);
+  const notifiedDmIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     channelIdRef.current = channelId;
     serverIdRef.current = serverId;
     myUsernameRef.current = myUsername;
-  }, [channelId, serverId, myUsername]);
+    myUserIdRef.current = myUserId;
+  }, [channelId, serverId, myUsername, myUserId]);
 
   log("Provider render", {
     pathname,
@@ -93,11 +117,14 @@ export function NotificationsProvider({
   });
 
   useEffect(() => {
+    notifiedDmIdsRef.current = readNotifiedDmIds();
+
     apiClient
       .request("/me")
-      .then((data: { username?: string }) => {
+      .then((data: { id?: string; username?: string }) => {
         setMyUsername(data?.username ?? null);
-        log("GET /me → myUsername", data?.username ?? null);
+        setMyUserId(data?.id ?? null);
+        log("GET /me", { id: data?.id ?? null, username: data?.username ?? null });
       })
       .catch((err) => log("GET /me error", err));
   }, []);
@@ -116,8 +143,62 @@ export function NotificationsProvider({
         })
         .catch(() => {});
       getConversations()
-        .then((convs) => {
+        .then(async (convs) => {
           convs.forEach((c) => socket.emit("dm:join", c.id));
+
+          // Catch up missed DM notifications after reconnect/login.
+          const userId = myUserIdRef.current;
+          if (!userId) return;
+
+          for (const conv of convs) {
+            try {
+              const { messages } = await getConversationMessages(conv.id, 1);
+              const latest = messages[messages.length - 1];
+              if (!latest) continue;
+              if (latest.authorId === userId) continue;
+
+              const alreadyNotified = notifiedDmIdsRef.current.has(latest.id);
+              if (alreadyNotified) continue;
+
+              const currentServerId = serverIdRef.current;
+              const currentChannelId = channelIdRef.current;
+              const isCurrentDm =
+                currentServerId === "dm" && currentChannelId === conv.id;
+
+              // Mark as seen for dedupe even if the user is already reading it.
+              notifiedDmIdsRef.current.add(latest.id);
+              writeNotifiedDmIds(notifiedDmIdsRef.current);
+
+              if (isCurrentDm) continue;
+
+              const authorName = latest.author?.username ?? "Quelqu'un";
+              const body = snippet(latest.content || "");
+
+              setHasUnread(true);
+              setNotifications((prev) => {
+                if (prev.some((n) => n.id === latest.id)) return prev;
+                const next: NotificationItem = {
+                  id: latest.id,
+                  type: "dm",
+                  title: `Nouveau message de ${authorName}`,
+                  body,
+                  href: `/dashboard/dm/${conv.id}`,
+                  createdAt: new Date().toISOString(),
+                };
+                return [next, ...prev].slice(0, 20);
+              });
+
+              const prefs = getNotificationPreferences();
+              if (prefs.enabled && prefs.dm) {
+                showNativeNotification(`Nouveau DM de ${authorName}`, {
+                  body,
+                  tag: `dm-${conv.id}-${latest.id}`,
+                });
+              }
+            } catch {
+              // Ignore individual conversation fetch failures.
+            }
+          }
         })
         .catch(() => {});
     };
@@ -227,11 +308,19 @@ export function NotificationsProvider({
     };
 
     const onDmMessageNew = (message: DmMessagePayload) => {
+      const userId = myUserIdRef.current;
+      const isOwnMessage = userId && message.authorId === userId;
+
+      if (!isOwnMessage) {
+        notifiedDmIdsRef.current.add(message.id);
+        writeNotifiedDmIds(notifiedDmIdsRef.current);
+      }
+
       const currentServerId = serverIdRef.current;
       const currentChannelId = channelIdRef.current;
       const isCurrentDm =
         currentServerId === "dm" && currentChannelId === message.conversationId;
-      if (!isCurrentDm) {
+      if (!isCurrentDm && !isOwnMessage) {
         setHasUnread(true);
 
         const authorName = message.author?.username ?? "Quelqu'un";
@@ -250,7 +339,7 @@ export function NotificationsProvider({
       }
 
       const prefs = getNotificationPreferences();
-      if (!prefs.enabled || !prefs.dm || isCurrentDm) return;
+      if (!prefs.enabled || !prefs.dm || isCurrentDm || isOwnMessage) return;
 
       const authorName = message.author?.username ?? "Quelqu'un";
       showNativeNotification(`Nouveau DM de ${authorName}`, {

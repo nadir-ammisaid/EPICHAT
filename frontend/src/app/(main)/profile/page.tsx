@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { apiClient } from "@/lib/api/client";
+import { disconnectSocket } from "@/lib/socket/socket";
 import { profileSchema } from "@/lib/validation/auth";
 import getRandomAvatar from "@/lib/utils/getRandomAvatar";
 import { Button, Input, Modal } from "@/components/ui";
@@ -107,6 +108,7 @@ export default function ProfilePage() {
     setDeleteLoading(true);
     try {
       await apiClient.request("/me", { method: "DELETE" });
+      disconnectSocket();
       localStorage.removeItem("token");
       router.replace("/login");
     } catch (err) {
