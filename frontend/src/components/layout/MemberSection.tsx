@@ -8,7 +8,6 @@ import getInitials from "@/lib/utils/getInitials";
 import { getSocket } from "@/lib/socket/socket";
 import { subscribeToPresence } from "@/lib/hooks/useGlobalPresence";
 import { openConversation } from "@/lib/api/dm";
-
 import { Dropdown } from "@/components/ui/Dropdown";
 import { Settings, MessageCircle } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
@@ -68,15 +67,15 @@ export default function MemberSection() {
     } catch {}
   }
 
-  // Fetch members
+  // Fetch members 
   useEffect(() => {
     if (!serverId) return;
 
     setLoading(true);
 
-    apiClient
-      .request(`/servers/${serverId}/members`)
-      .then((data: ServerMember[]) => {
+    const fetchMembers = async () => {
+      try {
+        const data = await apiClient.request(`/servers/${serverId}/members`);
         setError(null);
 
         const list = Array.isArray(data) ? data : [];
@@ -87,12 +86,19 @@ export default function MemberSection() {
           statusMap[m.userId] = m.user?.status ?? "offline";
         }
         setOnlineStatus(statusMap);
-      })
-      .catch((err: Error) => {
-        setError(err.message ?? "Impossible de charger les membres");
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message ?? "Impossible de charger les membres");
+        } else {
+          setError("Impossible de charger les membres");
+        }
         setMembers([]);
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMembers();
   }, [serverId]);
 
   // Presence socket
@@ -125,7 +131,7 @@ export default function MemberSection() {
     };
   }, [serverId]);
 
-  // Global presence updates (incoming from dev)
+  // Global presence updates 
   useEffect(() => {
     if (!serverId) return;
 
@@ -244,14 +250,13 @@ export default function MemberSection() {
     <>
       <ToastContainer />
 
-      {/* Modal */}
       <Modal open={roleModalOpen} onClose={() => setRoleModalOpen(false)}>
         <div className="p-4 space-y-4 bg-white text-black rounded-md shadow-xl">
           <h2 className="text-lg font-semibold">Change role</h2>
 
           <Select
             value={newRole}
-            onChange={(e) => setNewRole(e.target.value as any)}
+            onChange={(e) => setNewRole(e.target.value as "admin" | "member")}
           >
             <option value="admin">Admin</option>
             <option value="member">Member</option>
@@ -276,7 +281,6 @@ export default function MemberSection() {
         </div>
       </Modal>
 
-      {/* Members list */}
       <div className="flex min-w-60 max-w-[280px] shrink-0 flex-col overflow-auto border-l border-border bg-white">
         <h2 className="h3 border-b border-border px-3 py-2">Membres</h2>
 
@@ -295,7 +299,6 @@ export default function MemberSection() {
                   if (m.userId !== myUserId) handleOpenDm(m.userId);
                 }}
               >
-                {/* Avatar */}
                 <span className="relative flex h-8 w-8 items-center justify-center rounded-full bg-brand-muted/80 text-xs font-semibold text-white">
                   {getInitials(m.user.username)}
                   <span
@@ -303,18 +306,14 @@ export default function MemberSection() {
                   />
                 </span>
 
-                {/* Username */}
                 <span className="flex-1 truncate">{m.user.username}</span>
 
-                {/* Role */}
                 <span className="text-xs text-neutral-500">
                   {roleLabel[m.role] ?? m.role}
                 </span>
 
-                {/* Actions */}
                 <div className="flex items-center gap-1">
 
-                  {/* DM icon */}
                   {m.userId !== myUserId && (
                     <button
                       onClick={(e) => {
@@ -328,7 +327,6 @@ export default function MemberSection() {
                     </button>
                   )}
 
-                  {/* Settings dropdown */}
                   {canManage(m) && (
                     <Dropdown>
                       <Dropdown.Trigger>
