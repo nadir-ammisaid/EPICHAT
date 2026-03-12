@@ -44,7 +44,7 @@ export default function ChatSection() {
   }, [channelId]);
 
   const { messages, loading, error, editingId, editText, setEditText,
-    handleDelete, handleEdit, startEditing, cancelEditing, typingText }
+    handleDelete, handleEdit, handleToggleReaction, startEditing, cancelEditing, typingText }
     = useChannelMessages(channelId, myUserId);
 
   const { scrollRef, bottomRef } = useScrollToBottom(channelId, messages.length);
@@ -144,7 +144,11 @@ export default function ChatSection() {
             onEditConfirm={() => handleEdit(m.id)}
             onEditTextChange={setEditText}
             onDelete={() => handleDelete(m.id)}
+            reactions={m.reactions}
+            myUserId={myUserId ?? undefined}
+            onToggleReaction={(emoji) => handleToggleReaction(m.id, emoji)}
             renderTextContent={renderContent}
+
           />
         ))}
         <div ref={bottomRef} />
