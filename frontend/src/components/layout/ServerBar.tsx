@@ -41,12 +41,31 @@ export default function ServerBar({ className = "" }: { className?: string }) {
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [createdCode, setCreatedCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [serverActionError, setServerActionError] = useState<string | null>(
+    null,
+  );
 
   const serverIdFromPath = pathname?.split("/").filter(Boolean)[1] ?? null;
+
+  const [myUserId, setMyUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const payload = JSON.parse(atob(token.split(".")[1] ?? ""));
+      if (typeof payload?.userId === "string") {
+        setMyUserId(payload.userId);
+      }
+    } catch {
+      // ignore invalid token
+    }
+  }, []);
 
   const getServers = async () => {
     try {
       setServers([]);
+      setServerActionError(null);
       const data = await apiClient.request("/servers");
       setServers(Array.isArray(data) ? data : []);
     } catch {
@@ -139,13 +158,39 @@ export default function ServerBar({ className = "" }: { className?: string }) {
     });
   };
 
-  // delet server
+  // delete server (owner only)
   const handleDeleteServer = async (serverId: string) => {
     try {
+      setServerActionError(null);
       await apiClient.request(`/servers/${serverId}`, { method: "DELETE" });
+      if (serverIdFromPath === serverId) {
+        router.push("/dashboard");
+      }
       await getServers();
     } catch (e) {
-      console.error(e);
+      setServerActionError(
+        e instanceof Error
+          ? e.message
+          : "Erreur lors de la suppression du serveur",
+      );
+    }
+  };
+
+  // leave server (members, non-owners)
+  const handleLeaveServer = async (serverId: string) => {
+    try {
+      setServerActionError(null);
+      await apiClient.request(`/servers/${serverId}/leave`, {
+        method: "DELETE",
+      });
+      if (serverIdFromPath === serverId) {
+        router.push("/dashboard");
+      }
+      await getServers();
+    } catch (e) {
+      setServerActionError(
+        e instanceof Error ? e.message : "Erreur lors de la sortie du serveur",
+      );
     }
   };
   return (
@@ -188,6 +233,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
         <div className="flex w-full flex-col gap-2 overflow-y-auto">
           {servers.map((server) => {
             const isActive = serverIdFromPath === server.id;
+            const isOwner = myUserId && server.ownerId === myUserId;
 
             return (
               <div
@@ -234,20 +280,35 @@ export default function ServerBar({ className = "" }: { className?: string }) {
                       <Pencil className="h-4 w-4" />
                       Modifier le nom
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteServer(server.id)}
-                      className="hover:bg-brand-muted/10 text-error hover:bg-muted flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:cursor-pointer"
-                      role="menuitem"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Supprimer le serveur
-                    </button>
+                    {isOwner ? (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteServer(server.id)}
+                        className="hover:bg-brand-muted/10 text-error hover:bg-muted flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:cursor-pointer"
+                        role="menuitem"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Supprimer le serveur
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleLeaveServer(server.id)}
+                        className="hover:bg-brand-muted/10 text-error hover:bg-muted flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:cursor-pointer"
+                        role="menuitem"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Quitter le serveur
+                      </button>
+                    )}
                   </Dropdown.Menu>
                 </Dropdown>
               </div>
             );
           })}
+          {serverActionError && (
+            <p className="text-error px-3 py-1 text-xs">{serverActionError}</p>
+          )}
         </div>
 
         {/* Create / Join */}

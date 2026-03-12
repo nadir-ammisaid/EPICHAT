@@ -1,9 +1,11 @@
+export type MessageType = "text" | "gif" | "system_new_member";
+
 export type Message = {
   id: string;
   channelId: string;
   authorId: string;
   content: string;
-  type: "text" | "gif";
+  type: MessageType;
   mediaUrl: string | null;
   createdAt: string;
   updatedAt: string;
