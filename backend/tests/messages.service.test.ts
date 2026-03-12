@@ -44,7 +44,10 @@ describe("messages.service", () => {
         channelId: "channel-123",
       });
 
-      const result = await messagesService.sendMessage("user-123", "channel-123", "Hello world");
+      const result = await messagesService.sendMessage("user-123", "channel-123", {
+        type: "text",
+        content: "Hello world",
+      });
 
       expect(result).toBeDefined();
       expect(result.id).toBe("msg-123");
@@ -62,7 +65,10 @@ describe("messages.service", () => {
       (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 
       await expect(
-        messagesService.sendMessage("user-123", "channel-123", "Hello")
+        messagesService.sendMessage("user-123", "channel-123", {
+          type: "text",
+          content: "Hello",
+        })
       ).rejects.toThrow();
     });
 
@@ -72,7 +78,10 @@ describe("messages.service", () => {
       (prisma.channel.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 
       await expect(
-        messagesService.sendMessage("user-123", "channel-123", "Hello")
+        messagesService.sendMessage("user-123", "channel-123", {
+          type: "text",
+          content: "Hello",
+        })
       ).rejects.toThrow();
     });
   });
@@ -241,7 +250,8 @@ describe("messages.service", () => {
         id: "msg-123",
         authorId: "user-123",
         channel: { serverId: "server-123" },
-        deletedAt: null
+        deletedAt: null,
+        type: "text",
       });
 
        (prisma.message.update as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -260,7 +270,8 @@ describe("messages.service", () => {
         id: "msg-123",
         authorId: "other-user",
         channel: { serverId: "server-123" },
-        deletedAt: null
+        deletedAt: null,
+        type: "text",
       });
 
       await expect(messagesService.updateMessage("user-123", "msg-123", "new"))
@@ -278,6 +289,20 @@ describe("messages.service", () => {
 
       await expect(messagesService.updateMessage("user-123", "msg-123", "new"))
         .rejects.toThrow("Cannot edit a deleted message");
+    });
+
+    it("should throw 400 if message is gif", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+
+      (prisma.message.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: "msg-123",
+        authorId: "user-123",
+        deletedAt: null,
+        type: "gif",
+      });
+
+      await expect(messagesService.updateMessage("user-123", "msg-123", "new"))
+        .rejects.toThrow("Only text messages can be edited");
     });
     
     it("should throw 404 if message not found", async () => {

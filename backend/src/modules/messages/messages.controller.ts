@@ -18,9 +18,14 @@ import HttpError from "../../shared/errors/httpError.js";
 export const sendMessage = asyncHandler(async (req: Request, res: Response) => {
   const { id: channelId } = channelIdParamsSchema.parse(req.params);
   const userId = (req as any).user.userId;
-  const { content } = sendMessageBodySchema.parse(req.body);
+  const payload = sendMessageBodySchema.parse(req.body);
 
-  const message = await sendMessageService(userId, channelId, content);
+  const normalizedPayload =
+    payload.type === "gif"
+      ? { type: "gif" as const, mediaUrl: payload.mediaUrl, content: payload.content }
+      : { type: "text" as const, content: payload.content };
+
+  const message = await sendMessageService(userId, channelId, normalizedPayload);
 
   req.app.locals.io?.to(`channel:${channelId}`).emit("message:new", message);
 

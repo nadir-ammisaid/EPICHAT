@@ -27,6 +27,10 @@ model User {
   messages        Message[]      @relation("MessageAuthor")
   createdInvites  Invite[]       @relation("InviteCreator")
   createdChannels Channel[]      @relation("ChannelCreator")
+  dmAsParticipant1  DirectConversation[] @relation("DmParticipant1")
+  dmAsParticipant2  DirectConversation[] @relation("DmParticipant2")
+  directMessages    DirectMessage[]
+
 
   @@map("users")
 }
@@ -81,6 +85,8 @@ model Message {
   channelId String
   authorId  String
   content   String
+  type      String    @default("text")
+  mediaUrl  String?
   createdAt DateTime  @default(now())
   updatedAt DateTime? @default(now())
   deletedAt DateTime?
@@ -108,4 +114,35 @@ model Invite {
 
   @@unique([code])
   @@map("invites")
+}
+
+model DirectConversation {
+  id             String   @id @default(uuid())
+  participant1Id String
+  participant2Id String
+  createdAt      DateTime @default(now())
+
+  // Relations
+  participant1 User            @relation("DmParticipant1", fields: [participant1Id], references: [id], onDelete: Cascade)
+  participant2 User            @relation("DmParticipant2", fields: [participant2Id], references: [id], onDelete: Cascade)
+  messages     DirectMessage[]
+
+  @@unique([participant1Id, participant2Id])
+  @@map("direct_conversations")
+}
+
+model DirectMessage {
+  id             String    @id @default(uuid())
+  conversationId String
+  authorId       String
+  content        String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime?
+  deletedAt      DateTime?
+
+  // Relations
+  conversation DirectConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  author       User               @relation(fields: [authorId], references: [id])
+
+  @@map("direct_messages")
 }

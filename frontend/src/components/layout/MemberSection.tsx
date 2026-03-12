@@ -1,13 +1,15 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState, useMemo } from "react";
 import parseDashboardPath from "@/lib/utils/parseDashboardPath";
 import { apiClient } from "@/lib/api/client";
 import getInitials from "@/lib/utils/getInitials";
 import { getSocket } from "@/lib/socket/socket";
+import { openConversation } from "@/lib/api/dm";
+
 import { Dropdown } from "@/components/ui/Dropdown";
-import { Settings } from "lucide-react";
+import { Settings, MessageCircle } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
@@ -19,23 +21,27 @@ type ServerMember = {
   user: { id: string; username: string; email?: string; status?: string };
 };
 
+type PresenceUpdate = {
+  serverId: string;
+  userId: string;
+  status: string;
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  online: "bg-green-500",
+  away: "bg-yellow-500",
+  busy: "bg-red-500",
+  offline: "bg-gray-400",
+};
+
 export default function MemberSection() {
   const pathname = usePathname();
   const { serverId } = parseDashboardPath(pathname ?? "");
   const { toast, ToastContainer } = useToast();
 
-  // Decode JWT
-  let user: any = null;
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
-
-  if (token) {
-    try {
-      user = JSON.parse(atob(token.split(".")[1]));
-    } catch {}
-  }
-
   const [members, setMembers] = useState<ServerMember[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [onlineStatus, setOnlineStatus] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
   // Modal state
@@ -43,24 +49,89 @@ export default function MemberSection() {
   const [selectedMember, setSelectedMember] = useState<ServerMember | null>(null);
   const [newRole, setNewRole] = useState<"admin" | "member">("member");
 
+  const router = useRouter();
+  const myUserId = useMemo(() => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return null;
+      return JSON.parse(atob(token.split(".")[1])).userId ?? null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  async function handleOpenDm(targetUserId: string) {
+    try {
+      const conv = await openConversation(targetUserId);
+      router.push(`/dashboard/dm/${conv.id}`);
+    } catch {}
+  }
+
+  // Fetch members
   useEffect(() => {
     if (!serverId) return;
 
     setLoading(true);
+
     apiClient
       .request(`/servers/${serverId}/members`)
-      .then((data: ServerMember[]) => setMembers(data))
+      .then((data: ServerMember[]) => {
+        setError(null);
+
+        const list = Array.isArray(data) ? data : [];
+        setMembers(list);
+
+        const statusMap: Record<string, string> = {};
+        for (const m of list) {
+          statusMap[m.userId] = m.user?.status ?? "offline";
+        }
+        setOnlineStatus(statusMap);
+      })
+      .catch((err: Error) => {
+        setError(err.message ?? "Impossible de charger les membres");
+        setMembers([]);
+      })
       .finally(() => setLoading(false));
   }, [serverId]);
 
+  // Presence socket
+  useEffect(() => {
+    if (!serverId) return;
+
+    const socket = getSocket();
+    socket.emit("server:join", serverId);
+
+    const onPresenceInit = (payload: { serverId: string; presenceMap: Record<string, string> }) => {
+      if (payload.serverId !== serverId) return;
+      setOnlineStatus((prev) => ({ ...prev, ...payload.presenceMap }));
+    };
+
+    const onPresenceUpdate = (payload: PresenceUpdate) => {
+      if (payload.serverId !== serverId) return;
+      setOnlineStatus((prev) => ({
+        ...prev,
+        [payload.userId]: payload.status,
+      }));
+    };
+
+    socket.on("presence:init", onPresenceInit);
+    socket.on("presence:update", onPresenceUpdate);
+
+    return () => {
+      socket.off("presence:init", onPresenceInit);
+      socket.off("presence:update", onPresenceUpdate);
+      socket.emit("server:leave", serverId);
+    };
+  }, [serverId]);
+
   // Current user's role
-  const currentMember = members.find((m) => m.userId === user?.userId);
+  const currentMember = members.find((m) => m.userId === myUserId);
   const currentRole = currentMember?.role;
 
-  // Permission
+  // Permissions
   function canManage(member: ServerMember) {
     if (!currentRole) return false;
-    if (member.userId === user?.userId) return false;
+    if (member.userId === myUserId) return false;
     if (member.role === "owner") return false;
     if (currentRole === "owner") return true;
     if (currentRole === "admin") return member.role !== "owner";
@@ -69,7 +140,7 @@ export default function MemberSection() {
 
   // Kick
   async function handleKick(member: ServerMember) {
-    if (member.userId === user?.userId) {
+    if (member.userId === myUserId) {
       toast({ title: "You cannot kick yourself." });
       return;
     }
@@ -78,6 +149,9 @@ export default function MemberSection() {
       toast({ title: "You cannot kick the owner." });
       return;
     }
+
+    const confirmKick = confirm(`Kick ${member.user.username} du serveur ?`);
+    if (!confirmKick) return;
 
     try {
       await apiClient.request(`/servers/${serverId}/kick/${member.userId}`, {
@@ -102,7 +176,7 @@ export default function MemberSection() {
 
   // Open modal
   function openRoleModal(member: ServerMember) {
-    if (member.userId === user?.userId) {
+    if (member.userId === myUserId) {
       toast({ title: "You cannot change your own role." });
       return;
     }
@@ -136,6 +210,19 @@ export default function MemberSection() {
       toast({ title: "Failed to update role." });
     }
   }
+
+  const roleLabel: Record<string, string> = {
+    owner: "Propriétaire",
+    admin: "Admin",
+    member: "Membre",
+  };
+
+  const sortedMembers = [...members].sort((a, b) => {
+    const statusA = onlineStatus[a.userId] ?? "offline";
+    const statusB = onlineStatus[b.userId] ?? "offline";
+    const order = ["online", "away", "busy", "offline"];
+    return order.indexOf(statusA) - order.indexOf(statusB);
+  });
 
   return (
     <>
@@ -173,53 +260,91 @@ export default function MemberSection() {
       </Modal>
 
       <div className="flex min-w-60 max-w-[280px] shrink-0 flex-col overflow-auto border-l border-border bg-white">
-        <h2 className="h3 border-b border-border px-3 py-2">Members</h2>
+        <h2 className="h3 border-b border-border px-3 py-2">Membres</h2>
 
         <div className="flex-1 overflow-auto p-2">
           {loading && <p>Loading...</p>}
+          {error && <p className="text-red-500">{error}</p>}
 
-          {members.map((m) => (
-            <div
-              key={m.userId}
-              className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-neutral-100"
-            >
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-muted/80 text-xs font-semibold text-white">
-                {getInitials(m.user.username)}
-              </span>
+          {sortedMembers.map((m) => {
+            const status = onlineStatus[m.userId] ?? "offline";
 
-              <span className="flex-1 truncate">{m.user.username}</span>
+            return (
+              <div
+                key={m.userId}
+                className="group relative flex items-center gap-2 px-2 py-1.5 rounded hover:bg-neutral-100"
+                onClick={() => {
+                  if (m.userId !== myUserId) handleOpenDm(m.userId);
+                }}
+              >
+                <span className="relative flex h-8 w-8 items-center justify-center rounded-full bg-brand-muted/80 text-xs font-semibold text-white">
+                  {getInitials(m.user.username)}
+                  <span
+                    className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white ${STATUS_COLORS[status]}`}
+                  />
+                </span>
 
-              <span className="text-xs text-neutral-500">{m.role}</span>
+                <span className="flex-1 truncate">{m.user.username}</span>
 
-              {canManage(m) && (
-                <Dropdown>
-                  <Dropdown.Trigger>
-                    <button className="p-1 rounded hover:bg-neutral-200 text-neutral-600 hover:text-black">
-                      <Settings size={16} />
-                    </button>
-                  </Dropdown.Trigger>
+                <span className="text-xs text-neutral-500">
+                  {roleLabel[m.role] ?? m.role}
+                </span>
 
-                  <Dropdown.Menu align="right">
+                <div className="flex items-center gap-1">
+
+                  {m.userId !== myUserId && (
                     <button
-                      className="w-full px-3 py-2 text-left text-sm text-red-500 hover:bg-red-500/10"
-                      onClick={() => handleKick(m)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenDm(m.userId);
+                      }}
+                      className="p-1 rounded hover:bg-neutral-200 text-neutral-600 hover:text-black"
+                      title="Envoyer un message"
                     >
-                      Kick
+                      <MessageCircle size={16} />
                     </button>
+                  )}
 
-                    {currentRole === "owner" && (
-                      <button
-                        className="w-full px-3 py-2 text-left text-sm hover:bg-neutral-200"
-                        onClick={() => openRoleModal(m)}
-                      >
-                        Change role
-                      </button>
-                    )}
-                  </Dropdown.Menu>
-                </Dropdown>
-              )}
-            </div>
-          ))}
+                  {canManage(m) && (
+                    <Dropdown>
+                      <Dropdown.Trigger>
+                        <button
+                          onClick={(e) => e.stopPropagation()}
+                          className="p-1 rounded hover:bg-neutral-200 text-neutral-600 hover:text-black"
+                        >
+                          <Settings size={16} />
+                        </button>
+                      </Dropdown.Trigger>
+
+                      <Dropdown.Menu align="right">
+                        <button
+                          className="w-full px-3 py-2 text-left text-sm text-red-500 hover:bg-red-500/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleKick(m);
+                          }}
+                        >
+                          Expluser
+                        </button>
+
+                        {currentRole === "owner" && (
+                          <button
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-neutral-200"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openRoleModal(m);
+                            }}
+                          >
+                            Change role
+                          </button>
+                        )}
+                      </Dropdown.Menu>
+                    </Dropdown>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </>

@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { registerTypingHandlers } from "./typing.js";
 import { registerPresenceHandlers } from "./presence.js";
 import { registerChannelHandlers } from "./channel.js";
+import { registerDmHandlers } from "./dm.js";
 import { registerKickHandlers } from "./kick.js";
 
 function getJwtSecret(): string {
@@ -34,6 +35,7 @@ export function initSocket(server: http.Server) {
     registerChannelHandlers(socket);
     registerTypingHandlers(io, socket);
     registerPresenceHandlers(io, socket);
+    registerDmHandlers(io, socket);
     registerKickHandlers(io, socket);
   });
 
