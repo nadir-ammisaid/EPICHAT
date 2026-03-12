@@ -5,8 +5,10 @@ export function groupReactions(reactions: { userId: string; emoji: string }[]) {
   return Object.values(
     reactions.reduce((acc, r) => {
       if (!acc[r.emoji]) acc[r.emoji] = { emoji: r.emoji, count: 0, userIds: [] };
-      acc[r.emoji].count++;
-      acc[r.emoji].userIds.push(r.userId);
+      const entry = acc[r.emoji]!;
+      entry.count++;
+      entry.userIds.push(r.userId);
+
       return acc;
     }, {} as Record<string, { emoji: string; count: number; userIds: string[] }>)
   );
@@ -30,11 +32,11 @@ export async function toggleReaction(userId: string, messageId: string, emoji: s
   });
 
   if (existing) {
-  await prisma.messageReaction.delete({ where: { id: existing.id } });
-} else {
-  await prisma.messageReaction.deleteMany({ where: { messageId, userId } });
-  await prisma.messageReaction.create({ data: { messageId, userId, emoji } });
-}
+    await prisma.messageReaction.delete({ where: { id: existing.id } });
+  } else {
+    await prisma.messageReaction.deleteMany({ where: { messageId, userId } });
+    await prisma.messageReaction.create({ data: { messageId, userId, emoji } });
+  }
 
   const reactions = await prisma.messageReaction.findMany({ where: { messageId } });
   return { messageId, channelId: message.channelId, reactions: groupReactions(reactions) };
@@ -57,11 +59,11 @@ export async function toggleDmReaction(userId: string, messageId: string, emoji:
   });
 
   if (existing) {
-  await prisma.dmReaction.delete({ where: { id: existing.id } });
-} else {
-  await prisma.dmReaction.deleteMany({ where: { directMessageId: messageId, userId } });
-  await prisma.dmReaction.create({ data: { directMessageId: messageId, userId, emoji } });
-}
+    await prisma.dmReaction.delete({ where: { id: existing.id } });
+  } else {
+    await prisma.dmReaction.deleteMany({ where: { directMessageId: messageId, userId } });
+    await prisma.dmReaction.create({ data: { directMessageId: messageId, userId, emoji } });
+  }
 
   const reactions = await prisma.dmReaction.findMany({ where: { directMessageId: messageId } });
   return { messageId, conversationId: message.conversationId, reactions: groupReactions(reactions) };
