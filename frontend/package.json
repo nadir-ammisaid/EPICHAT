@@ -9,8 +9,12 @@
     "build:local": "node ./node_modules/next/dist/bin/next build",
     "start": "next start",
     "start:local": "node ./node_modules/next/dist/bin/next start",
-    "lint": "eslint",
-    "lint:local": "node ./node_modules/eslint/bin/eslint.js ."
+    "lint": "node ./node_modules/eslint/bin/eslint.js .",
+    "lint:local": "node ./node_modules/eslint/bin/eslint.js .",
+    "test": "node ./node_modules/vitest/vitest.mjs run",
+    "test:local": "node ./node_modules/vitest/vitest.mjs run",
+    "test:coverage": "node ./node_modules/vitest/vitest.mjs run --coverage",
+    "test:coverage:local": "node ./node_modules/vitest/vitest.mjs run --coverage"
   },
   "dependencies": {
     "axios": "^1.13.3",
@@ -23,12 +27,18 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^4.1.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.5",
+    "jsdom": "^28.1.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.0"
   }
 }
