@@ -67,7 +67,6 @@ export function useDmMessages(conversationId: string | null, myUserId: string | 
     if (socket.connected) onConnect();
 
     return () => {
-      socket.emit("dm:leave", conversationId);
       socket.off("connect", onConnect);
     };
   }, [conversationId]);
