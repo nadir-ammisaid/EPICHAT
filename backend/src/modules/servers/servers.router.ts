@@ -13,6 +13,7 @@ import {
   joinServerController,
   getServerMembersController,
   updateMemberRoleController,
+  kickMemberController,
 } from "./servers.controller.js";
 
 export const serversRouter = Router();
@@ -96,3 +97,11 @@ serverSingularRouter.get(
   authorize(["user"]),
   asyncHandler(getServerControllerById),
 );
+
+serversRouter.post(
+  "/:id/kick/:userId",
+  requireAuth,
+  authorize(["user"]),
+  asyncHandler(kickMemberController),
+);
+

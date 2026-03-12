@@ -1,5 +1,11 @@
 import { prisma } from "../../prisma/client.js";
 import HttpError from "../../shared/errors/httpError.js";
+import { buildPaginationArgs, paginateResult } from "../../shared/utils/pagination.js";
+
+type SendMessagePayload =
+  | { type: "text"; content: string; mediaUrl?: undefined }
+  | { type: "gif"; mediaUrl: string; content?: string };
+
 
 // sorted ids to guarantee uniqueness
 function sortedPair(a: string, b: string) {
@@ -65,27 +71,18 @@ export async function getConversationMessages(
   if (conversation.participant1Id !== userId && conversation.participant2Id !== userId)
     throw new HttpError(403, "Access denied");
 
-  const args: any = {
-    where: { conversationId, deletedAt: null },
-    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-    take: limit,
-    include: { author: { select: { id: true, username: true } } },
-  };
+const rows = await prisma.directMessage.findMany({
+  ...buildPaginationArgs(limit, before),
+  where: { conversationId, deletedAt: null },
+  include: { author: { select: { id: true, username: true } }, reactions: true },
+});
 
-  if (before) {
-    args.cursor = { id: before };
-    args.skip = 1;
-  }
+return paginateResult(rows);
 
-  const rows = await prisma.directMessage.findMany(args);
-  const messages = rows.reverse();
-  const nextCursor = messages.at(0)?.id ?? null;
-
-  return { messages, nextCursor };
 }
 
 // Send a message in a conversation
-export async function sendDmMessage(userId: string, conversationId: string, content: string) {
+export async function sendDmMessage(userId: string, conversationId: string, payload: SendMessagePayload) {
   const conversation = await prisma.directConversation.findUnique({
     where: { id: conversationId },
   });
@@ -94,10 +91,16 @@ export async function sendDmMessage(userId: string, conversationId: string, cont
   if (conversation.participant1Id !== userId && conversation.participant2Id !== userId)
     throw new HttpError(403, "Access denied");
 
+  const data =
+    payload.type === "gif"
+      ? { conversationId, authorId: userId, type: "gif" as const, content: payload.content ?? "", mediaUrl: payload.mediaUrl }
+      : { conversationId, authorId: userId, type: "text" as const, content: payload.content, mediaUrl: null };
+
   return prisma.directMessage.create({
-    data: { conversationId, authorId: userId, content },
+    data,
     include: { author: { select: { id: true, username: true } } },
   });
+
 }
 
 // Delete a message (soft delete, author only)

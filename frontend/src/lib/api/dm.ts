@@ -23,12 +23,17 @@ export async function getConversationMessages(
   return data.result;
 }
 
-export async function sendDmMessage(conversationId: string, content: string): Promise<DirectMessage> {
+type SendDmPayload =
+  | { type: "text"; content: string }
+  | { type: "gif"; mediaUrl: string; content?: string };
+
+export async function sendDmMessage(conversationId: string, payload: SendDmPayload): Promise<DirectMessage> {
   return apiClient.request(`/dm/conversations/${conversationId}/messages`, {
     method: "POST",
-    body: JSON.stringify({ content }),
+    body: JSON.stringify(payload),
   });
 }
+
 
 export async function deleteDmMessage(messageId: string): Promise<void> {
   return apiClient.request(`/dm/messages/${messageId}`, { method: "DELETE" });

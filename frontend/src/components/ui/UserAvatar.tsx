@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { LogOut, User, UserIcon, Circle } from "lucide-react";
 import { apiClient } from "@/lib/api/client";
+import { disconnectSocket } from "@/lib/socket/socket";
 import { Dropdown } from "@/components/ui/Dropdown";
 import getRandomAvatar from "@/lib/utils/getRandomAvatar";
 
@@ -71,6 +72,7 @@ export default function UserAvatar() {
       method: "PATCH",
       body: JSON.stringify({ status: "offline" }),
     }).catch(() => {});
+    disconnectSocket();
     localStorage.removeItem("token");
     router.push("/login");
   };

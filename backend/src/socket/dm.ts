@@ -5,7 +5,9 @@ type DmTypingPayload = { conversationId?: string };
 const dmTypingUsersByConversation = new Map<string, Set<string>>();
 const dmTypingTimeouts = new Map<string, NodeJS.Timeout>();
 
-function toRoom(conversationId: string) { return `dm:${conversationId}`; }
+function toRoom(conversationId: string) {
+  return `dm:${conversationId}`;
+}
 
 function getTypingList(conversationId: string) {
   return Array.from(dmTypingUsersByConversation.get(conversationId) ?? []);
@@ -44,21 +46,25 @@ export function registerDmHandlers(io: Server, socket: Socket) {
     const conversationId = payload?.conversationId?.trim();
     if (!conversationId || !userId) return;
 
-    const set = dmTypingUsersByConversation.get(conversationId) ?? new Set<string>();
+    const set =
+      dmTypingUsersByConversation.get(conversationId) ?? new Set<string>();
     dmTypingUsersByConversation.set(conversationId, set);
     set.add(userId);
 
     const key = `${conversationId}:${userId}`;
     clearTimeoutKey(key);
 
-    dmTypingTimeouts.set(key, setTimeout(() => {
-      removeTypingUser(conversationId, userId);
-      clearTimeoutKey(key);
-      io.to(toRoom(conversationId)).emit("dm:typing:update", {
-        conversationId,
-        userIds: getTypingList(conversationId),
-      });
-    }, 5000));
+    dmTypingTimeouts.set(
+      key,
+      setTimeout(() => {
+        removeTypingUser(conversationId, userId);
+        clearTimeoutKey(key);
+        io.to(toRoom(conversationId)).emit("dm:typing:update", {
+          conversationId,
+          userIds: getTypingList(conversationId),
+        });
+      }, 5000),
+    );
 
     socket.to(toRoom(conversationId)).emit("dm:typing:update", {
       conversationId,

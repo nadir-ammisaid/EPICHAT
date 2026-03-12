@@ -1,4 +1,7 @@
-export default function parseDashboardPath(pathname: string): { serverId: string | null; channelId: string | null } {
+export default function parseDashboardPath(pathname: string): {
+  serverId: string | null;
+  channelId: string | null;
+} {
   const segments = pathname.split("/").filter(Boolean);
   const dashboardIndex = segments.indexOf("dashboard");
 

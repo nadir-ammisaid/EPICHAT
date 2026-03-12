@@ -3,7 +3,16 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Loader2, UserPlus, Copy, Check, Pencil, Trash2, Settings, MessageSquareMore } from "lucide-react";
+import {
+  Loader2,
+  UserPlus,
+  Copy,
+  Check,
+  Pencil,
+  Trash2,
+  Settings,
+  MessageSquareMore,
+} from "lucide-react";
 import Image from "next/image";
 import { apiClient } from "@/lib/api/client";
 import { Button } from "@/components/ui/Button";
@@ -32,12 +41,31 @@ export default function ServerBar({ className = "" }: { className?: string }) {
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [createdCode, setCreatedCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [serverActionError, setServerActionError] = useState<string | null>(
+    null,
+  );
 
   const serverIdFromPath = pathname?.split("/").filter(Boolean)[1] ?? null;
+
+  const [myUserId, setMyUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const payload = JSON.parse(atob(token.split(".")[1] ?? ""));
+      if (typeof payload?.userId === "string") {
+        setMyUserId(payload.userId);
+      }
+    } catch {
+      // ignore invalid token
+    }
+  }, []);
 
   const getServers = async () => {
     try {
       setServers([]);
+      setServerActionError(null);
       const data = await apiClient.request("/servers");
       setServers(Array.isArray(data) ? data : []);
     } catch {
@@ -77,9 +105,12 @@ export default function ServerBar({ className = "" }: { className?: string }) {
     setJoinError(null);
     setJoinLoading(true);
     try {
-      const member = await apiClient.request(`/invites/${encodeURIComponent(code)}/join`, {
-        method: "POST",
-      });
+      const member = await apiClient.request(
+        `/invites/${encodeURIComponent(code)}/join`,
+        {
+          method: "POST",
+        },
+      );
       await getServers();
       setInviteCode("");
       setJoinOpen(false);
@@ -87,7 +118,9 @@ export default function ServerBar({ className = "" }: { className?: string }) {
         router.push(`/dashboard/${member.serverId}`);
       }
     } catch (e) {
-      setJoinError(e instanceof Error ? e.message : "Erreur lors de l’utilisation du code");
+      setJoinError(
+        e instanceof Error ? e.message : "Erreur lors de l’utilisation du code",
+      );
     } finally {
       setJoinLoading(false);
     }
@@ -112,9 +145,10 @@ export default function ServerBar({ className = "" }: { className?: string }) {
     }
   };
 
-  const inviteLink = typeof window !== "undefined" && createdCode
-    ? `${window.location.origin}/dashboard?invite=${encodeURIComponent(createdCode)}`
-    : "";
+  const inviteLink =
+    typeof window !== "undefined" && createdCode
+      ? `${window.location.origin}/dashboard?invite=${encodeURIComponent(createdCode)}`
+      : "";
 
   const copyInviteLink = () => {
     if (!inviteLink) return;
@@ -124,23 +158,52 @@ export default function ServerBar({ className = "" }: { className?: string }) {
     });
   };
 
-  // delet server
+  // delete server (owner only)
   const handleDeleteServer = async (serverId: string) => {
     try {
+      setServerActionError(null);
       await apiClient.request(`/servers/${serverId}`, { method: "DELETE" });
+      if (serverIdFromPath === serverId) {
+        router.push("/dashboard");
+      }
       await getServers();
     } catch (e) {
-      console.error(e);
+      setServerActionError(
+        e instanceof Error
+          ? e.message
+          : "Erreur lors de la suppression du serveur",
+      );
+    }
+  };
+
+  // leave server (members, non-owners)
+  const handleLeaveServer = async (serverId: string) => {
+    try {
+      setServerActionError(null);
+      await apiClient.request(`/servers/${serverId}/leave`, {
+        method: "DELETE",
+      });
+      if (serverIdFromPath === serverId) {
+        router.push("/dashboard");
+      }
+      await getServers();
+    } catch (e) {
+      setServerActionError(
+        e instanceof Error ? e.message : "Erreur lors de la sortie du serveur",
+      );
     }
   };
   return (
     <>
       <div
-        className={`flex h-full shrink-0 flex-col items-center justify-between bg-background p-2 border border-border ${className}`}
+        className={`bg-background border-border flex h-full shrink-0 flex-col items-center justify-between border p-2 ${className}`}
       >
-        <div className="flex flex-col gap-2 mt-2 w-full items-center">
-
-          <Link href="/dashboard" className="flex shrink-0" aria-label="Accueil">
+        <div className="mt-2 flex w-full flex-col items-center gap-2">
+          <Link
+            href="/dashboard"
+            className="flex shrink-0"
+            aria-label="Accueil"
+          >
             <Image
               src="/images/logo.png"
               alt="Epichat"
@@ -149,42 +212,40 @@ export default function ServerBar({ className = "" }: { className?: string }) {
               className="rounded-lg object-cover"
             />
           </Link>
-          <hr className="w-full border-border-muted" />
+          <hr className="border-border-muted w-full" />
           <Link
             href="/dashboard/dm"
-            className={`flex w-full items-center gap-3 rounded-lg px-4 py-2 transition-colors hover:bg-brand-muted/80 hover:cursor-pointer ${pathname?.startsWith("/dashboard/dm") ? "bg-brand-hover font-medium" : "bg-brand-muted"
-              }`}
+            className={`hover:bg-brand-muted/80 flex w-full items-center gap-3 rounded-lg px-4 py-2 transition-colors hover:cursor-pointer ${
+              pathname?.startsWith("/dashboard/dm")
+                ? "bg-brand-hover font-medium"
+                : "bg-brand-muted"
+            }`}
             title="Messages privés"
           >
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-brand text-background">
+            <span className="bg-brand text-background flex h-8 w-8 shrink-0 items-center justify-center rounded-md">
               <MessageSquareMore className="h-5 w-5" />
             </span>
             <span className="truncate text-sm">Messages privés</span>
           </Link>
-
         </div>
 
         {/* Server list */}
         <div className="flex w-full flex-col gap-2 overflow-y-auto">
           {servers.map((server) => {
             const isActive = serverIdFromPath === server.id;
+            const isOwner = myUserId && server.ownerId === myUserId;
 
             return (
               <div
                 key={server.id}
-                className={`
-flex items-center gap-1 rounded-lg
-text-foreground hover:bg-brand-muted/80
-hover:cursor-pointer transition-colors
-${isActive ? "bg-brand-hover font-medium" : "bg-brand-muted"}
-                `}
+                className={`text-foreground hover:bg-brand-muted/80 flex items-center gap-1 rounded-lg transition-colors hover:cursor-pointer ${isActive ? "bg-brand-hover font-medium" : "bg-brand-muted"} `}
               >
                 <Link
                   href={`/dashboard/${server.id}`}
                   title={server.name}
-                  className="flex min-w-0 flex-1 items-center gap-3 px-4 py-2 rounded-full"
+                  className="flex min-w-0 flex-1 items-center gap-3 rounded-full px-4 py-2"
                 >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-brand text-background text-sm">
+                  <span className="bg-brand text-background flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sm">
                     {server.name.slice(0, 1).toUpperCase()}
                   </span>
                   <span className="truncate text-sm">{server.name}</span>
@@ -193,7 +254,7 @@ ${isActive ? "bg-brand-hover font-medium" : "bg-brand-muted"}
                   <Dropdown.Trigger>
                     <button
                       type="button"
-                      className="flex h-8 w-8 items-center justify-center rounded-md hover:cursor-pointer text-foreground"
+                      className="text-foreground flex h-8 w-8 items-center justify-center rounded-md hover:cursor-pointer"
                       title="Options du serveur"
                       aria-label="Options du serveur"
                     >
@@ -204,7 +265,7 @@ ${isActive ? "bg-brand-hover font-medium" : "bg-brand-muted"}
                     <button
                       type="button"
                       onClick={() => openInviteModal(server.id)}
-                      className="flex w-full items-center gap-2 px-4 hover:cursor-pointer hover:bg-brand-muted/10 py-2 text-left text-sm text-foreground hover:bg-muted"
+                      className="hover:bg-brand-muted/10 text-foreground hover:bg-muted flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:cursor-pointer"
                       role="menuitem"
                     >
                       <UserPlus className="h-4 w-4" />
@@ -212,37 +273,50 @@ ${isActive ? "bg-brand-hover font-medium" : "bg-brand-muted"}
                     </button>
                     <button
                       type="button"
-                      onClick={() => { }}
-                      className="flex w-full items-center gap-2 px-4 hover:cursor-pointer hover:bg-brand-muted/10 py-2 text-left text-sm text-foreground hover:bg-muted"
+                      onClick={() => {}}
+                      className="hover:bg-brand-muted/10 text-foreground hover:bg-muted flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:cursor-pointer"
                       role="menuitem"
                     >
                       <Pencil className="h-4 w-4" />
                       Modifier le nom
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteServer(server.id)}
-                      className="flex w-full items-center gap-2 px-4 hover:cursor-pointer hover:bg-brand-muted/10 py-2 text-left text-sm text-error hover:bg-muted"
-                      role="menuitem"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      Supprimer le serveur
-                    </button>
+                    {isOwner ? (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteServer(server.id)}
+                        className="hover:bg-brand-muted/10 text-error hover:bg-muted flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:cursor-pointer"
+                        role="menuitem"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Supprimer le serveur
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleLeaveServer(server.id)}
+                        className="hover:bg-brand-muted/10 text-error hover:bg-muted flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:cursor-pointer"
+                        role="menuitem"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Quitter le serveur
+                      </button>
+                    )}
                   </Dropdown.Menu>
                 </Dropdown>
               </div>
             );
           })}
+          {serverActionError && (
+            <p className="text-error px-3 py-1 text-xs">{serverActionError}</p>
+          )}
         </div>
 
-
-
         {/* Create / Join */}
-        <div className="shrink-0 flex flex-col gap-2 w-full items-center ">
+        <div className="flex w-full shrink-0 flex-col items-center gap-2">
           <Button
             type="button"
             onClick={() => setCreateOpen(true)}
-            className="w-full gap-2 items-center justify-center hover:cursor-pointer hover:bg-brand-hover bg-brand text-background transition-colors"
+            className="hover:bg-brand-hover bg-brand text-background w-full items-center justify-center gap-2 transition-colors hover:cursor-pointer"
             title="Créer un serveur"
             aria-label="Créer un serveur"
           >
@@ -252,7 +326,7 @@ ${isActive ? "bg-brand-hover font-medium" : "bg-brand-muted"}
             type="button"
             variant="outline"
             size="sm"
-            className="w-full gap-2 items-center justify-center !text-black hover:!text-brand-hover"
+            className="hover:!text-brand-hover w-full items-center justify-center gap-2 !text-black"
             onClick={() => {
               setJoinError(null);
               setInviteCode("");
@@ -285,7 +359,7 @@ ${isActive ? "bg-brand-hover font-medium" : "bg-brand-muted"}
             required
             disabled={createLoading}
           />
-          {createError && <p className="text-sm text-error">{createError}</p>}
+          {createError && <p className="text-error text-sm">{createError}</p>}
           <div className="flex gap-2">
             <Button
               type="button"
@@ -329,7 +403,7 @@ ${isActive ? "bg-brand-hover font-medium" : "bg-brand-muted"}
             placeholder="Collez le code reçu"
             disabled={joinLoading}
           />
-          {joinError && <p className="text-sm text-error">{joinError}</p>}
+          {joinError && <p className="text-error text-sm">{joinError}</p>}
           <div className="flex gap-2">
             <Button
               type="button"
@@ -368,16 +442,17 @@ ${isActive ? "bg-brand-hover font-medium" : "bg-brand-muted"}
       >
         <div className="flex flex-col gap-3">
           {inviteLoading && (
-            <p className="flex items-center gap-2 text-muted-foreground">
+            <p className="text-muted-foreground flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin" />
               Génération du lien…
             </p>
           )}
-          {inviteError && <p className="text-sm text-error">{inviteError}</p>}
+          {inviteError && <p className="text-error text-sm">{inviteError}</p>}
           {createdCode && !inviteLoading && (
             <>
-              <p className="text-sm text-muted-foreground">
-                Partagez ce lien ou le code pour que d’autres puissent rejoindre le serveur (via « Rejoindre »).
+              <p className="text-muted-foreground text-sm">
+                Partagez ce lien ou le code pour que d’autres puissent rejoindre
+                le serveur (via « Rejoindre »).
               </p>
               <div className="flex gap-2">
                 <Input
@@ -392,11 +467,16 @@ ${isActive ? "bg-brand-hover font-medium" : "bg-brand-muted"}
                   className="shrink-0"
                   title="Copier le lien"
                 >
-                  {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                  {copied ? (
+                    <Check className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Code seul : <code className="rounded bg-muted px-1">{createdCode}</code>
+              <p className="text-muted-foreground text-xs">
+                Code seul :{" "}
+                <code className="bg-muted rounded px-1">{createdCode}</code>
               </p>
             </>
           )}
