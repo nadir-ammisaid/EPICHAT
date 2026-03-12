@@ -12,11 +12,36 @@ import {
 
 const router = Router();
 
-router.get("/dm/conversations", requireAuth, authorize(["user"]), listConversations);
-router.post("/dm/conversations", requireAuth, authorize(["user"]), openConversation);
-router.get("/dm/conversations/:id/messages", requireAuth, authorize(["user"]), getMessages);
-router.post("/dm/conversations/:id/messages", requireAuth, authorize(["user"]), sendMessage);
-router.delete("/dm/messages/:id", requireAuth, authorize(["user"]), deleteMessage);
+router.get(
+  "/dm/conversations",
+  requireAuth,
+  authorize(["user"]),
+  listConversations,
+);
+router.post(
+  "/dm/conversations",
+  requireAuth,
+  authorize(["user"]),
+  openConversation,
+);
+router.get(
+  "/dm/conversations/:id/messages",
+  requireAuth,
+  authorize(["user"]),
+  getMessages,
+);
+router.post(
+  "/dm/conversations/:id/messages",
+  requireAuth,
+  authorize(["user"]),
+  sendMessage,
+);
+router.delete(
+  "/dm/messages/:id",
+  requireAuth,
+  authorize(["user"]),
+  deleteMessage,
+);
 router.put("/dm/messages/:id", requireAuth, authorize(["user"]), updateMessage);
 
 export default router;

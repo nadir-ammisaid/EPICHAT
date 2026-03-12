@@ -6,6 +6,7 @@ import parseDashboardPath from "@/lib/utils/parseDashboardPath";
 import { apiClient } from "@/lib/api/client";
 import getInitials from "@/lib/utils/getInitials";
 import { getSocket } from "@/lib/socket/socket";
+import { subscribeToPresence } from "@/lib/hooks/useGlobalPresence";
 import { openConversation } from "@/lib/api/dm";
 
 import { Dropdown } from "@/components/ui/Dropdown";
@@ -124,6 +125,21 @@ export default function MemberSection() {
     };
   }, [serverId]);
 
+  // Global presence updates (incoming from dev)
+  useEffect(() => {
+    if (!serverId) return;
+
+    const unsubscribe = subscribeToPresence((globalMap) => {
+      const newStatus: Record<string, string> = {};
+      for (const member of members) {
+        newStatus[member.userId] = globalMap.get(member.userId) ?? "offline";
+      }
+      setOnlineStatus(newStatus);
+    });
+
+    return unsubscribe;
+  }, [serverId, members]);
+
   // Current user's role
   const currentMember = members.find((m) => m.userId === myUserId);
   const currentRole = currentMember?.role;
@@ -228,6 +244,7 @@ export default function MemberSection() {
     <>
       <ToastContainer />
 
+      {/* Modal */}
       <Modal open={roleModalOpen} onClose={() => setRoleModalOpen(false)}>
         <div className="p-4 space-y-4 bg-white text-black rounded-md shadow-xl">
           <h2 className="text-lg font-semibold">Change role</h2>
@@ -259,6 +276,7 @@ export default function MemberSection() {
         </div>
       </Modal>
 
+      {/* Members list */}
       <div className="flex min-w-60 max-w-[280px] shrink-0 flex-col overflow-auto border-l border-border bg-white">
         <h2 className="h3 border-b border-border px-3 py-2">Membres</h2>
 
@@ -277,6 +295,7 @@ export default function MemberSection() {
                   if (m.userId !== myUserId) handleOpenDm(m.userId);
                 }}
               >
+                {/* Avatar */}
                 <span className="relative flex h-8 w-8 items-center justify-center rounded-full bg-brand-muted/80 text-xs font-semibold text-white">
                   {getInitials(m.user.username)}
                   <span
@@ -284,14 +303,18 @@ export default function MemberSection() {
                   />
                 </span>
 
+                {/* Username */}
                 <span className="flex-1 truncate">{m.user.username}</span>
 
+                {/* Role */}
                 <span className="text-xs text-neutral-500">
                   {roleLabel[m.role] ?? m.role}
                 </span>
 
+                {/* Actions */}
                 <div className="flex items-center gap-1">
 
+                  {/* DM icon */}
                   {m.userId !== myUserId && (
                     <button
                       onClick={(e) => {
@@ -305,6 +328,7 @@ export default function MemberSection() {
                     </button>
                   )}
 
+                  {/* Settings dropdown */}
                   {canManage(m) && (
                     <Dropdown>
                       <Dropdown.Trigger>
@@ -324,7 +348,7 @@ export default function MemberSection() {
                             handleKick(m);
                           }}
                         >
-                          Expluser
+                          Expulser
                         </button>
 
                         {currentRole === "owner" && (

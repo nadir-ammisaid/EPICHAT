@@ -12,7 +12,8 @@ const archivo = Archivo({
 
 export const metadata: Metadata = {
   title: "Epichat - Chat en temps réel",
-  description: "Epichat est une application de chat en temps réel pour le projet RTC",
+  description:
+    "Epichat est une application de chat en temps réel pour le projet RTC",
 };
 
 export default function RootLayout({
@@ -22,9 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body
-        className={`${archivo.variable} antialiased bg-background`}
-      >
+      <body className={`${archivo.variable} bg-background antialiased`}>
         {children}
       </body>
     </html>

@@ -34,7 +34,7 @@ export default function LoginForm() {
 
         try {
             const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-            
+
             const res = await fetch(`${API_URL}/auth/login`, {
                 method: "POST",
                 headers: {
@@ -44,7 +44,6 @@ export default function LoginForm() {
             });
 
             const data = await res.json();
-
 
             if (!res.ok) {
                 setError(data.message || "Erreur lors de la connexion");
@@ -69,33 +68,34 @@ export default function LoginForm() {
         <div className="flex flex-col items-center justify-center gap-4 py-14">
             <h1 className="text-4xl font-bold">Bienvenue !</h1>
             <h2 className="h5">Connectez-vous</h2>
-            <form onSubmit={handleSubmit} className="flex flex-col items-center justify-center gap-4 w-full max-w-md">
-                <Input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    placeholder="Email" 
+            <form
+                onSubmit={handleSubmit}
+                className="flex w-full max-w-md flex-col items-center justify-center gap-4"
+            >
+                <Input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="Email"
                     size="md"
                     fullWidth
                     required
                 />
-                <Input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    placeholder="Mot de passe" 
+                <Input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Mot de passe"
                     size="md"
                     fullWidth
                     required
                 />
-                {error && (
-                    <p className="text-sm text-error">{error}</p>
-                )}
-                <Button 
-                    type="submit" 
-                    variant="primary" 
-                    size="md" 
-                    className="max-w-78" 
+                {error && <p className="text-error text-sm">{error}</p>}
+                <Button
+                    type="submit"
+                    variant="primary"
+                    size="md"
+                    className="max-w-78"
                     fullWidth
                     disabled={isLoading}
                 >
@@ -105,7 +105,12 @@ export default function LoginForm() {
 
             <p>
                 Pas encore de compte ?{" "}
-                <Link href="/register" className="text-brand hover:underline underline-offset-2">Inscrivez-vous</Link>
+                <Link
+                    href="/register"
+                    className="text-brand underline-offset-2 hover:underline"
+                >
+                    Inscrivez-vous
+                </Link>
             </p>
         </div>
     );

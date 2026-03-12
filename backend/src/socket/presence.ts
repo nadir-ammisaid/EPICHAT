@@ -5,18 +5,98 @@ const onlineUsersByServer = new Map<string, Set<string>>();
 const userSockets = new Map<string, Set<string>>();
 
 function toServerRoom(serverId: string) { return `server:${serverId}`; }
+function normalizePresenceStatus(status?: string) {
+  return status === "invisible" ? "offline" : (status ?? "offline");
+}
+
+async function emitInitialPresenceSnapshot(socket: Socket, serverIds: string[]) {
+  if (serverIds.length === 0) {
+    socket.emit("presence:snapshot", { presenceMap: {} });
+    return;
+  }
+
+  const sharedMembers = await prisma.serverMember.findMany({
+    where: { serverId: { in: serverIds } },
+    select: { userId: true },
+  });
+
+  const sharedUserIds = Array.from(new Set(sharedMembers.map((m) => m.userId)));
+  if (sharedUserIds.length === 0) {
+    socket.emit("presence:snapshot", { presenceMap: {} });
+    return;
+  }
+
+  const users = await prisma.user.findMany({
+    where: { id: { in: sharedUserIds } },
+    select: { id: true, status: true },
+  });
+
+  const presenceMap: Record<string, string> = {};
+  for (const u of users) {
+    presenceMap[u.id] = normalizePresenceStatus(u.status);
+  }
+
+  socket.emit("presence:snapshot", { presenceMap });
+}
+
+async function broadcastUserStatusToAll(io: Server, userId: string, status: "online" | "offline") {
+  // Récupérer tous les serveurs de cet user
+  const memberships = await prisma.serverMember.findMany({
+    where: { userId },
+    select: { serverId: true },
+  });
+  const serverIds = memberships.map((m) => m.serverId);
+
+  // Broadcaster à TOUS les clients connectés avec la liste des serveurs concernés
+  io.emit("presence:broadcast", {
+    userId,
+    status,
+    serverIds,
+  });
+
+}
 
 export function registerPresenceHandlers(io: Server, socket: Socket) {
-
   const userId = socket.data.user?.id;
 
   if (userId) {
-    prisma.user.findUnique({ where: { id: userId }, select: { status: true } })
-      .then(async (user) => {
+    prisma.serverMember.findMany({
+      where: { userId },
+      select: { serverId: true },
+    })
+      .then(async (memberships) => {
+        const memberServerIds = memberships.map((m) => m.serverId);
+
+        // Rejoindre toutes les rooms des serveurs
+        for (const m of memberships) {
+          socket.join(toServerRoom(m.serverId));
+          const serverUsers = onlineUsersByServer.get(m.serverId) ?? new Set();
+          serverUsers.add(userId);
+          onlineUsersByServer.set(m.serverId, serverUsers);
+        }
+
+        // Gérer les sockets pour cet utilisateur
+        const sockets = userSockets.get(userId) ?? new Set();
+        sockets.add(socket.id);
+        userSockets.set(userId, sockets);
+
+        // Mettre le statut à online
+        const user = await prisma.user.findUnique({ 
+          where: { id: userId }, 
+          select: { status: true } 
+        });
+        
         if (user?.status === "offline") {
           await prisma.user.update({ where: { id: userId }, data: { status: "online" } });
         }
-      }).catch((e) => console.log("[presence] erreur findUnique:", e));
+
+        // Envoyer un snapshot initial au nouvel utilisateur (inclut ceux déjà online)
+        await emitInitialPresenceSnapshot(socket, memberServerIds);
+
+        // Broadcaster le statut GLOBALEMENT (à tous les clients)
+        await broadcastUserStatusToAll(io, userId, "online");
+      })
+      .catch((e) => console.log("[presence] erreur serverMember findMany:", e));
   }
 
   socket.on("server:join", async (rawServerId: string) => {
@@ -64,7 +144,7 @@ export function registerPresenceHandlers(io: Server, socket: Socket) {
 
     const presenceMap: Record<string, string> = {};
     for (const u of onlineUsersData) {
-      presenceMap[u.id] = u.status === "invisible" ? "offline" : u.status;
+      presenceMap[u.id] = normalizePresenceStatus(u.status);
     }
 
     socket.emit("presence:init", { serverId, presenceMap });
@@ -86,7 +166,15 @@ export function registerPresenceHandlers(io: Server, socket: Socket) {
     if (!sockets) return;
 
     sockets.delete(socket.id);
-    if (sockets.size > 0) return;
+
+    // Remove stale socket ids that may remain after reconnect/race conditions.
+    for (const sid of Array.from(sockets)) {
+      if (!io.sockets.sockets.has(sid)) {
+        sockets.delete(sid);
+      }
+    }
+
+    if (sockets.size > 0) return; // User a d'autres sockets connectés
 
     userSockets.delete(userId);
 
@@ -95,16 +183,15 @@ export function registerPresenceHandlers(io: Server, socket: Socket) {
     } catch (e) {
     }
 
+    // Nettoyer les serveurs et broadcaster globalement
     for (const [serverId, users] of onlineUsersByServer.entries()) {
       if (users.has(userId)) {
         users.delete(userId);
         if (users.size === 0) onlineUsersByServer.delete(serverId);
-        io.to(toServerRoom(serverId)).emit("presence:update", {
-          serverId,
-          userId,
-          status: "offline",
-        });
       }
     }
+
+    // Broadcaster le statut offline GLOBALEMENT
+    await broadcastUserStatusToAll(io, userId, "offline");
   });
 }

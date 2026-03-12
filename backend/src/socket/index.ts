@@ -23,7 +23,10 @@ export function initSocket(server: http.Server) {
     try {
       const token = socket.handshake.auth?.token;
       if (!token) return next();
-      const decoded = jwt.verify(token, getJwtSecret()) as { userId: string; role: string };
+      const decoded = jwt.verify(token, getJwtSecret()) as {
+        userId: string;
+        role: string;
+      };
       socket.data.user = { id: decoded.userId, role: decoded.role };
       return next();
     } catch (e) {

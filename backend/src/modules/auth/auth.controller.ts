@@ -1,5 +1,9 @@
 import type { Request, Response } from "express";
-import { loginSchema, signupSchema, updateProfileSchema } from "./auth.schemas.js";
+import {
+  loginSchema,
+  signupSchema,
+  updateProfileSchema,
+} from "./auth.schemas.js";
 import { login, signup, updateProfile, deleteAccount } from "./auth.service.js";
 import HttpError from "../../shared/errors/httpError.js";
 import { getBearerToken } from "../../shared/utils/authHeader.js";

@@ -1,6 +1,8 @@
 import { Socket } from "socket.io";
 
-function toRoom(channelId: string) { return `channel:${channelId}`; }
+function toRoom(channelId: string) {
+  return `channel:${channelId}`;
+}
 
 export function registerChannelHandlers(socket: Socket) {
   socket.on("channel:join", (rawChannelId: string) => {
