@@ -6,6 +6,7 @@ import { MessageSquareMore } from "lucide-react";
 import { getConversations, openConversation } from "@/lib/api/dm";
 import { apiClient } from "@/lib/api/client";
 import { subscribeToPresence } from "@/lib/hooks/useGlobalPresence";
+import { useCurrentUserId } from "@/lib/hooks/useCurrentUserId";
 import getInitials from "@/lib/utils/getInitials";
 
 function statusColor(status: string) {
@@ -13,17 +14,6 @@ function statusColor(status: string) {
   if (status === "away") return "bg-yellow-500";
   if (status === "busy") return "bg-red-500";
   return "bg-gray-400";
-}
-
-function getMyUserId(): string | null {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) return null;
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.userId ?? null;
-  } catch {
-    return null;
-  }
 }
 
 type ContactUser = {
@@ -42,13 +32,14 @@ type Member = {
 export default function DmBar() {
   const pathname = usePathname();
   const router = useRouter();
+  const myUserId = useCurrentUserId();
   const [contacts, setContacts] = useState<ContactUser[]>([]);
 
   const activeConversationId = pathname?.split("/").filter(Boolean)[2] ?? null;
 
   useEffect(() => {
-    const uid = getMyUserId();
-    if (!uid) return;
+    if (!myUserId) return;
+    const uid = myUserId;
 
     async function load() {
       try {
@@ -106,7 +97,7 @@ export default function DmBar() {
     }
 
     load();
-  }, []);
+  }, [myUserId]);
 
   // S'inscrire aux mises à jour de présence globale
   useEffect(() => {

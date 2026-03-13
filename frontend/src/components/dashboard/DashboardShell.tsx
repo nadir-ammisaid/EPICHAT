@@ -17,6 +17,7 @@ import DmBar from "@/components/layout/DmBar";
 import DmSection from "@/components/layout/DmSection";
 import { getConversations } from "@/lib/api/dm";
 import { useInitializeGlobalPresence } from "@/lib/hooks/useGlobalPresence";
+import { useCurrentUserId } from "@/lib/hooks/useCurrentUserId";
 import getInitials from "@/lib/utils/getInitials";
 
 
@@ -26,6 +27,7 @@ export default function DashboardShell() {
   const searchParams = useSearchParams();
   const { serverId, channelId } = parseDashboardPath(pathname ?? "");
   const inviteHandled = useRef(false);
+  const myUserId = useCurrentUserId();
 
   const [dmContact, setDmContact] = useState<{ username: string; status: string } | null>(null);
 
@@ -34,21 +36,29 @@ export default function DashboardShell() {
 
   useEffect(() => {
     async function load() {
-      if (serverId !== "dm" || !channelId) { setDmContact(null); return; }
+      if (serverId !== "dm" || !channelId) {
+        setDmContact(null);
+        return;
+      }
       try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
-        const uid = JSON.parse(atob(token.split(".")[1])).userId ?? null;
-        if (!uid) return;
+        if (!myUserId) return;
         const convs = await getConversations();
         const conv = convs.find((c) => c.id === channelId);
-        if (!conv) { setDmContact(null); return; }
-        const other = conv.participant1Id === uid ? conv.participant2 : conv.participant1;
+        if (!conv) {
+          setDmContact(null);
+          return;
+        }
+        const other =
+          conv.participant1Id === myUserId
+            ? conv.participant2
+            : conv.participant1;
         setDmContact({ username: other.username, status: other.status });
-      } catch { setDmContact(null); }
+      } catch {
+        setDmContact(null);
+      }
     }
     load();
-  }, [serverId, channelId]);
+  }, [serverId, channelId, myUserId]);
 
 
   useEffect(() => {

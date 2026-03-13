@@ -8,13 +8,13 @@ import {
   UserPlus,
   Copy,
   Check,
-  Pencil,
   Trash2,
   Settings,
   MessageSquareMore,
 } from "lucide-react";
 import Image from "next/image";
 import { apiClient } from "@/lib/api/client";
+import { useCurrentUserId } from "@/lib/hooks/useCurrentUserId";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
@@ -46,21 +46,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
   );
 
   const serverIdFromPath = pathname?.split("/").filter(Boolean)[1] ?? null;
-
-  const [myUserId, setMyUserId] = useState<string | null>(null);
-
-  useEffect(() => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-      const payload = JSON.parse(atob(token.split(".")[1] ?? ""));
-      if (typeof payload?.userId === "string") {
-        setMyUserId(payload.userId);
-      }
-    } catch {
-      // ignore invalid token
-    }
-  }, []);
+  const myUserId = useCurrentUserId();
 
   const getServers = async () => {
     try {
@@ -270,15 +256,6 @@ export default function ServerBar({ className = "" }: { className?: string }) {
                     >
                       <UserPlus className="h-4 w-4" />
                       Inviter
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {}}
-                      className="hover:bg-brand-muted/10 text-foreground hover:bg-muted flex w-full items-center gap-2 px-4 py-2 text-left text-sm hover:cursor-pointer"
-                      role="menuitem"
-                    >
-                      <Pencil className="h-4 w-4" />
-                      Modifier le nom
                     </button>
                     {isOwner ? (
                       <button

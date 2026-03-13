@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import HttpError from "../../shared/errors/httpError.js";
+import { requireUserId } from "../../shared/utils/requestUser.js";
 import {
   createChannelService,
   getServerChannelsService,
@@ -24,8 +24,7 @@ export async function createChannelController(req: Request, res: Response) {
   }
   const { serverId } = paramsResult.data;
 
-  const userId = (req as any).user?.userId;
-  if (!userId) throw new HttpError(401, "Unauthorized");
+  const userId = requireUserId(req);
 
   const bodyResult = createChannelBodySchema.safeParse(req.body);
   if (!bodyResult.success) {
@@ -54,8 +53,7 @@ export async function getServerChannelsController(req: Request, res: Response) {
   }
   const { serverId } = paramsResult.data;
 
-  const userId = (req as any).user?.userId;
-  if (!userId) throw new HttpError(401, "Unauthorized");
+  const userId = requireUserId(req);
 
   const channels = await getServerChannelsService(serverId, userId);
 
@@ -72,8 +70,7 @@ export async function getChannelDetails(req: Request, res: Response) {
   }
   const { channelId } = paramsResult.data;
 
-  const userId = (req as any).user?.userId;
-  if (!userId) throw new HttpError(401, "Unauthorized");
+  const userId = requireUserId(req);
 
   const channel = await getChannelDetailsService(channelId, userId);
 
@@ -90,8 +87,7 @@ export async function updateChannelController(req: Request, res: Response) {
   }
   const { channelId } = paramsResult.data;
 
-  const userId = (req as any).user?.userId;
-  if (!userId) throw new HttpError(401, "Unauthorized");
+  const userId = requireUserId(req);
 
   const bodyResult = updateChannelBodySchema.safeParse(req.body);
   if (!bodyResult.success) {
@@ -120,8 +116,7 @@ export async function deleteChannelController(req: Request, res: Response) {
   }
   const { channelId } = paramsResult.data;
 
-  const userId = (req as any).user?.userId;
-  if (!userId) throw new HttpError(401, "Unauthorized");
+  const userId = requireUserId(req);
 
   await deleteChannelService({ channelId, userId });
 

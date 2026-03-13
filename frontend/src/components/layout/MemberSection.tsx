@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import parseDashboardPath from "@/lib/utils/parseDashboardPath";
 import { apiClient } from "@/lib/api/client";
 import getInitials from "@/lib/utils/getInitials";
@@ -14,6 +14,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/use-toast";
+import { useCurrentUserId } from "@/lib/hooks/useCurrentUserId";
 
 type ServerMember = {
   userId: string;
@@ -50,15 +51,7 @@ export default function MemberSection() {
   const [newRole, setNewRole] = useState<"admin" | "member">("member");
 
   const router = useRouter();
-  const myUserId = useMemo(() => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return null;
-      return JSON.parse(atob(token.split(".")[1])).userId ?? null;
-    } catch {
-      return null;
-    }
-  }, []);
+  const myUserId = useCurrentUserId();
 
   async function handleOpenDm(targetUserId: string) {
     try {
