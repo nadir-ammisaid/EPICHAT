@@ -28,10 +28,10 @@ describe("RegisterForm", () => {
       screen.getByPlaceholderText("Nom d'utilisateur"),
       "john_doe",
     );
-    await user.type(screen.getByPlaceholderText("Mot de passe"), "password123");
+    await user.type(screen.getByPlaceholderText("Mot de passe"), "Password123@");
     await user.type(
       screen.getByPlaceholderText("Confirmation du mot de passe"),
-      "password321",
+      "Password321@",
     );
 
     await user.click(screen.getByRole("button", { name: "Inscrire" }));
@@ -59,10 +59,10 @@ describe("RegisterForm", () => {
       screen.getByPlaceholderText("Nom d'utilisateur"),
       "john_doe",
     );
-    await user.type(screen.getByPlaceholderText("Mot de passe"), "password123");
+    await user.type(screen.getByPlaceholderText("Mot de passe"), "Password123@");
     await user.type(
       screen.getByPlaceholderText("Confirmation du mot de passe"),
-      "password123",
+      "Password123@",
     );
 
     await user.click(screen.getByRole("button", { name: "Inscrire" }));
@@ -88,10 +88,10 @@ describe("RegisterForm", () => {
       screen.getByPlaceholderText("Nom d'utilisateur"),
       "john_doe",
     );
-    await user.type(screen.getByPlaceholderText("Mot de passe"), "password123");
+    await user.type(screen.getByPlaceholderText("Mot de passe"), "Password123@");
     await user.type(
       screen.getByPlaceholderText("Confirmation du mot de passe"),
-      "password123",
+      "Password123@",
     );
 
     await user.click(screen.getByRole("button", { name: "Inscrire" }));
@@ -105,7 +105,7 @@ describe("RegisterForm", () => {
           body: JSON.stringify({
             email: "john@doe.com",
             username: "john_doe",
-            password: "password123",
+            password: "Password123@",
           }),
         }),
       );
@@ -128,10 +128,10 @@ describe("RegisterForm", () => {
         screen.getByPlaceholderText("Nom d'utilisateur"),
         "john_doe",
       );
-      await user.type(screen.getByPlaceholderText("Mot de passe"), "password123");
+      await user.type(screen.getByPlaceholderText("Mot de passe"), "Password123@");
       await user.type(
         screen.getByPlaceholderText("Confirmation du mot de passe"),
-        "password123",
+        "Password123@",
       );
 
       await user.click(screen.getByRole("button", { name: "Inscrire" }));
@@ -166,10 +166,10 @@ describe("RegisterForm", () => {
       screen.getByPlaceholderText("Nom d'utilisateur"),
       "john_doe",
     );
-    await user.type(screen.getByPlaceholderText("Mot de passe"), "password123");
+    await user.type(screen.getByPlaceholderText("Mot de passe"), "Password123@");
     await user.type(
       screen.getByPlaceholderText("Confirmation du mot de passe"),
-      "password123",
+      "Password123@",
     );
 
     await user.click(screen.getByRole("button", { name: "Inscrire" }));
@@ -190,10 +190,10 @@ describe("RegisterForm", () => {
       screen.getByPlaceholderText("Nom d'utilisateur"),
       "john_doe",
     );
-    await user.type(screen.getByPlaceholderText("Mot de passe"), "password123");
+    await user.type(screen.getByPlaceholderText("Mot de passe"), "Password123@");
     await user.type(
       screen.getByPlaceholderText("Confirmation du mot de passe"),
-      "password123",
+      "Password123@",
     );
 
     await user.click(screen.getByRole("button", { name: "Inscrire" }));
@@ -216,10 +216,10 @@ describe("RegisterForm", () => {
       screen.getByPlaceholderText("Nom d'utilisateur"),
       "john_doe",
     );
-    await user.type(screen.getByPlaceholderText("Mot de passe"), "password123");
+    await user.type(screen.getByPlaceholderText("Mot de passe"), "Password123@");
     await user.type(
       screen.getByPlaceholderText("Confirmation du mot de passe"),
-      "password123",
+      "Password123@",
     );
 
     await user.click(screen.getByRole("button", { name: "Inscrire" }));
