@@ -18,9 +18,15 @@ function createToken(payload: Record<string, unknown>): string {
 }
 
 describe("token helpers", () => {
+  const originalWindow = globalThis.window;
+
   beforeEach(() => {
     localStorage.clear();
     vi.useRealTimers();
+    Object.defineProperty(globalThis, "window", {
+      value: originalWindow,
+      configurable: true,
+    });
   });
 
   describe("parseTokenPayload", () => {
@@ -83,6 +89,17 @@ describe("token helpers", () => {
 
       clearStoredToken();
       expect(localStorage.getItem("token")).toBeNull();
+    });
+
+    it("returns safely when window is unavailable", () => {
+      Object.defineProperty(globalThis, "window", {
+        value: undefined,
+        configurable: true,
+      });
+
+      expect(getStoredToken()).toBeNull();
+      expect(() => setStoredToken("abc")).not.toThrow();
+      expect(() => clearStoredToken()).not.toThrow();
     });
   });
 });

@@ -613,4 +613,128 @@ describe("servers.service", () => {
       ).rejects.toThrow();
     });
   });
+
+  describe("kickMember", () => {
+    it("should throw 404 when server does not exist", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(
+        null,
+      );
+
+      await expect(
+        serversService.kickMember("server-123", "target-user", "requester"),
+      ).rejects.toThrow();
+    });
+
+    it("should throw 403 when requester is not a member", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ownerId: "owner-123",
+      });
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce(null);
+
+      await expect(
+        serversService.kickMember("server-123", "target-user", "requester"),
+      ).rejects.toThrow();
+    });
+
+    it("should throw 403 when requester is only a member", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ownerId: "owner-123",
+      });
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce({ role: "member" });
+
+      await expect(
+        serversService.kickMember("server-123", "target-user", "requester"),
+      ).rejects.toThrow();
+    });
+
+    it("should throw 404 when target member does not exist", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ownerId: "owner-123",
+      });
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      )
+        .mockResolvedValueOnce({ role: "admin" })
+        .mockResolvedValueOnce(null);
+
+      await expect(
+        serversService.kickMember("server-123", "target-user", "requester"),
+      ).rejects.toThrow();
+    });
+
+    it("should throw 403 when target user is the server owner", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ownerId: "owner-123",
+      });
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      )
+        .mockResolvedValueOnce({ role: "admin" })
+        .mockResolvedValueOnce({ role: "member" });
+
+      await expect(
+        serversService.kickMember("server-123", "owner-123", "requester"),
+      ).rejects.toThrow();
+    });
+
+    it("should throw 403 when admin tries to kick another admin", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ownerId: "owner-123",
+      });
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      )
+        .mockResolvedValueOnce({ role: "admin" })
+        .mockResolvedValueOnce({ role: "admin" });
+
+      await expect(
+        serversService.kickMember("server-123", "target-user", "requester"),
+      ).rejects.toThrow();
+    });
+
+    it("should delete target member when requester can kick", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ownerId: "owner-123",
+      });
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      )
+        .mockResolvedValueOnce({ role: "owner" })
+        .mockResolvedValueOnce({ role: "admin" });
+      (prisma.serverMember.delete as ReturnType<typeof vi.fn>).mockResolvedValue(
+        {},
+      );
+
+      await expect(
+        serversService.kickMember("server-123", "target-user", "owner-123"),
+      ).resolves.toBe(true);
+
+      expect(prisma.serverMember.delete).toHaveBeenCalledWith({
+        where: {
+          serverId_userId: {
+            serverId: "server-123",
+            userId: "target-user",
+          },
+        },
+      });
+    });
+  });
 });
