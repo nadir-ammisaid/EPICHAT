@@ -4,6 +4,7 @@ import "../styles/globals.css";
 import "@/styles/body.css";
 import "@/styles/headings.css";
 import "@/styles/button.css";
+import I18nProvider from "./I18nProvider";
 
 const archivo = Archivo({
   variable: "--font-archivo",
@@ -21,10 +22,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = "fr";
+
   return (
-    <html lang="fr">
+    <html lang={locale}>
       <body className={`${archivo.variable} bg-background antialiased`}>
-        {children}
+        <I18nProvider locale={locale}>{children}</I18nProvider>
       </body>
     </html>
   );

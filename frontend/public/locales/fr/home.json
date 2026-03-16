@@ -1,0 +1,21 @@
+{
+  "pageTitle": "Epichat - Chat en temps réel",
+  "pageDescription": "Epichat est une application de chat en temps réel pour le projet RTC.",
+  "welcome": "Bienvenue sur Epichat",
+  "hero": {
+    "title": "Discutez en temps réel avec votre équipe",
+    "subtitle": "Créez des salons, échangez des messages instantanés et collaborez efficacement."
+  },
+  "sections": {
+    "roomsTitle": "Vos salons de discussion",
+    "noRooms": "Vous n'avez encore rejoint aucun salon.",
+    "createRoom": "Créer un nouveau salon",
+    "recentMessages": "Derniers messages"
+  },
+  "chat": {
+    "placeholder": "Écrivez votre message...",
+    "send": "Envoyer",
+    "typing": "{{user}} est en train d'écrire...",
+    "onlineUsers": "Utilisateurs en ligne"
+  }
+}

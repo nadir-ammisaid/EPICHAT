@@ -1,0 +1,28 @@
+{
+  "appName": "Epichat",
+  "brandTagline": "Real-time chat for the RTC project",
+  "navigation": {
+    "home": "Home",
+    "about": "About",
+    "settings": "Settings",
+    "logout": "Log out"
+  },
+  "buttons": {
+    "login": "Log in",
+    "signup": "Sign up",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "send": "Send"
+  },
+  "forms": {
+    "email": "Email address",
+    "password": "Password",
+    "username": "Username"
+  },
+  "status": {
+    "loading": "Loading...",
+    "error": "An error has occurred",
+    "empty": "No results"
+  }
+}

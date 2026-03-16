@@ -1,0 +1,28 @@
+{
+  "appName": "Epichat",
+  "brandTagline": "Chat en temps réel pour le projet RTC",
+  "navigation": {
+    "home": "Accueil",
+    "about": "À propos",
+    "settings": "Paramètres",
+    "logout": "Se déconnecter"
+  },
+  "buttons": {
+    "login": "Se connecter",
+    "signup": "Créer un compte",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "save": "Enregistrer",
+    "send": "Envoyer"
+  },
+  "forms": {
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "username": "Nom d'utilisateur"
+  },
+  "status": {
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "empty": "Aucun résultat"
+  }
+}

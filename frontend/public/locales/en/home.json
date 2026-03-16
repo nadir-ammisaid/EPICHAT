@@ -1,0 +1,21 @@
+{
+  "pageTitle": "Epichat - Real-time chat",
+  "pageDescription": "Epichat is a real-time chat application for the RTC project.",
+  "welcome": "Welcome to Epichat",
+  "hero": {
+    "title": "Chat in real time with your team",
+    "subtitle": "Create rooms, exchange instant messages and collaborate effectively."
+  },
+  "sections": {
+    "roomsTitle": "Your chat rooms",
+    "noRooms": "You haven't joined any room yet.",
+    "createRoom": "Create a new room",
+    "recentMessages": "Recent messages"
+  },
+  "chat": {
+    "placeholder": "Write your message...",
+    "send": "Send",
+    "typing": "{{user}} is typing...",
+    "onlineUsers": "Online users"
+  }
+}
