@@ -18,6 +18,7 @@ export type ChannelDetails = {
 export type ServerMember = {
   id: string;
   username: string;
+  role?: string;
 };
 
 export async function listServerChannels(serverId: string): Promise<Channel[]> {
@@ -63,12 +64,14 @@ export async function listServerMembers(serverId: string): Promise<ServerMember[
     user?: { id?: string; username?: string };
     userId?: string;
     username?: string;
+    role?: string;
   }>;
 
   return members
     .map((member) => ({
       id: member.user?.id ?? member.userId ?? "",
       username: member.user?.username ?? member.username ?? "",
+      role: member.role,
     }))
     .filter((member) => Boolean(member.id) && Boolean(member.username));
 }

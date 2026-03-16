@@ -247,12 +247,14 @@ type EmojiPickerProps = {
   onEmojiSelect: (emoji: string) => void;
   isOpen: boolean;
   onClose: () => void;
+  openDownward?: boolean;
 };
 
 export function EmojiPicker({
   onEmojiSelect,
   isOpen,
   onClose,
+  openDownward = false,
 }: EmojiPickerProps) {
   const [activeCategory, setActiveCategory] =
     useState<keyof typeof EMOJI_DATA>("Smileys");
@@ -329,7 +331,7 @@ export function EmojiPicker({
   return (
     <div
       ref={pickerRef}
-      className="bg-background border-border absolute bottom-full left-0 z-50 mb-2 w-80 rounded-lg border shadow-lg"
+      className={`bg-background border-border absolute left-0 z-50 w-80 rounded-lg border shadow-lg ${openDownward ? "top-full mt-2" : "bottom-full mb-2"}`}
     >
       {/* Search */}
       <div className="border-border border-b p-2">
