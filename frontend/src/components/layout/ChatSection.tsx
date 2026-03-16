@@ -46,6 +46,8 @@ export default function ChatSection() {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [members, setMembers] = useState<ServerMember[]>([]);
+  const myMember = members.find((m) => m.id === myUserId);
+  const canModerate = myMember?.role === "owner" || myMember?.role === "admin";
   const inputRef = useRef<HTMLInputElement | null>(null);
   const typingStopTimer = useRef<number | null>(null);
 
@@ -173,7 +175,7 @@ export default function ChatSection() {
                 !m.deletedAt &&
                 m.type === "text"
               }
-              canDelete={!!myUserId && m.authorId === myUserId && !m.deletedAt}
+              canDelete={!!myUserId && !m.deletedAt && (m.authorId === myUserId || canModerate)}
               isEditing={editingId === m.id}
               editText={editText}
               onEditStart={() => startEditing(m)}
