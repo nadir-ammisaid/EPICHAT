@@ -16,6 +16,7 @@ import {
   deleteDmMessage,
   updateDmMessage,
 } from "./dm.service.js";
+import { prisma } from "../../prisma/client.js";
 
 export const listConversations = asyncHandler(
   async (req: Request, res: Response) => {
@@ -52,7 +53,24 @@ export const sendMessage = asyncHandler(async (req: Request, res: Response) => {
   const { id: conversationId } = conversationIdParamsSchema.parse(req.params);
   const payload = sendDmBodySchema.parse(req.body);
   const message = await sendDmMessage(userId, conversationId, payload);
-  req.app.locals.io?.to(`dm:${conversationId}`).emit("dm:message:new", message);
+
+  const io = req.app.locals.io;
+  if (io) {
+    io.to(`dm:${conversationId}`).emit("dm:message:new", message);
+
+    const conversation = await prisma.directConversation.findUnique({
+      where: { id: conversationId },
+      select: {
+        participant1Id: true,
+        participant2Id: true,
+      },
+    });
+
+    if (conversation) {
+      io.to(`user:${conversation.participant1Id}`).emit("dm:message:new", message);
+      io.to(`user:${conversation.participant2Id}`).emit("dm:message:new", message);
+    }
+  }
 
   res.status(201).json(message);
 });

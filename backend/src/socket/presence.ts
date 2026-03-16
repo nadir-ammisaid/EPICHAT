@@ -179,8 +179,11 @@ export function registerPresenceHandlers(io: Server, socket: Socket) {
     userSockets.delete(userId);
 
     try {
-      await prisma.user.update({ where: { id: userId }, data: { status: "offline" } });
-    } catch (e) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { status: "offline" },
+      });
+    } catch {
     }
 
     // Nettoyer les serveurs et broadcaster globalement

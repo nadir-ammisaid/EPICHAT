@@ -1,6 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import {
+  useState,
+  type KeyboardEvent,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import { Smile, Image as ImageIcon, Search } from "lucide-react";
 import { EmojiPicker } from "@/components/ui/EmojiPicker";
 import { Modal } from "@/components/ui/Modal";
@@ -20,9 +25,9 @@ type MessageInputBarProps = {
   onSendGif: (gif: { gifUrl: string; title: string }) => Promise<void>;
   disabled?: boolean;
   placeholder?: string;
-  inputRef?: React.RefObject<HTMLInputElement | null>;
-  aboveInput?: React.ReactNode;
-  extraKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => boolean;
+  inputRef?: RefObject<HTMLInputElement | null>;
+  aboveInput?: ReactNode;
+  extraKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => boolean;
 };
 
 export function MessageInputBar({
@@ -48,15 +53,25 @@ export function MessageInputBar({
 
   async function searchGifs(offset = 0, append = false) {
     const q = gifQuery.trim();
-    if (!q) { setGifResults([]); setGifOffset(0); setSelectedGif(null); return; }
+    if (!q) {
+      setGifResults([]);
+      setGifOffset(0);
+      setSelectedGif(null);
+      return;
+    }
     setGifLoading(true);
     setGifError(null);
     try {
-      const data = await apiClient.request(`/gif/search?q=${encodeURIComponent(q)}&limit=20&offset=${offset}`);
+      const data = await apiClient.request(
+        `/gif/search?q=${encodeURIComponent(q)}&limit=20&offset=${offset}`,
+      );
       const items = (data?.items ?? []) as GifSearchItem[];
       setGifResults((prev) => (append ? [...prev, ...items] : items));
       setGifOffset(typeof data?.nextOffset === "number" ? data.nextOffset : 0);
-      setSelectedGif((prev) => { if (append || prev) return prev; return items[0] ?? null; });
+      setSelectedGif((prev) => {
+        if (append || prev) return prev;
+        return items[0] ?? null;
+      });
     } catch (e: unknown) {
       setGifError(e instanceof Error ? e.message : "Failed to search GIFs");
     } finally {
@@ -90,7 +105,10 @@ export function MessageInputBar({
           <div className="relative">
             <button
               type="button"
-              onClick={() => { setGifModalOpen(true); setGifError(null); }}
+              onClick={() => {
+                setGifModalOpen(true);
+                setGifError(null);
+              }}
               className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
               aria-label="Open GIF search"
             >
@@ -138,7 +156,11 @@ export function MessageInputBar({
         </div>
       </div>
 
-      <Modal open={gifModalOpen} onClose={() => setGifModalOpen(false)} title="Rechercher un GIF">
+      <Modal
+        open={gifModalOpen}
+        onClose={() => setGifModalOpen(false)}
+        title="Rechercher un GIF"
+      >
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <input
@@ -146,7 +168,9 @@ export function MessageInputBar({
               placeholder="Rechercher sur Giphy..."
               value={gifQuery}
               onChange={(e) => setGifQuery(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") searchGifs(0, false); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") searchGifs(0, false);
+              }}
             />
             <button
               type="button"
@@ -164,7 +188,11 @@ export function MessageInputBar({
             <div className="rounded border border-border p-2">
               <p className="mb-2 text-xs text-muted-foreground">Previsualisation</p>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={selectedGif.gifUrl} alt={selectedGif.title || "GIF"} className="max-h-56 w-full rounded object-contain" />
+              <img
+                src={selectedGif.gifUrl}
+                alt={selectedGif.title || "GIF"}
+                className="max-h-56 w-full rounded object-contain"
+              />
             </div>
           )}
 
@@ -174,14 +202,23 @@ export function MessageInputBar({
                 key={gif.id}
                 type="button"
                 onClick={() => setSelectedGif(gif)}
-                className={`overflow-hidden rounded border ${selectedGif?.id === gif.id ? "border-brand" : "border-border"}`}
+                className={`overflow-hidden rounded border ${
+                  selectedGif?.id === gif.id ? "border-brand" : "border-border"
+                }`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={gif.previewUrl} alt={gif.title || "GIF"} className="h-24 w-full object-cover" loading="lazy" />
+                <img
+                  src={gif.previewUrl}
+                  alt={gif.title || "GIF"}
+                  className="h-24 w-full object-cover"
+                  loading="lazy"
+                />
               </button>
             ))}
             {!gifLoading && gifResults.length === 0 && (
-              <p className="col-span-2 text-center text-sm text-muted-foreground">Aucun GIF pour le moment.</p>
+              <p className="col-span-2 text-center text-sm text-muted-foreground">
+                Aucun GIF pour le moment.
+              </p>
             )}
           </div>
 

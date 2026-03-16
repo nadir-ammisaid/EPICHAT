@@ -1,7 +1,6 @@
-// Cleaned version without merge artefacts
 "use client";
 
-import React, { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { EmojiPicker } from "@/components/ui/EmojiPicker";
 import { Check, Pencil, Trash2, X, SmilePlus } from "lucide-react";
 import { formatDate } from "@/lib/utils/formatDate";
@@ -25,7 +24,7 @@ type MessageItemProps = {
   onEditConfirm: () => void;
   onEditTextChange: (value: string) => void;
   onDelete: () => void;
-  renderTextContent?: (content: string) => React.ReactNode;
+  renderTextContent?: (content: string) => ReactNode;
   reactions?: { emoji: string; count: number; userIds: string[] }[];
   myUserId?: string;
   onToggleReaction?: (emoji: string) => void;

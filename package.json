@@ -6,6 +6,10 @@
     "dev": "concurrently -n BACKEND,FRONTEND -c blue,green \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd backend && npm run test",
+    "test:frontend": "cd frontend && npm run test",
+    "test:docker": "docker compose exec backend npm run test && docker compose exec frontend npm run test",
     "build:backend": "cd backend && npm run build",
     "build:frontend": "cd frontend && npm run build",
     "format": "prettier --write ."

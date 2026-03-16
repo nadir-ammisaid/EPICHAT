@@ -1,65 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
-import { registerSchema } from "@/lib/validation/auth";
+import { useRegisterForm } from "@/lib/hooks/useRegisterForm";
 
 export default function RegisterForm() {
-  const router = useRouter();
-  const [error, setError] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
-
-    const formData = new FormData(e.currentTarget);
-    const raw = {
-      email: formData.get("email") as string,
-      username: formData.get("username") as string,
-      password: formData.get("password") as string,
-      confirmPassword: formData.get("confirmPassword") as string,
-    };
-
-    const result = registerSchema.safeParse(raw);
-    if (!result.success) {
-      const firstIssue = result.error.issues[0];
-      setError(firstIssue.message);
-      setIsLoading(false);
-      return;
-    }
-
-    const { email, username, password } = result.data;
-
-    try {
-      const API_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-      const res = await fetch(`${API_URL}/auth/signup`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, username, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.message || "Erreur lors de l'inscription");
-        setIsLoading(false);
-        return;
-      }
-
-      router.push("/login");
-    } catch {
-      setError("Erreur lors de l'inscription");
-      setIsLoading(false);
-    }
-  };
+  const { error, isLoading, handleSubmit } = useRegisterForm();
 
   return (
     <div className="flex flex-col items-center justify-center gap-4 py-14">

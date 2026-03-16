@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import HttpError from "../errors/httpError.js";
 import { getBearerToken } from "../utils/authHeader.js";
+import { getJwtSecret } from "../utils/env.js";
 import { isTokenRevoked } from "../../modules/auth/tokenBlacklist.js";
 
 // JWT payloadstructure
@@ -9,13 +10,6 @@ type JwtPayload = {
   userId: string;
   role: string;
 };
-
-// Read JWT secret from envir.
-function getJwtSecret(): string {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) throw new Error("JWT_SECRET is not defined");
-  return secret;
-}
 
 // middleware protecting routes
 export function requireAuth(req: Request, _res: Response, next: NextFunction) {
