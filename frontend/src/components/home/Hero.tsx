@@ -11,10 +11,18 @@ export default function Hero() {
   return (
     <section className="relative w-full overflow-hidden">
       <div className="relative hidden min-h-svh w-full md:block">
-        <div className="absolute inset-0 bg-[url('/hero.png')] bg-cover bg-right bg-no-repeat" />
+        <video
+          className="absolute inset-0 h-full w-full object-cover object-right"
+          src="/hero_v2.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+        />
+
         <div className="absolute inset-0 bg-white/20" />
         <div className="relative z-10 mx-auto flex min-h-svh max-w-6xl items-center px-4 lg:px-6">
-          <div className="max-w-130 text-left lg:-ml-12 lg:max-w-140">
+          <div className="max-w-130 text-left lg:-ml-12 lg:max-w-140 pt-80">
             <h1 className="text-5xl leading-[0.95] font-black tracking-[-0.04em] text-slate-900 uppercase lg:text-6xl">
               {title}
             </h1>
@@ -25,10 +33,18 @@ export default function Hero() {
         </div>
       </div>
       <div className="md:hidden">
-        <div className="relative h-[46vh] w-full">
-          <div className="absolute inset-0 bg-[url('/hero.png')] bg-cover bg-right bg-no-repeat" />
+        <div className="relative w-full">
+          <video
+            className="w-full"
+            src="/hero_v2.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+          />
           <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-28 bg-linear-to-b from-transparent to-[#F3F7FB]" />
         </div>
+
         <div className="bg-[#F3F7FB] px-6 pt-6 pb-10">
           <h1 className="text-center text-xl! leading-[1.05] font-black tracking-[-0.03em] text-slate-900 uppercase">
             {title}
