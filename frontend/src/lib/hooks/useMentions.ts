@@ -12,12 +12,16 @@ export function useMentions(
   const [mentionFilter, setMentionFilter] = useState("");
   const [mentionIndex, setMentionIndex] = useState(0);
 
-  const filteredMembers = useMemo(() => {
-    if (!mentionFilter) return members;
-    return members.filter((m) =>
-      m.username?.toLowerCase().includes(mentionFilter),
-    );
-  }, [members, mentionFilter]);
+  const EVERYBODY = { id: "everybody", username: "Everybody" };
+
+const filteredMembers = useMemo(() => {
+  const allMembers = [EVERYBODY, ...members];
+  if (!mentionFilter) return allMembers;
+  return allMembers.filter((m) =>
+    m.username?.toLowerCase().includes(mentionFilter),
+  );
+}, [members, mentionFilter]);
+
 
   function onTextChange(value: string) {
     const atMatch = value.match(/@(\w*)$/);
