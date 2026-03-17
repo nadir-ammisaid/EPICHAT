@@ -1,6 +1,7 @@
 import { useMemo, useState, type RefObject } from "react";
 
 type Member = { id: string; username: string };
+const EVERYBODY = { id: "everybody", username: "Everybody" };
 
 export function useMentions(
   members: Member[],
@@ -11,16 +12,13 @@ export function useMentions(
   const [showMentions, setShowMentions] = useState(false);
   const [mentionFilter, setMentionFilter] = useState("");
   const [mentionIndex, setMentionIndex] = useState(0);
-
-  const EVERYBODY = { id: "everybody", username: "Everybody" };
-
-const filteredMembers = useMemo(() => {
-  const allMembers = [EVERYBODY, ...members];
-  if (!mentionFilter) return allMembers;
-  return allMembers.filter((m) =>
-    m.username?.toLowerCase().includes(mentionFilter),
-  );
-}, [members, mentionFilter]);
+  const filteredMembers = useMemo(() => {
+    const allMembers = [EVERYBODY, ...members];
+    if (!mentionFilter) return allMembers;
+    return allMembers.filter((m) =>
+      m.username?.toLowerCase().includes(mentionFilter),
+    );
+  }, [members, mentionFilter]);
 
 
   function onTextChange(value: string) {
