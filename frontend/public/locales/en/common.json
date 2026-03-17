@@ -24,5 +24,86 @@
     "loading": "Loading...",
     "error": "An error has occurred",
     "empty": "No results"
+  },
+  "chat": {
+    "channelWelcome": "Welcome to this channel"
+  },
+  "footer": {
+    "title": "EPICHAT",
+    "descriptionLines": [
+      "A modern chat platform",
+      "to collaborate,",
+      "share and organize",
+      "your teams easily."
+    ],
+    "navigationTitle": "Navigation",
+    "projectTitle": "Project",
+    "projectItems": ["Epitech", "RTC project", "Year 2026", "Class of 2028"],
+    "madeByTitle": "Built by",
+    "copyright": "© {{year}} EpiChat - All rights reserved"
+  },
+  "pages": {
+    "login": {
+      "title": "Welcome!",
+      "subtitle": "Log in",
+      "emailPlaceholder": "Email",
+      "passwordPlaceholder": "Password",
+      "cta": "Log in",
+      "loading": "Logging in...",
+      "noAccount": "Don't have an account yet?",
+      "goToRegister": "Sign up",
+      "illustrationAlt": "Login illustration"
+    },
+    "register": {
+      "title": "Welcome!",
+      "subtitle": "Sign up",
+      "emailPlaceholder": "Email",
+      "usernamePlaceholder": "Username",
+      "passwordPlaceholder": "Password",
+      "confirmPasswordPlaceholder": "Confirm password",
+      "cta": "Sign up",
+      "loading": "Signing up...",
+      "hasAccount": "Already have an account?",
+      "goToLogin": "Log in",
+      "illustrationAlt": "Login illustration"
+    },
+    "servers": {
+      "listTitle": "Servers",
+      "serverTitle": "Server: {{id}}"
+    },
+    "profile": {
+      "back": "Back",
+      "title": "My profile",
+      "avatarHint": "Click the avatar to generate another one",
+      "infoTitle": "Information",
+      "emailLabel": "Email",
+      "usernameLabel": "Username",
+      "usernamePlaceholder": "My nickname",
+      "save": "Save",
+      "saving": "Saving…",
+      "saved": "Changes saved",
+      "notificationsTitle": "Notifications",
+      "notificationsEnable": "Enable notifications",
+      "notificationsDm": "Notifications for direct messages (DM)",
+      "notificationsMentions": "Notifications for mentions (@me)",
+      "notificationsSystemJoins": "Notifications for system messages (joins/quits)",
+      "notificationsBrowserPermissionLabel": "Browser permission:",
+      "notificationsPermissionGranted": "Allowed",
+      "notificationsPermissionDenied": "Denied",
+      "notificationsPermissionDefault": "Not requested",
+      "notificationsAllowButton": "Allow notifications",
+      "notificationsNotSupported": "Notifications are not supported by this browser.",
+      "deleteTitle": "Delete account?",
+      "deleteNotice": "Account deletion is permanent. All your data will be erased.",
+      "deleteWarning": "This action is irreversible. All your data (servers, messages, etc.) will be permanently deleted.",
+      "deleteErrorFallback": "Error",
+      "deleteCta": "Delete my account",
+      "deleteLoading": "Deleting…"
+    },
+    "testEmoji": {
+      "title": "Emoji support test",
+      "empty": "Send a message with emojis...",
+      "placeholder": "Type a message with emojis..."
+    }
   }
 }

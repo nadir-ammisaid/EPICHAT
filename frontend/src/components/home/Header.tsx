@@ -3,17 +3,20 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const navItems = [
-  { label: "Pourquoi EpiChat ?", href: "#pourquoi" },
-  { label: "Fonctionnalités", href: "#fonctionnalites" },
-  { label: "Sécurité & accès", href: "#securite" },
-  { label: "Pour qui ?", href: "#pourqui" },
+  { labelKey: "sections.why.title", href: "#pourquoi" },
+  { labelKey: "sections.features.title", href: "#fonctionnalites" },
+  { labelKey: "sections.security.title", href: "#securite" },
+  { labelKey: "sections.forWho.title", href: "#pourqui" },
 ];
 
 export default function Header() {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const { t } = useTranslation("home");
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -46,11 +49,14 @@ export default function Header() {
               href={item.href}
               className="text-foreground/80 hover:text-foreground transition"
             >
-              {item.label}
+              {t(item.labelKey)}
             </a>
           ))}
         </nav>
         <div className="flex items-center gap-3">
+          <div className="hidden md:flex">
+            <LanguageSwitcher />
+          </div>
           <Link
             href="/login"
             className="hidden items-center justify-center rounded-full bg-[#2F6BFF] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#1E4ED8] hover:opacity-90 md:inline-flex"
@@ -101,6 +107,9 @@ export default function Header() {
             className="border-border bg-background mx-auto max-w-6xl overflow-hidden rounded-2xl border shadow-sm"
           >
             <div className="p-2">
+              <div className="mb-2 flex items-center justify-end gap-2">
+                <LanguageSwitcher />
+              </div>
               <Link
                 href="/login"
                 className="hover:bg-foreground/5 flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition"
@@ -117,7 +126,7 @@ export default function Header() {
                   className="text-foreground/80 hover:text-foreground hover:bg-foreground/5 block rounded-xl px-4 py-3 text-sm transition"
                   onClick={() => setOpen(false)}
                 >
-                  {item.label}
+                  {t(item.labelKey)}
                 </a>
               ))}
             </div>

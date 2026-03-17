@@ -1,8 +1,11 @@
 import RegisterForm from "@/components/RegisterForm";
 import Image from "next/image";
 import RedirectIfAuthed from "@/components/dashboard/RedirectIfAuthed";
+import { useTranslation } from "react-i18next";
 
 export default function RegisterPage() {
+  const { t } = useTranslation("common");
+
   return (
     <>
       <RedirectIfAuthed />
@@ -14,7 +17,7 @@ export default function RegisterPage() {
         </div>
         <Image
           src="/login.png"
-          alt="Illustration de connexion"
+          alt={t("pages.register.illustrationAlt")}
           width={1920}
           height={1080}
           className="h-full w-full object-cover md:order-2"

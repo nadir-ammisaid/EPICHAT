@@ -10,7 +10,31 @@
     "roomsTitle": "Your chat rooms",
     "noRooms": "You haven't joined any room yet.",
     "createRoom": "Create a new room",
-    "recentMessages": "Recent messages"
+    "recentMessages": "Recent messages",
+    "why": {
+      "id": "why",
+      "title": "Why EpiChat?",
+      "description": "Organize your discussions by servers and channels, keep a clear history, and chat smoothly as a team.",
+      "imageAlt": "Why EpiChat"
+    },
+    "features": {
+      "id": "features",
+      "title": "Features",
+      "description": "Channels, instant messages, simple organization… everything you need for a modern and efficient chat.",
+      "imageAlt": "Features"
+    },
+    "security": {
+      "id": "security",
+      "title": "Security & access",
+      "description": "Authentication, protected routes and access control: you keep control over who can see and do what.",
+      "imageAlt": "Security"
+    },
+    "forWho": {
+      "id": "for-who",
+      "title": "For whom?",
+      "description": "Working groups, communities, projects… whenever you need to exchange quickly and stay organized.",
+      "imageAlt": "For whom"
+    }
   },
   "chat": {
     "placeholder": "Write your message...",

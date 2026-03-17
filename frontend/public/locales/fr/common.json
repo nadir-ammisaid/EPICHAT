@@ -24,5 +24,86 @@
     "loading": "Chargement...",
     "error": "Une erreur s'est produite",
     "empty": "Aucun résultat"
+  },
+  "chat": {
+    "channelWelcome": "Bienvenue dans ce canal de discussion"
+  },
+  "footer": {
+    "title": "EPICHAT",
+    "descriptionLines": [
+      "Une plateforme de discussion",
+      "moderne pour collaborer,",
+      "échanger et organiser",
+      "vos équipes simplement."
+    ],
+    "navigationTitle": "Navigation",
+    "projectTitle": "Projet",
+    "projectItems": ["Epitech", "Projet RTC", "Année 2026", "Promo 2028"],
+    "madeByTitle": "Réalisé par",
+    "copyright": "© {{year}} EpiChat - Tous droits réservés"
+  },
+  "pages": {
+    "login": {
+      "title": "Bienvenue !",
+      "subtitle": "Connectez-vous",
+      "emailPlaceholder": "Email",
+      "passwordPlaceholder": "Mot de passe",
+      "cta": "Se connecter",
+      "loading": "Connexion...",
+      "noAccount": "Pas encore de compte ?",
+      "goToRegister": "Inscrivez-vous",
+      "illustrationAlt": "Illustration de connexion"
+    },
+    "register": {
+      "title": "Bienvenue !",
+      "subtitle": "Inscrivez-vous",
+      "emailPlaceholder": "Email",
+      "usernamePlaceholder": "Nom d'utilisateur",
+      "passwordPlaceholder": "Mot de passe",
+      "confirmPasswordPlaceholder": "Confirmation du mot de passe",
+      "cta": "Inscrire",
+      "loading": "Inscription...",
+      "hasAccount": "Déjà un compte ?",
+      "goToLogin": "Connectez-vous",
+      "illustrationAlt": "Illustration de connexion"
+    },
+    "servers": {
+      "listTitle": "Serveurs",
+      "serverTitle": "Serveur : {{id}}"
+    },
+    "profile": {
+      "back": "Retour",
+      "title": "Mon profil",
+      "avatarHint": "Cliquez sur l'avatar pour en générer un autre",
+      "infoTitle": "Informations",
+      "emailLabel": "Email",
+      "usernameLabel": "Nom d'utilisateur",
+      "usernamePlaceholder": "Mon pseudo",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "saved": "Modifications enregistrées",
+      "notificationsTitle": "Notifications",
+      "notificationsEnable": "Activer les notifications",
+      "notificationsDm": "Notifications pour les messages directs (DM)",
+      "notificationsMentions": "Notifications pour les mentions (@moi)",
+      "notificationsSystemJoins": "Notifications pour les messages système (joins/quits)",
+      "notificationsBrowserPermissionLabel": "Permission navigateur :",
+      "notificationsPermissionGranted": "Autorisées",
+      "notificationsPermissionDenied": "Refusées",
+      "notificationsPermissionDefault": "Non demandées",
+      "notificationsAllowButton": "Autoriser les notifications",
+      "notificationsNotSupported": "Les notifications ne sont pas prises en charge par ce navigateur.",
+      "deleteTitle": "Supprimer le compte ?",
+      "deleteNotice": "La suppression du compte est définitive. Toutes vos données seront effacées.",
+      "deleteWarning": "Cette action est irréversible. Toutes vos données (serveurs, messages, etc.) seront définitivement supprimées.",
+      "deleteErrorFallback": "Erreur",
+      "deleteCta": "Supprimer mon compte",
+      "deleteLoading": "Suppression…"
+    },
+    "testEmoji": {
+      "title": "Test du support Emoji",
+      "empty": "Envoyez un message avec des emojis...",
+      "placeholder": "Tapez un message avec des emojis..."
+    }
   }
 }

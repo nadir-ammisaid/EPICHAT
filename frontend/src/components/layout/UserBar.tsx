@@ -7,12 +7,15 @@ import UserAvatar from "../ui/UserAvatar";
 import NotificationBell from "../ui/NotificationBell";
 import parseDashboardPath from "@/lib/utils/parseDashboardPath";
 import { apiClient } from "@/lib/api/client";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function UserBar() {
   const pathname = usePathname();
   const { channelId } = parseDashboardPath(pathname ?? "");
   const [channelName, setChannelName] = useState<string | null>(null);
   const displayChannelName = channelId ? channelName : null;
+  const { t } = useTranslation("common");
 
   useEffect(() => {
     if (!channelId) return;
@@ -34,13 +37,16 @@ export default function UserBar() {
             <h2 className="text-lg font-semibold">{displayChannelName}</h2>
           </div>
           <p className="text-muted-foreground hidden text-xs sm:block">
-            Bienvenue dans ce canal de discussion
+            {t("chat.channelWelcome")}
           </p>
         </div>
       ) : (
         <div />
       )}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
+        <div className="hidden sm:flex">
+          <LanguageSwitcher />
+        </div>
         <NotificationBell />
         <UserAvatar />
       </div>
