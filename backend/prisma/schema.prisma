@@ -32,6 +32,7 @@ model User {
   directMessages    DirectMessage[]
   messageReactions MessageReaction[]
   dmReactions DmReaction[]
+  bans Ban[]
 
 
   @@map("users")
@@ -49,6 +50,8 @@ model Server {
   members  ServerMember[]
   channels Channel[]
   invites  Invite[]
+  bans Ban[]
+
 
   @@map("servers")
 }
@@ -173,4 +176,19 @@ model DmReaction {
   user            User          @relation(fields: [userId], references: [id])
   @@unique([directMessageId, userId, emoji])
   @@map("dm_reactions")
+}
+
+model Ban {
+  id        String   @id @default(uuid())
+  serverId  String
+  userId    String
+  permanent Boolean  @default(true)
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+
+  server Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([serverId, userId])
+  @@map("bans")
 }
