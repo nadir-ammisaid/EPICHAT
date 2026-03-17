@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, type ReactNode } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { EmojiPicker } from "@/components/ui/EmojiPicker";
 import { Check, Pencil, Trash2, X, SmilePlus } from "lucide-react";
 import { formatDate } from "@/lib/utils/formatDate";
@@ -58,6 +58,24 @@ export function MessageItem({
   const QUICK_EMOJIS = ["👍", "❤️", "😂", "😮", "🔥"];
   const emojiButtonRef = useRef<HTMLButtonElement | null>(null);
   const [openDownward, setOpenDownward] = useState(false);
+  const [showActions, setShowActions] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!showActions) return;
+    const handleOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowActions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutside);
+    document.addEventListener("touchstart", handleOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("touchstart", handleOutside);
+    };
+  }, [showActions]);
+
 
 
   if (type === "system_new_member") {
@@ -71,14 +89,17 @@ export function MessageItem({
   }
 
   return (
-    <div className="group hover:bg-muted/40 mb-2 flex items-start gap-1 px-1 py-1">
+    <div
+      ref={containerRef}
+      className="group hover:bg-muted/40 mb-2 flex items-start gap-1 px-1 py-1"
+      onClick={() => setShowActions(true)}>
       {/* Actions colonne gauche */}
       <div className="flex w-16 shrink-0 justify-start gap-0.5">
         {canEdit && !isEditing ? (
           <button
             type="button"
-            className="hover:bg-background/70 mt-0.5 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-            onClick={onEditStart}
+            className={`hover:bg-background/70 mt-0.5 rounded p-0.5 transition-opacity ${showActions ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+            onClick={(e) => { if (!showActions) return; onEditStart(); }}
           >
             <Pencil className="h-4 w-4 opacity-70 hover:opacity-100" />
           </button>
@@ -91,8 +112,8 @@ export function MessageItem({
         {canDelete && !isEditing ? (
           <button
             type="button"
-            className="hover:bg-background/70 mt-0.5 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-            onClick={onDelete}
+            className={`hover:bg-background/70 mt-0.5 rounded p-0.5 transition-opacity ${showActions ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+            onClick={(e) => { if (!showActions) return; onDelete(); }}
           >
             <Trash2 className="h-4 w-4 opacity-70 hover:opacity-100" />
           </button>
@@ -107,12 +128,14 @@ export function MessageItem({
             <button
               ref={emojiButtonRef}
               type="button"
-              className="hover:bg-background/70 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-              onClick={() => {
+              className={`hover:bg-background/70 mt-0.5 rounded p-0.5 transition-opacity ${showActions ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+              onClick={(e) => {
+                if (!showActions) return;
                 const top = emojiButtonRef.current?.getBoundingClientRect().top ?? 999;
                 setOpenDownward(top < 300);
                 setShowQuickPicker((v) => !v);
               }}
+
             >
 
               <SmilePlus className="h-4 w-4 opacity-70 hover:opacity-100" />
@@ -222,7 +245,19 @@ export function MessageItem({
 
         {reactions && reactions.length > 0 && (
           <div className="mt-1 flex flex-wrap gap-1">
-            {reactions.map((r) => {
+            {Object.values(
+              reactions.reduce((acc, r) => {
+                if (acc[r.emoji]) {
+                  acc[r.emoji] = {
+                    ...acc[r.emoji],
+                    userIds: [...(acc[r.emoji].userIds ?? []), ...(r.userIds ?? [])],
+                  };
+                } else {
+                  acc[r.emoji] = r;
+                }
+                return acc;
+              }, {} as Record<string, typeof reactions[0]>)
+            ).map((r) => {
               const reacted = myUserId
                 ? (r.userIds ?? []).includes(myUserId)
                 : false;
