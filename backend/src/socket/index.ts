@@ -7,6 +7,8 @@ import { registerChannelHandlers } from "./channel.js";
 import { registerDmHandlers } from "./dm.js";
 import { registerKickHandlers } from "./kick.js";
 
+let ioInstance: Server | null = null;
+
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error("JWT_SECRET is not defined");
@@ -18,6 +20,8 @@ export function initSocket(server: http.Server) {
     path: "/ws",
     cors: { origin: true, credentials: true },
   });
+
+  ioInstance = io;
 
   io.use((socket, next) => {
     try {
@@ -43,4 +47,11 @@ export function initSocket(server: http.Server) {
   });
 
   return io;
+}
+
+export function getIO() {
+  if (!ioInstance) {
+    throw new Error("Socket.io has not been initialized");
+  }
+  return ioInstance;
 }

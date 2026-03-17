@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import type { Request, Response, NextFunction } from "express";
 import HttpError from "../../shared/errors/httpError.js";
 import {
   createServerSchema,
@@ -17,6 +17,10 @@ import {
   updateMemberRole,
   getServerExists,
   kickMember,
+  banMemberPermanent,
+  banMemberTemporary,
+  getServerBans,
+  unbanMember,
 } from "./servers.service.js";
 import { emitNewMemberSystemMessage } from "./serverSystemMessages.js";
 
@@ -169,3 +173,85 @@ export async function kickMemberController(req: Request, res: Response) {
 
   res.status(200).json({ message: "Member kicked successfully" });
 }
+
+export async function banMemberPermanentController(
+  req: Request & { user: { userId: string; role: string } },
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const serverId = req.params.id as string;
+    const { userId } = req.body as { userId: string };
+    const requesterUserId = req.user.userId;
+
+    const ban = await banMemberPermanent(serverId, userId, requesterUserId);
+
+    res.json(ban);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function banMemberTemporaryController(
+  req: Request & { user: { userId: string; role: string } },
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const serverId = req.params.id as string;
+    const { userId, duration, unit } = req.body as {
+      userId: string;
+      duration: number;
+      unit: "minutes" | "hours" | "days";
+    };
+
+    const requesterUserId = req.user.userId;
+
+    const ban = await banMemberTemporary(
+      serverId,
+      userId,
+      requesterUserId,
+      duration,
+      unit
+    );
+
+    res.json(ban);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getServerBansController(
+  req: Request & { user: { userId: string; role: string } },
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const serverId = req.params.id as string;
+    const bans = await getServerBans(serverId);
+    res.json(bans);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function unbanMemberController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const serverId = req.params.id as string;
+    const userId = req.params.userId as string;
+
+    const result = await unbanMember(serverId, userId);
+
+    const io = req.app.locals.io;
+    io.to(serverId).emit("member:unbanned", { userId });
+
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
