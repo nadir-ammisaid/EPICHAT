@@ -18,8 +18,21 @@ vi.mock("../src/prisma/client.js", () => ({
       update: vi.fn(),
       delete: vi.fn(),
     },
+    ban: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      delete: vi.fn(),
+    },
     $transaction: vi.fn(),
   },
+}));
+
+// Mock Socket.io
+vi.mock("../src/socket/index.js", () => ({
+  getIO: vi.fn(() => ({
+    to: vi.fn(() => ({ emit: vi.fn() })),
+  })),
 }));
 
 describe("servers.service", () => {
@@ -322,6 +335,10 @@ describe("servers.service", () => {
     it("should allow user to join server", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
+      // Not banned
+      (prisma.ban.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
+      // Not already a member
       (
         prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
       ).mockResolvedValue(null);
@@ -342,6 +359,10 @@ describe("servers.service", () => {
     it("should throw 409 if already a member", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
+      // Not banned
+      (prisma.ban.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
+      // Already a member
       (
         prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
       ).mockResolvedValue({
