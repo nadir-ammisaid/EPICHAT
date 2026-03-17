@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import parseDashboardPath from "@/lib/utils/parseDashboardPath";
 import { apiClient } from "@/lib/api/client";
 import getInitials from "@/lib/utils/getInitials";
@@ -14,6 +14,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/use-toast";
+import { useCurrentUserId } from "@/lib/hooks/useCurrentUserId";
 
 type ServerMember = {
   userId: string;
@@ -68,16 +69,7 @@ export default function MemberSection() {
   const [banUnit, setBanUnit] = useState<"minutes" | "hours" | "days">("hours");
 
   const router = useRouter();
-
-  const myUserId = useMemo(() => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) return null;
-      return JSON.parse(atob(token.split(".")[1])).userId ?? null;
-    } catch {
-      return null;
-    }
-  }, []);
+  const myUserId = useCurrentUserId();
 
   async function handleOpenDm(targetUserId: string) {
     try {
@@ -94,13 +86,15 @@ export default function MemberSection() {
 
     const fetchMembers = async () => {
       try {
-        const data = await apiClient.request(`/servers/${serverId}/members`);
+        const [membersData, bansData] = await Promise.all([
+          apiClient.request(`/servers/${serverId}/members`),
+          apiClient.request(`/servers/${serverId}/bans`),
+        ]);
         setError(null);
 
-        const list: ServerMember[] = Array.isArray(data) ? data : [];
+        const list: ServerMember[] = Array.isArray(membersData) ? membersData : [];
         setMembers(list);
 
-        // Populate username cache
         const newCache: Record<string, string> = {};
         const statusMap: Record<string, string> = {};
         for (const m of list) {
@@ -109,6 +103,9 @@ export default function MemberSection() {
         }
         setOnlineStatus(statusMap);
         setUsernameCache((prev) => ({ ...prev, ...newCache }));
+
+        const raw: Ban[] = Array.isArray(bansData) ? bansData : [];
+        setBans(raw);
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message ?? "Impossible de charger les membres");
@@ -123,34 +120,6 @@ export default function MemberSection() {
 
     fetchMembers();
   }, [serverId]);
-
-  // Fetch banned members
-  useEffect(() => {
-    if (!serverId) return;
-
-    apiClient
-      .request(`/servers/${serverId}/bans`)
-      .then((data) => {
-        const raw: Ban[] = Array.isArray(data) ? data : [];
-        setBans(
-          raw.map((ban) => ({
-            ...ban,
-            username: usernameCache[ban.userId] ?? undefined,
-          }))
-        );
-      })
-      .catch(() => setBans([]));
-  }, [serverId]);
-
-  useEffect(() => {
-    if (Object.keys(usernameCache).length === 0) return;
-    setBans((prev) =>
-      prev.map((ban) => ({
-        ...ban,
-        username: usernameCache[ban.userId] ?? ban.username,
-      }))
-    );
-  }, [usernameCache]);
 
   // Presence socket
   useEffect(() => {
@@ -662,7 +631,7 @@ export default function MemberSection() {
                               openRoleModal(m);
                             }}
                           >
-                            Change role
+                            Changer le rôle
                           </button>
                         )}
                       </Dropdown.Menu>
@@ -673,10 +642,9 @@ export default function MemberSection() {
             );
           })}
 
-          {/* Section bans — visible seulement pour owner/admin */}
           {(currentRole === "owner" || currentRole === "admin") && (
             <>
-              <h3 className="mt-4 mb-2 px-3 text-xs font-semibold text-neutral-500">
+              <h3 className="h3 border-t border-b border-border px-3 py-2 mt-4 text-sm font-semibold">
                 Membres bannis
               </h3>
 
@@ -690,7 +658,6 @@ export default function MemberSection() {
                   className="flex items-center justify-between px-3 py-1.5 rounded hover:bg-neutral-100"
                 >
                   <div className="flex flex-col">
-                    {/* FIX: affiche le username, fallback sur userId */}
                     <span className="font-medium text-sm">
                       {ban.username ?? ban.userId}
                     </span>
@@ -705,10 +672,10 @@ export default function MemberSection() {
                   </div>
 
                   <button
-                    className="px-2 py-1 rounded bg-neutral-900 text-white text-xs hover:bg-black"
+                    className="px-2 py-1 rounded bg-blue-600 text-white text-xs hover:bg-blue-700 transition-colors"
                     onClick={() => handleUnban(ban.userId)}
                   >
-                    Unban
+                    Débannir
                   </button>
                 </div>
               ))}

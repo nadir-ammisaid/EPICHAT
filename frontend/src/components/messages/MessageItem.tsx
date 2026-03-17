@@ -1,7 +1,6 @@
-// Cleaned version without merge artefacts
 "use client";
 
-import React, { useState } from "react";
+import { useState, useRef, type ReactNode } from "react";
 import { EmojiPicker } from "@/components/ui/EmojiPicker";
 import { Check, Pencil, Trash2, X, SmilePlus } from "lucide-react";
 import { formatDate } from "@/lib/utils/formatDate";
@@ -25,7 +24,7 @@ type MessageItemProps = {
   onEditConfirm: () => void;
   onEditTextChange: (value: string) => void;
   onDelete: () => void;
-  renderTextContent?: (content: string) => React.ReactNode;
+  renderTextContent?: (content: string) => ReactNode;
   reactions?: { emoji: string; count: number; userIds: string[] }[];
   myUserId?: string;
   onToggleReaction?: (emoji: string) => void;
@@ -57,6 +56,9 @@ export function MessageItem({
   const [showQuickPicker, setShowQuickPicker] = useState(false);
   const [showFullPicker, setShowFullPicker] = useState(false);
   const QUICK_EMOJIS = ["👍", "❤️", "😂", "😮", "🔥"];
+  const emojiButtonRef = useRef<HTMLButtonElement | null>(null);
+  const [openDownward, setOpenDownward] = useState(false);
+
 
   if (type === "system_new_member") {
     return (
@@ -103,14 +105,20 @@ export function MessageItem({
         {!isEditing && onToggleReaction && (
           <div className="relative mt-0.5">
             <button
+              ref={emojiButtonRef}
               type="button"
               className="hover:bg-background/70 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-              onClick={() => setShowQuickPicker((v) => !v)}
+              onClick={() => {
+                const top = emojiButtonRef.current?.getBoundingClientRect().top ?? 999;
+                setOpenDownward(top < 300);
+                setShowQuickPicker((v) => !v);
+              }}
             >
+
               <SmilePlus className="h-4 w-4 opacity-70 hover:opacity-100" />
             </button>
             {showQuickPicker && (
-              <div className="border-border bg-background absolute bottom-full left-0 z-10 mb-1 flex gap-1 rounded-lg border p-1 shadow-lg">
+              <div className={`border-border bg-background absolute left-0 z-10 flex gap-1 rounded-lg border p-1 shadow-lg ${openDownward ? "top-full mt-1" : "bottom-full mb-1"}`}>
                 {QUICK_EMOJIS.map((e) => (
                   <button
                     key={e}
@@ -143,6 +151,7 @@ export function MessageItem({
                 onToggleReaction(emoji);
                 setShowFullPicker(false);
               }}
+              openDownward={openDownward}
             />
           </div>
         )}
@@ -222,11 +231,10 @@ export function MessageItem({
                   key={r.emoji}
                   type="button"
                   onClick={() => onToggleReaction?.(r.emoji)}
-                  className={`flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-xs transition-colors ${
-                    reacted
-                      ? "border-brand bg-brand/20 text-brand"
-                      : "border-border bg-muted hover:bg-muted/70"
-                  }`}
+                  className={`flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-xs transition-colors ${reacted
+                    ? "border-brand bg-brand/20 text-brand"
+                    : "border-border bg-muted hover:bg-muted/70"
+                    }`}
                 >
                   <span>{r.emoji}</span>
                   <span>{r.count}</span>

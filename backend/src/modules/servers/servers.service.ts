@@ -556,8 +556,11 @@ export async function getServerBans(serverId: string) {
     select: {
       userId: true,
       permanent: true,
-      expiresAt: true
-    }
+      expiresAt: true,
+      user: {
+        select: { username: true },
+      },
+    },
   });
 
   const now = Date.now();
@@ -582,9 +585,10 @@ export async function getServerBans(serverId: string) {
 
     return {
       userId: ban.userId,
+      username: ban.user?.username ?? null,
       permanent: ban.permanent,
       expiresAt: ban.expiresAt,
-      remaining
+      remaining,
     };
   });
 }

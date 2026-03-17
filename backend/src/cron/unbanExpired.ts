@@ -23,6 +23,16 @@ export function startUnbanCron(io: any) {
       }
     });
 
+    for (const ban of expiredBans) {
+        await prisma.serverMember.create({
+            data: {
+            serverId: ban.serverId,
+            userId: ban.userId,
+            role: "member"
+            }
+        });
+    }
+
     expiredBans.forEach(ban => {
       io.to(ban.serverId).emit("member:unbanned", {
         userId: ban.userId,

@@ -13,7 +13,10 @@ export const toggleMessageReaction = asyncHandler(async (req: Request, res: Resp
 
   req.app.locals.io
     ?.to(`channel:${result.channelId}`)
-    .emit("message:reaction", { messageId: result.messageId, reactions: result.reactions });
+    .emit("message:reaction", {
+      messageId: result.messageId,
+      reactions: result.reactions,
+    });
 
   res.json(result);
 });
@@ -27,7 +30,10 @@ export const toggleDmMessageReaction = asyncHandler(async (req: Request, res: Re
 
   req.app.locals.io
     ?.to(`dm:${result.conversationId}`)
-    .emit("dm:message:reaction", { messageId: result.messageId, reactions: result.reactions });
+    .emit("dm:message:reaction", {
+      messageId: result.messageId,
+      reactions: result.reactions,
+    });
 
   res.json(result);
 });
