@@ -9,6 +9,8 @@ import { registerKickHandlers } from "./kick.js";
 import { getJwtSecret } from "../shared/utils/env.js";
 import { prisma } from "../prisma/client.js";
 
+let ioInstance: Server | null = null;
+
 function userRoom(userId: string) {
   return `user:${userId}`;
 }
@@ -44,6 +46,8 @@ export function initSocket(server: http.Server) {
     cors: { origin: true, credentials: true },
   });
 
+  ioInstance = io;
+
   io.use((socket, next) => {
     try {
       const token = socket.handshake.auth?.token;
@@ -75,4 +79,11 @@ export function initSocket(server: http.Server) {
   });
 
   return io;
+}
+
+export function getIO() {
+  if (!ioInstance) {
+    throw new Error("Socket.io has not been initialized");
+  }
+  return ioInstance;
 }

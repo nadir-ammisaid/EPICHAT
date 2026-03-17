@@ -22,6 +22,14 @@ type ServerMember = {
   user: { id: string; username: string; email?: string; status?: string };
 };
 
+type Ban = {
+  userId: string;
+  username?: string;
+  permanent: boolean;
+  expiresAt: string | null;
+  remaining?: string | null;
+};
+
 type PresenceUpdate = {
   serverId: string;
   userId: string;
@@ -45,10 +53,20 @@ export default function MemberSection() {
   const [onlineStatus, setOnlineStatus] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
-  // Modal state
+  // Role modal
   const [roleModalOpen, setRoleModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<ServerMember | null>(null);
   const [newRole, setNewRole] = useState<"admin" | "member">("member");
+
+  // Ban system
+  const [bans, setBans] = useState<Ban[]>([]);
+
+  // Cache userId
+  const [usernameCache, setUsernameCache] = useState<Record<string, string>>({});
+  const [banModalOpen, setBanModalOpen] = useState(false);
+  const [banTarget, setBanTarget] = useState<ServerMember | null>(null);
+  const [banDuration, setBanDuration] = useState(1);
+  const [banUnit, setBanUnit] = useState<"minutes" | "hours" | "days">("hours");
 
   const router = useRouter();
   const myUserId = useCurrentUserId();
@@ -60,7 +78,7 @@ export default function MemberSection() {
     } catch {}
   }
 
-  // Fetch members 
+  // Fetch members
   useEffect(() => {
     if (!serverId) return;
 
@@ -68,17 +86,26 @@ export default function MemberSection() {
 
     const fetchMembers = async () => {
       try {
-        const data = await apiClient.request(`/servers/${serverId}/members`);
+        const [membersData, bansData] = await Promise.all([
+          apiClient.request(`/servers/${serverId}/members`),
+          apiClient.request(`/servers/${serverId}/bans`),
+        ]);
         setError(null);
 
-        const list = Array.isArray(data) ? data : [];
+        const list: ServerMember[] = Array.isArray(membersData) ? membersData : [];
         setMembers(list);
 
+        const newCache: Record<string, string> = {};
         const statusMap: Record<string, string> = {};
         for (const m of list) {
           statusMap[m.userId] = m.user?.status ?? "offline";
+          newCache[m.userId] = m.user?.username ?? m.userId;
         }
         setOnlineStatus(statusMap);
+        setUsernameCache((prev) => ({ ...prev, ...newCache }));
+
+        const raw: Ban[] = Array.isArray(bansData) ? bansData : [];
+        setBans(raw);
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message ?? "Impossible de charger les membres");
@@ -124,7 +151,7 @@ export default function MemberSection() {
     };
   }, [serverId]);
 
-  // Global presence updates 
+  // Global presence updates
   useEffect(() => {
     if (!serverId) return;
 
@@ -138,6 +165,106 @@ export default function MemberSection() {
 
     return unsubscribe;
   }, [serverId, members]);
+
+  // Role update socket
+  useEffect(() => {
+    if (!serverId) return;
+
+    const socket = getSocket();
+
+    const onRoleUpdated = ({ userId, role }: { userId: string; role: "owner" | "admin" | "member" }) => {
+      setMembers((prev) =>
+        prev.map((m) => (m.userId === userId ? { ...m, role } : m)),
+      );
+    };
+
+    socket.on("member:roleUpdated", onRoleUpdated);
+
+    return () => {
+      socket.off("member:roleUpdated", onRoleUpdated);
+    };
+  }, [serverId]);
+
+  // Kick socket
+  useEffect(() => {
+    if (!serverId) return;
+
+    const socket = getSocket();
+
+    const onKick = ({ userId }: { userId: string }) => {
+      setMembers((prev) => prev.filter((m) => m.userId !== userId));
+    };
+
+    socket.on("server:kick", onKick);
+    return () => {
+      socket.off("server:kick", onKick);
+    };
+  }, [serverId]);
+
+  // Ban / unban socket
+  useEffect(() => {
+    if (!serverId) return;
+
+    const socket = getSocket();
+
+    const onMemberBanned = ({ userId }: { userId: string }) => {
+      setMembers((prev) => {
+        const member = prev.find((m) => m.userId === userId);
+        if (member) {
+          setUsernameCache((c) => ({ ...c, [userId]: member.user.username }));
+          setBans((prevBans) => {
+            if (prevBans.some((b) => b.userId === userId)) return prevBans;
+            return [
+              ...prevBans,
+              {
+                userId,
+                username: member.user.username,
+                permanent: true,
+                expiresAt: null,
+              },
+            ];
+          });
+        }
+        return prev.filter((m) => m.userId !== userId);
+      });
+    };
+
+    const onMemberTempBanned = ({ userId, expiresAt }: { userId: string; expiresAt: string }) => {
+      setMembers((prev) => {
+        const member = prev.find((m) => m.userId === userId);
+        if (member) {
+          setUsernameCache((c) => ({ ...c, [userId]: member.user.username }));
+          setBans((prevBans) => {
+            if (prevBans.some((b) => b.userId === userId)) return prevBans;
+            return [
+              ...prevBans,
+              {
+                userId,
+                username: member.user.username,
+                permanent: false,
+                expiresAt,
+              },
+            ];
+          });
+        }
+        return prev.filter((m) => m.userId !== userId);
+      });
+    };
+
+    const onMemberUnbanned = ({ userId }: { userId: string }) => {
+      setBans((prev) => prev.filter((b) => b.userId !== userId));
+    };
+
+    socket.on("member:banned", onMemberBanned);
+    socket.on("member:tempbanned", onMemberTempBanned);
+    socket.on("member:unbanned", onMemberUnbanned);
+
+    return () => {
+      socket.off("member:banned", onMemberBanned);
+      socket.off("member:tempbanned", onMemberTempBanned);
+      socket.off("member:unbanned", onMemberUnbanned);
+    };
+  }, [serverId]);
 
   // Current user's role
   const currentMember = members.find((m) => m.userId === myUserId);
@@ -189,7 +316,7 @@ export default function MemberSection() {
     });
   }
 
-  // Open modal
+  // Open role modal
   function openRoleModal(member: ServerMember) {
     if (member.userId === myUserId) {
       toast({ title: "You cannot change your own role." });
@@ -215,14 +342,104 @@ export default function MemberSection() {
 
       setMembers((prev) =>
         prev.map((m) =>
-          m.userId === selectedMember.userId ? { ...m, role: newRole } : m
-        )
+          m.userId === selectedMember.userId ? { ...m, role: newRole } : m,
+        ),
       );
 
       toast({ title: "Role updated." });
       setRoleModalOpen(false);
     } catch {
       toast({ title: "Failed to update role." });
+    }
+  }
+
+  // Ban permanent
+  async function handleBanPermanent(member: ServerMember) {
+    if (!serverId) return;
+
+    try {
+      await apiClient.request(`/servers/${serverId}/ban`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: member.userId }),
+      });
+
+      setUsernameCache((prev) => ({ ...prev, [member.userId]: member.user.username }));
+      setMembers((prev) => prev.filter((m) => m.userId !== member.userId));
+      setBans((prev) => {
+        if (prev.some((b) => b.userId === member.userId)) return prev;
+        return [
+          ...prev,
+          {
+            userId: member.userId,
+            username: member.user.username,
+            permanent: true,
+            expiresAt: null,
+          },
+        ];
+      });
+      toast({ title: "Ban permanent appliqué." });
+    } catch {
+      toast({ title: "Échec du ban permanent." });
+    }
+  }
+
+  // Ban temporaire
+  async function handleBanTemporary() {
+    if (!serverId || !banTarget) return;
+
+    try {
+      await apiClient.request(`/servers/${serverId}/tempban`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: banTarget.userId,
+          duration: banDuration,
+          unit: banUnit,
+        }),
+      });
+
+      const durationMs =
+        banDuration *
+        (banUnit === "minutes" ? 60 : banUnit === "hours" ? 3600 : 86400) *
+        1000;
+      const expiresAt = new Date(Date.now() + durationMs).toISOString();
+
+      setUsernameCache((prev) => ({ ...prev, [banTarget.userId]: banTarget.user.username }));
+      setMembers((prev) => prev.filter((m) => m.userId !== banTarget.userId));
+      setBans((prev) => {
+        if (prev.some((b) => b.userId === banTarget.userId)) return prev;
+        return [
+          ...prev,
+          {
+            userId: banTarget.userId,
+            username: banTarget.user.username,
+            permanent: false,
+            expiresAt,
+          },
+        ];
+      });
+
+      toast({ title: "Ban temporaire appliqué." });
+      setBanModalOpen(false);
+    } catch {
+      toast({ title: "Échec du ban temporaire." });
+    }
+  }
+
+  // Unban
+  async function handleUnban(userId: string) {
+    if (!serverId) return;
+
+    try {
+      await apiClient.request(`/servers/${serverId}/unban/${userId}`, {
+        method: "DELETE",
+      });
+
+      setBans((prev) => prev.filter((b) => b.userId !== userId));
+      toast({ title: "Membre débanni." });
+    } catch {
+      toast({ title: "Échec du débannissement." });
     }
   }
 
@@ -274,6 +491,50 @@ export default function MemberSection() {
         </div>
       </Modal>
 
+      <Modal open={banModalOpen} onClose={() => setBanModalOpen(false)}>
+        <div className="p-4 space-y-4 bg-white text-black rounded-md shadow-xl">
+          <h2 className="text-lg font-semibold">Ban temporaire</h2>
+
+          <div className="flex gap-2">
+            <input
+              type="number"
+              min={1}
+              value={banDuration}
+              onChange={(e) => setBanDuration(Number(e.target.value))}
+              className="w-20 border p-2 rounded"
+            />
+
+            <Select
+              value={banUnit}
+              onChange={(e) =>
+                setBanUnit(e.target.value as "minutes" | "hours" | "days")
+              }
+            >
+              <option value="minutes">Minutes</option>
+              <option value="hours">Heures</option>
+              <option value="days">Jours</option>
+            </Select>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="secondary"
+              className="bg-neutral-200 text-black hover:bg-neutral-300"
+              onClick={() => setBanModalOpen(false)}
+            >
+              Annuler
+            </Button>
+
+            <Button
+              className="bg-black text-white hover:bg-neutral-800"
+              onClick={handleBanTemporary}
+            >
+              Confirmer
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
       <div className="flex min-w-60 max-w-[280px] shrink-0 flex-col overflow-auto border-l border-border bg-white">
         <h2 className="h3 border-b border-border px-3 py-2">Membres</h2>
 
@@ -306,7 +567,6 @@ export default function MemberSection() {
                 </span>
 
                 <div className="flex items-center gap-1">
-
                   {m.userId !== myUserId && (
                     <button
                       onClick={(e) => {
@@ -342,6 +602,27 @@ export default function MemberSection() {
                           Expulser
                         </button>
 
+                        <button
+                          className="w-full px-3 py-2 text-left text-sm text-red-500 hover:bg-red-500/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleBanPermanent(m);
+                          }}
+                        >
+                          Ban permanent
+                        </button>
+
+                        <button
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-neutral-200"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setBanTarget(m);
+                            setBanModalOpen(true);
+                          }}
+                        >
+                          Ban temporaire
+                        </button>
+
                         {currentRole === "owner" && (
                           <button
                             className="w-full px-3 py-2 text-left text-sm hover:bg-neutral-200"
@@ -350,7 +631,7 @@ export default function MemberSection() {
                               openRoleModal(m);
                             }}
                           >
-                            Change role
+                            Changer le rôle
                           </button>
                         )}
                       </Dropdown.Menu>
@@ -360,6 +641,46 @@ export default function MemberSection() {
               </div>
             );
           })}
+
+          {(currentRole === "owner" || currentRole === "admin") && (
+            <>
+              <h3 className="h3 border-t border-b border-border px-3 py-2 mt-4 text-sm font-semibold">
+                Membres bannis
+              </h3>
+
+              {bans.length === 0 && (
+                <p className="px-3 text-xs text-neutral-400">Aucun membre banni.</p>
+              )}
+
+              {bans.map((ban) => (
+                <div
+                  key={ban.userId}
+                  className="flex items-center justify-between px-3 py-1.5 rounded hover:bg-neutral-100"
+                >
+                  <div className="flex flex-col">
+                    <span className="font-medium text-sm">
+                      {ban.username ?? ban.userId}
+                    </span>
+
+                    <span className="text-neutral-500 text-xs">
+                      {ban.permanent
+                        ? "Ban permanent"
+                        : ban.expiresAt
+                        ? `Expire le ${new Date(ban.expiresAt).toLocaleString()}`
+                        : "Ban temporaire"}
+                    </span>
+                  </div>
+
+                  <button
+                    className="px-2 py-1 rounded bg-blue-600 text-white text-xs hover:bg-blue-700 transition-colors"
+                    onClick={() => handleUnban(ban.userId)}
+                  >
+                    Débannir
+                  </button>
+                </div>
+              ))}
+            </>
+          )}
         </div>
       </div>
     </>
