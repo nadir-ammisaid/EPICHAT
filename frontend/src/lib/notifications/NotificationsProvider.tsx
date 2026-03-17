@@ -35,6 +35,7 @@ function snippet(text: string): string {
 }
 
 function isMention(content: string, username: string): boolean {
+  if (/@Everybody\b/i.test(content)) return true;
   if (!username) return false;
   const regex = new RegExp(
     `@${username.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
@@ -42,6 +43,7 @@ function isMention(content: string, username: string): boolean {
   );
   return regex.test(content);
 }
+
 
 type NotificationsContextValue = {
   hasUnread: boolean;
