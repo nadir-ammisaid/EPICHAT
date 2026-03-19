@@ -63,7 +63,7 @@ export function MessageItem({
 
   useEffect(() => {
     if (!showActions) return;
-    const handleOutside = (e: MouseEvent) => {
+    const handleOutside = (e: Event) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setShowActions(false);
       }
