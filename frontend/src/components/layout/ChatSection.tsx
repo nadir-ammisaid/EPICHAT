@@ -28,11 +28,15 @@ function renderContent(content: string) {
   while ((match = mentionRegex.exec(content)) !== null) {
     if (match.index > lastIndex)
       parts.push(content.slice(lastIndex, match.index));
-    parts.push(
-      <span key={match.index} className="text-brand font-medium">
-        {match[0]}
-      </span>,
-    );
+   parts.push(
+  <span
+    key={match.index}
+    className={match[0] === "@Everybody" ? "font-medium text-violet-800" : "text-brand font-medium"}
+  >
+    {match[0]}
+  </span>,
+);
+
     lastIndex = match.index + match[0].length;
   }
   if (lastIndex < content.length) parts.push(content.slice(lastIndex));

@@ -18,8 +18,21 @@ vi.mock("../src/prisma/client.js", () => ({
       update: vi.fn(),
       delete: vi.fn(),
     },
+    ban: {
+      findUnique: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      delete: vi.fn(),
+    },
     $transaction: vi.fn(),
   },
+}));
+
+// Mock Socket.io
+vi.mock("../src/socket/index.js", () => ({
+  getIO: vi.fn(() => ({
+    to: vi.fn(() => ({ emit: vi.fn() })),
+  })),
 }));
 
 describe("servers.service", () => {
@@ -322,13 +335,11 @@ describe("servers.service", () => {
     it("should allow user to join server", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      (
-        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
-      ).mockResolvedValue(null);
-
-      (
-        prisma.serverMember.create as ReturnType<typeof vi.fn>
-      ).mockResolvedValue({
+      // Not banned
+      (prisma.ban.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      // Not already a member
+      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (prisma.serverMember.create as ReturnType<typeof vi.fn>).mockResolvedValue({
         serverId: "server-123",
         userId: "user-123",
         role: "member",
@@ -339,12 +350,27 @@ describe("servers.service", () => {
       expect(result.role).toBe("member");
     });
 
+    it("should throw 403 if user is banned", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+
+      (prisma.ban.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: "user-123",
+        permanent: true,
+        expiresAt: null,
+      });
+
+      await expect(
+        serversService.joinServer("server-123", "user-123"),
+      ).rejects.toThrow();
+    });
+
     it("should throw 409 if already a member", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      (
-        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
-      ).mockResolvedValue({
+      // Not banned
+      (prisma.ban.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      // Already a member
+      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
         role: "member",
       });
 
@@ -735,6 +761,307 @@ describe("servers.service", () => {
           },
         },
       });
+    });
+  });
+
+  describe("banMemberPermanent", () => {
+    it("should ban a member permanently", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ ownerId: "owner-123" });
+      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce({ role: "owner" })   // requester
+        .mockResolvedValueOnce({ role: "member" });  // target
+      (prisma.ban.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (prisma.ban.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: "target-user",
+        permanent: true,
+        expiresAt: null,
+      });
+      (prisma.serverMember.delete as ReturnType<typeof vi.fn>).mockResolvedValue({});
+
+      const result = await serversService.banMemberPermanent("server-123", "target-user", "owner-123");
+
+      expect(result.permanent).toBe(true);
+    });
+
+    it("should throw 404 if server not found", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
+      await expect(
+        serversService.banMemberPermanent("server-123", "target-user", "owner-123"),
+      ).rejects.toThrow();
+    });
+
+    it("should throw 403 if requester is not a member", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ ownerId: "owner-123" });
+      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
+
+      await expect(
+        serversService.banMemberPermanent("server-123", "target-user", "requester"),
+      ).rejects.toThrow();
+    });
+
+    it("should throw 403 if requester is only a member", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ ownerId: "owner-123" });
+      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ role: "member" });
+
+      await expect(
+        serversService.banMemberPermanent("server-123", "target-user", "requester"),
+      ).rejects.toThrow();
+    });
+
+    it("should throw 404 if target member not found", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ ownerId: "owner-123" });
+      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce({ role: "owner" })
+        .mockResolvedValueOnce(null);
+
+      await expect(
+        serversService.banMemberPermanent("server-123", "target-user", "owner-123"),
+      ).rejects.toThrow();
+    });
+
+    it("should throw 403 if trying to ban the owner", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ ownerId: "owner-123" });
+      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce({ role: "owner" })
+        .mockResolvedValueOnce({ role: "owner" });
+
+      await expect(
+        serversService.banMemberPermanent("server-123", "owner-123", "owner-123"),
+      ).rejects.toThrow();
+    });
+
+    it("should throw 409 if user is already banned", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ ownerId: "owner-123" });
+      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce({ role: "owner" })
+        .mockResolvedValueOnce({ role: "member" });
+      (prisma.ban.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: "target-user" });
+
+      await expect(
+        serversService.banMemberPermanent("server-123", "target-user", "owner-123"),
+      ).rejects.toThrow();
+    });
+  });
+
+  describe("banMemberTemporary", () => {
+    it("should ban a member temporarily", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ ownerId: "owner-123" });
+      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce({ role: "owner" })
+        .mockResolvedValueOnce({ role: "member" });
+      (prisma.ban.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (prisma.ban.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: "target-user",
+        permanent: false,
+        expiresAt: new Date(Date.now() + 3600000),
+      });
+      (prisma.serverMember.delete as ReturnType<typeof vi.fn>).mockResolvedValue({});
+
+      const result = await serversService.banMemberTemporary("server-123", "target-user", "owner-123", 1, "hours");
+
+      expect(result.permanent).toBe(false);
+    });
+
+    it("should throw 400 for invalid duration", async () => {
+      await expect(
+        serversService.banMemberTemporary("server-123", "target-user", "owner-123", 0, "hours"),
+      ).rejects.toThrow();
+    });
+
+    it("should throw 404 if server not found", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
+      await expect(
+        serversService.banMemberTemporary("server-123", "target-user", "owner-123", 1, "hours"),
+      ).rejects.toThrow();
+    });
+
+    it("should throw 403 if requester is not a member", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ ownerId: "owner-123" });
+      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
+
+      await expect(
+        serversService.banMemberTemporary("server-123", "target-user", "requester", 1, "hours"),
+      ).rejects.toThrow();
+    });
+
+    it("should throw 403 if requester is only a member", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ ownerId: "owner-123" });
+      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ role: "member" });
+
+      await expect(
+        serversService.banMemberTemporary("server-123", "target-user", "requester", 1, "hours"),
+      ).rejects.toThrow();
+    });
+
+    it("should throw 404 if target member not found", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ ownerId: "owner-123" });
+      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce({ role: "owner" })
+        .mockResolvedValueOnce(null);
+
+      await expect(
+        serversService.banMemberTemporary("server-123", "target-user", "owner-123", 1, "hours"),
+      ).rejects.toThrow();
+    });
+
+    it("should throw 403 if trying to ban the owner", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ ownerId: "owner-123" });
+      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce({ role: "owner" })
+        .mockResolvedValueOnce({ role: "owner" });
+
+      await expect(
+        serversService.banMemberTemporary("server-123", "owner-123", "owner-123", 1, "hours"),
+      ).rejects.toThrow();
+    });
+
+    it("should throw 409 if user is already banned", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ ownerId: "owner-123" });
+      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce({ role: "owner" })
+        .mockResolvedValueOnce({ role: "member" });
+      (prisma.ban.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: "target-user" });
+
+      await expect(
+        serversService.banMemberTemporary("server-123", "target-user", "owner-123", 1, "hours"),
+      ).rejects.toThrow();
+    });
+
+    it("should work with days unit", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ ownerId: "owner-123" });
+      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce({ role: "owner" })
+        .mockResolvedValueOnce({ role: "member" });
+      (prisma.ban.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (prisma.ban.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: "target-user", permanent: false, expiresAt: new Date(),
+      });
+      (prisma.serverMember.delete as ReturnType<typeof vi.fn>).mockResolvedValue({});
+
+      await expect(
+        serversService.banMemberTemporary("server-123", "target-user", "owner-123", 2, "days"),
+      ).resolves.not.toThrow();
+    });
+
+    it("should work with minutes unit", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({ ownerId: "owner-123" });
+      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce({ role: "admin" })
+        .mockResolvedValueOnce({ role: "member" });
+      (prisma.ban.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (prisma.ban.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: "target-user", permanent: false, expiresAt: new Date(),
+      });
+      (prisma.serverMember.delete as ReturnType<typeof vi.fn>).mockResolvedValue({});
+
+      await expect(
+        serversService.banMemberTemporary("server-123", "target-user", "admin-123", 30, "minutes"),
+      ).resolves.not.toThrow();
+    });
+  });
+
+  describe("getServerBans", () => {
+    it("should return bans with remaining time for active temp ban", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+
+      const futureDate = new Date(Date.now() + 3600000); // 1h from now
+      (prisma.ban.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
+        { userId: "user-1", permanent: false, expiresAt: futureDate, user: { username: "alice" } },
+      ]);
+
+      const result = await serversService.getServerBans("server-123");
+
+      expect(result).toHaveLength(1);
+      expect(result[0].username).toBe("alice");
+      expect(result[0].remaining).not.toBeNull();
+      expect(result[0].remaining).not.toBe("expired");
+    });
+
+    it("should return expired for past temp ban", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+
+      const pastDate = new Date(Date.now() - 3600000); // 1h ago
+      (prisma.ban.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
+        { userId: "user-1", permanent: false, expiresAt: pastDate, user: { username: "bob" } },
+      ]);
+
+      const result = await serversService.getServerBans("server-123");
+
+      expect(result[0].remaining).toBe("expired");
+    });
+
+    it("should return null remaining for permanent ban", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+
+      (prisma.ban.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
+        { userId: "user-1", permanent: true, expiresAt: null, user: { username: "carol" } },
+      ]);
+
+      const result = await serversService.getServerBans("server-123");
+
+      expect(result[0].remaining).toBeNull();
+      expect(result[0].permanent).toBe(true);
+    });
+
+    it("should return empty array when no bans", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+
+      (prisma.ban.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+
+      const result = await serversService.getServerBans("server-123");
+
+      expect(result).toHaveLength(0);
+    });
+  });
+
+  describe("unbanMember", () => {
+    it("should unban a member successfully", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+
+      (prisma.ban.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: "user-123",
+        serverId: "server-123",
+      });
+      (prisma.ban.delete as ReturnType<typeof vi.fn>).mockResolvedValue({});
+      (prisma.serverMember.create as ReturnType<typeof vi.fn>).mockResolvedValue({
+        serverId: "server-123",
+        userId: "user-123",
+        role: "member",
+      });
+
+      const result = await serversService.unbanMember("server-123", "user-123");
+
+      expect(result.success).toBe(true);
+    });
+
+    it("should throw 404 if user is not banned", async () => {
+      const { prisma } = await import("../src/prisma/client.js");
+
+      (prisma.ban.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+
+      await expect(
+        serversService.unbanMember("server-123", "user-123"),
+      ).rejects.toThrow();
     });
   });
 });
