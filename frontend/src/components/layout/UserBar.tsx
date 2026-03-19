@@ -3,20 +3,19 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Hash } from "lucide-react";
-import UserAvatar from "../ui/UserAvatar";
-import NotificationBell from "../ui/NotificationBell";
 import parseDashboardPath from "@/lib/utils/parseDashboardPath";
 import { apiClient } from "@/lib/api/client";
+import UserControls from "../ui/UserControls";
 
 export default function UserBar() {
   const pathname = usePathname();
   const { channelId } = parseDashboardPath(pathname ?? "");
   const [channelName, setChannelName] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
   const displayChannelName = channelId ? channelName : null;
 
   useEffect(() => {
     if (!channelId) return;
-
     apiClient
       .request(`/channels/${channelId}`)
       .then((data: { name?: string; result?: { name: string } }) => {
@@ -24,6 +23,16 @@ export default function UserBar() {
       })
       .catch(() => setChannelName(null));
   }, [channelId]);
+
+  useEffect(() => {
+    apiClient
+      .request("/me")
+      .then((user: { username?: string }) => {
+        setUsername(user?.username ?? null);
+      })
+      .catch(() => setUsername(null));
+  }, []);
+
 
   return (
     <div className="bg-background border-border flex h-[10%] w-full items-center justify-between border-b px-4">
@@ -38,12 +47,13 @@ export default function UserBar() {
           </p>
         </div>
       ) : (
-        <div />
+        <div className="flex flex-col justify-center">
+          <h2 className="text-lg font-semibold">
+            Bienvenue{username ? `, ${username}` : ""} !
+          </h2>
+        </div>
       )}
-      <div className="flex items-center gap-2">
-        <NotificationBell />
-        <UserAvatar />
-      </div>
+      <UserControls />
     </div>
   );
 }
