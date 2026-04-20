@@ -89,31 +89,40 @@ export default function UserAvatar() {
 
   return (
     <Dropdown>
-      <Dropdown.Trigger className="relative flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-full transition-opacity hover:opacity-90">
-        <div className="h-full w-full overflow-hidden rounded-full border border-border bg-brand-muted/80">
-          {username ? (
-            <Image
-              src={avatarUrl}
-              alt={username}
-              className="h-full w-full object-cover"
-              width={48}
-              height={48}
-              unoptimized
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center">
-              <User className="h-6 w-6 text-foreground" />
-            </div>
-          )}
-        </div>
-        <span
-          className={`absolute -bottom-1 -right-1 z-10 h-5 w-5 rounded-full border-[3px] border-background ${
-            status === "online" ? "bg-green-500" :
-            status === "away" ? "bg-yellow-500" :
-            status === "busy" ? "bg-red-500" : "bg-gray-400"
-          }`}
+    <Dropdown.Trigger className="flex shrink-0 cursor-pointer flex-col items-center gap-0.5 transition-opacity hover:opacity-90">
+  <div className="relative h-12 w-12">
+    <div className="h-full w-full overflow-hidden rounded-full border border-border bg-brand-muted/80">
+      {username ? (
+        <Image
+          src={avatarUrl}
+          alt={username}
+          className="h-full w-full object-cover"
+          width={48}
+          height={48}
+          unoptimized
         />
-      </Dropdown.Trigger>
+      ) : (
+        <div className="flex h-full w-full items-center justify-center">
+          <User className="h-6 w-6 text-foreground" />
+        </div>
+      )}
+    </div>
+    <span
+      className={`absolute -bottom-1 -right-1 z-10 h-5 w-5 rounded-full border-[3px] border-background ${
+        status === "online" ? "bg-green-500" :
+        status === "away" ? "bg-yellow-500" :
+        status === "busy" ? "bg-red-500" : "bg-gray-400"
+      }`}
+    />
+  </div>
+  <span className="text-[10px] leading-none font-semibold">
+  <span className="sm:hidden">{username ?? ""}</span>
+  <span className="hidden sm:block">
+    {STATUS_OPTIONS.find((o) => o.value === status)?.label ?? "En ligne"}
+  </span>
+</span>
+
+</Dropdown.Trigger>
       <Dropdown.Menu position="bottom" align="right">
         <div className="px-4 py-2 text-xs text-muted-foreground border-b border-border">
           Statut

@@ -3,15 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  Loader2,
-  UserPlus,
-  Copy,
-  Check,
-  Trash2,
-  Settings,
-  MessageSquareMore,
-} from "lucide-react";
+import { Loader2, UserPlus, Copy, Check, Trash2, Settings, MessageSquareMore, } from "lucide-react";
 import Image from "next/image";
 import { apiClient } from "@/lib/api/client";
 import { useCurrentUserId } from "@/lib/hooks/useCurrentUserId";
@@ -187,7 +179,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
         <div className="mt-2 flex w-full flex-col items-center gap-2">
           <Link
             href="/dashboard"
-            className="flex shrink-0"
+            className="hidden md:flex shrink-0"
             aria-label="Accueil"
           >
             <Image
@@ -198,14 +190,15 @@ export default function ServerBar({ className = "" }: { className?: string }) {
               className="rounded-lg object-cover"
             />
           </Link>
+          <span className="md:hidden text-sm font-semibold px-2">Serveurs</span>
+
           <hr className="border-border-muted w-full" />
           <Link
             href="/dashboard/dm"
-            className={`hover:bg-brand-muted/80 flex w-full items-center gap-3 rounded-lg px-4 py-2 transition-colors hover:cursor-pointer ${
-              pathname?.startsWith("/dashboard/dm")
-                ? "bg-brand-hover font-medium"
-                : "bg-brand-muted"
-            }`}
+            className={`hover:bg-brand-muted/80 flex w-full items-center gap-3 rounded-lg px-4 py-2 transition-colors hover:cursor-pointer ${pathname?.startsWith("/dashboard/dm")
+              ? "bg-brand-hover font-medium"
+              : "bg-brand-muted"
+              }`}
             title="Messages privés"
           >
             <span className="bg-brand text-background flex h-8 w-8 shrink-0 items-center justify-center rounded-md">
