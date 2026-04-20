@@ -31,7 +31,7 @@ function renderContent(content: string) {
    parts.push(
   <span
     key={match.index}
-    className={match[0] === "@Everybody" ? "font-medium text-violet-800" : "text-brand font-medium"}
+      className={match[0] === "@Tous" ? "font-medium text-violet-800" : "text-brand font-medium"}
   >
     {match[0]}
   </span>,

@@ -14,6 +14,17 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter });
 
+function capitalizePersonName(value: string): string {
+  return value
+    .split(/([\s-]+)/)
+    .map((part) => {
+      if (/^[\s-]+$/.test(part)) return part;
+      const [first = "", ...rest] = part;
+      return first.toUpperCase() + rest.join("").toLowerCase();
+    })
+    .join("");
+}
+
 async function main() {
   console.log("Starting database seed...\n");
 
@@ -56,7 +67,7 @@ async function main() {
     users[u.username] = await prisma.user.create({
       data: {
         email: u.email,
-        username: u.username,
+        username: capitalizePersonName(u.username),
         passwordHash,
         status: "offline",
       },

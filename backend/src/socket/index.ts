@@ -38,6 +38,9 @@ async function joinRealtimeRoomsForUser(socket: Socket, userId: string) {
   conversations.forEach((conversation) => {
     socket.join(`dm:${conversation.id}`);
   });
+
+  // Log volumétrie
+  console.log(`[socket] joinRealtimeRoomsForUser: userId=${userId}, servers=${memberships.length}, dms=${conversations.length}`);
 }
 
 export function initSocket(server: http.Server) {
