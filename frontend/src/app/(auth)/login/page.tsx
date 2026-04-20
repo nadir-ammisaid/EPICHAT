@@ -1,3 +1,5 @@
+'use client'
+
 import LoginForm from "@/components/LoginForm";
 import Image from "next/image";
 import RedirectIfAuthed from "@/components/dashboard/RedirectIfAuthed";

@@ -19,6 +19,7 @@ import {
   sendChannelTextMessage,
   type ServerMember,
 } from "@/lib/api/channels";
+import { useTranslation } from "react-i18next";
 
 function renderContent(content: string) {
   const mentionRegex = /@(\w+)/g;
@@ -54,6 +55,7 @@ export default function ChatSection() {
   const canModerate = myMember?.role === "owner" || myMember?.role === "admin";
   const inputRef = useRef<HTMLInputElement | null>(null);
   const typingStopTimer = useRef<number | null>(null);
+  const { t } = useTranslation("common");
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -142,7 +144,7 @@ export default function ChatSection() {
       <div className="border-border bg-background flex min-h-0 flex-1 flex-col border">
         <div className="flex-1 overflow-y-auto p-4">
           <p className="text-muted-foreground text-sm">
-            Selectionnez un canal pour commencer à chatter.
+            {t("chat.selectCanal")}
           </p>
         </div>
       </div>

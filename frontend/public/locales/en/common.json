@@ -26,8 +26,24 @@
     "empty": "No results"
   },
   "chat": {
-    "channelWelcome": "Welcome to this channel"
+    "channelWelcome": "Welcome to this channel",
+    "userWelcome": "Welcome",
+    "selectCanal": "Select a chanel to start chatting",
+    "channelListMessage": "Select a channel to start chatting"
   },
+  "channels": {
+  "selectServer": "Select a server to view channels.",
+  "empty": "No channels yet.",
+  "rename": "Rename",
+  "delete": "Delete",
+  "header": {
+    "serverLabel": "Server: {{name}}",
+    "noServer": "Select a server",
+    "listTitle": "Channels",
+    "create": "Create channel",
+    "permissionError": "Only the owner can manage channels"
+  }
+},
   "footer": {
     "title": "EPICHAT",
     "descriptionLines": [

@@ -6,10 +6,7 @@ import { Hash } from "lucide-react";
 import parseDashboardPath from "@/lib/utils/parseDashboardPath";
 import { apiClient } from "@/lib/api/client";
 import { useTranslation } from "react-i18next";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import UserControls from "../ui/UserControls";
-import NotificationBell from "../ui/NotificationBell";
-import UserAvatar from "../ui/UserAvatar";
 
 export default function UserBar() {
   const pathname = usePathname();
@@ -53,17 +50,12 @@ export default function UserBar() {
         </div>
       ) : (
         <div className="flex flex-col justify-center">
-          <h2 className="text-lg font-semibold">
-            Bienvenue{username ? `, ${username}` : ""} !
+          <h2 className="text-lg font-semibold capitalize">
+            {t("chat.userWelcome")}, {username}
           </h2>
         </div>
       )}
       <div className="flex items-center gap-3">
-        <div className="hidden sm:flex">
-          <LanguageSwitcher />
-        </div>
-        <NotificationBell />
-        <UserAvatar />
       </div>
       <UserControls />
     </div>

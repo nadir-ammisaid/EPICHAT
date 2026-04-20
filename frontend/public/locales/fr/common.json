@@ -26,8 +26,23 @@
     "empty": "Aucun résultat"
   },
   "chat": {
-    "channelWelcome": "Bienvenue dans ce canal de discussion"
+    "channelWelcome": "Bienvenue dans ce canal de discussion",
+    "userWelcome": "Bienvenue",
+    "selectCanal": "Sélectionnez un canal pour commencer à chatter"
   },
+  "channels": {
+  "selectServer": "Sélectionnez un serveur pour afficher les canaux.",
+  "empty": "Aucun canal pour le moment.",
+  "rename": "Renommer",
+  "delete": "Supprimer",
+  "header": {
+    "serverLabel": "Serveur : {{name}}",
+    "noServer": "Sélectionnez un serveur",
+    "listTitle": "Canaux",
+    "create": "Créer un canal",
+    "permissionError": "Seul le propriétaire peut gérer les canaux"
+  }
+},
   "footer": {
     "title": "EPICHAT",
     "descriptionLines": [
