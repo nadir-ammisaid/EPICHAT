@@ -284,9 +284,24 @@ export default function ServerBar({ className = "" }: { className?: string }) {
             {t("actions.create")}
           </Button>
 
-          <Button variant="outline" size="sm" onClick={() => setJoinOpen(true)}>
+          {/* <Button variant="outline" size="sm" onClick={() => setJoinOpen(true)}>
             {t("actions.join")}
-          </Button>
+          </Button> */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="hover:!text-brand-hover w-full items-center justify-center gap-2 !text-black"
+            onClick={() => {
+              setJoinError(null);
+              setInviteCode("");
+              setJoinOpen(true);
+            }}
+            title={t("actions.join")}
+            aria-label={t("actions.join")}
+          >
+            {t("actions.join")}
+          </Button>        
         </div>
       </div>
 

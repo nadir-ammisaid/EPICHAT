@@ -25,10 +25,8 @@ const resources = {
   },
 } as const;
 
-let isInitialized = false;
-
-if (typeof window !== "undefined" && !isInitialized) {
-  i18n.use(initReactI18next).init({
+if (!i18n.isInitialized) {
+  void i18n.use(initReactI18next).init({
     resources,
     lng: "fr",
     fallbackLng: "fr",
@@ -40,8 +38,8 @@ if (typeof window !== "undefined" && !isInitialized) {
     react: {
       useSuspense: false,
     },
+    initImmediate: false,
   });
-  isInitialized = true;
 }
 
 export default i18n;

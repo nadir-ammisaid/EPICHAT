@@ -8,11 +8,7 @@ import RedirectIfAuthed from "@/components/dashboard/RedirectIfAuthed";
 import { useTranslation } from "react-i18next";
 
 export default function HomePage() {
-  const { t, i18n } = useTranslation("home");
-
-  if (!i18n.isInitialized) {
-    return null; 
-  }
+  const { t } = useTranslation("home");
 
   return (
     <>
