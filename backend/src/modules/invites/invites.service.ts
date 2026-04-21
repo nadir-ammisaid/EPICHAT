@@ -24,7 +24,7 @@ export async function createInvite(serverId: string, userId: string) {
   if (membership.role !== "owner" && membership.role !== "admin") {
     throw new HttpError
       (403, 
-      "Seuls les propriétaires et les administrateurs peuvent créer des invitations"
+      "Seuls les admins et propriétaires peuvent effectuer cette action"
       );
   }
 

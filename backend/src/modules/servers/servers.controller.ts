@@ -22,6 +22,7 @@ import {
   banMemberTemporary,
   getServerBans,
   unbanMember,
+  transferOwnership,
 } from "./servers.service.js";
 import { emitNewMemberSystemMessage } from "./serverSystemMessages.js";
 
@@ -217,6 +218,15 @@ export async function getServerBansController(
   } catch (err) {
     next(err);
   }
+}
+
+export async function transferOwnershipController(req: Request, res: Response) {
+  const serverId = req.params.id as string;
+  const newOwnerUserId = req.params.userId as string;
+  const requesterUserId = requireUserId(req);
+
+  const result = await transferOwnership(serverId, newOwnerUserId, requesterUserId);
+  res.status(200).json(result);
 }
 
 export async function unbanMemberController(

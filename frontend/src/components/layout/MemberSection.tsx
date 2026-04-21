@@ -56,7 +56,7 @@ export default function MemberSection() {
   // Role modal
   const [roleModalOpen, setRoleModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState<ServerMember | null>(null);
-  const [newRole, setNewRole] = useState<"admin" | "member">("member");
+  const [newRole, setNewRole] = useState<"owner" | "admin" | "member">("member");
 
   // Ban system
   const [bans, setBans] = useState<Ban[]>([]);
@@ -201,6 +201,28 @@ export default function MemberSection() {
     };
   }, [serverId]);
 
+  // Ownership transfer socket
+  useEffect(() => {
+    if (!serverId) return;
+
+    const socket = getSocket();
+
+    const onOwnershipTransferred = ({ previousOwnerId, newOwnerId }: { previousOwnerId: string; newOwnerId: string }) => {
+      setMembers((prev) =>
+        prev.map((m) => {
+          if (m.userId === newOwnerId) return { ...m, role: "owner" };
+          if (m.userId === previousOwnerId) return { ...m, role: "admin" };
+          return m;
+        }),
+      );
+    };
+
+    socket.on("server:ownershipTransferred", onOwnershipTransferred);
+    return () => {
+      socket.off("server:ownershipTransferred", onOwnershipTransferred);
+    };
+  }, [serverId]);
+
   // Ban / unban socket
   useEffect(() => {
     if (!serverId) return;
@@ -333,23 +355,35 @@ export default function MemberSection() {
     setRoleModalOpen(true);
   }
 
-  // Confirm role change
+  // Confirm role change or ownership transfer if "owner" selected
   async function confirmRoleChange() {
     if (!selectedMember || !serverId) return;
 
     try {
-      await updateRole(serverId, selectedMember.userId, newRole);
-
-      setMembers((prev) =>
-        prev.map((m) =>
-          m.userId === selectedMember.userId ? { ...m, role: newRole } : m,
-        ),
-      );
-
-      toast({ title: "Role updated." });
+      if (newRole === "owner") {
+        await apiClient.request(`/servers/${serverId}/transfer-ownership/${selectedMember.userId}`, {
+          method: "POST",
+        });
+        setMembers((prev) =>
+          prev.map((m) => {
+            if (m.userId === selectedMember.userId) return { ...m, role: "owner" as const };
+            if (m.userId === myUserId) return { ...m, role: "admin" as const };
+            return m;
+          }),
+        );
+        toast({ title: "Propriété transférée." });
+      } else {
+        await updateRole(serverId, selectedMember.userId, newRole);
+        setMembers((prev) =>
+          prev.map((m) =>
+            m.userId === selectedMember.userId ? { ...m, role: newRole } : m,
+          ),
+        );
+        toast({ title: "Rôle mis à jour." });
+      }
       setRoleModalOpen(false);
     } catch {
-      toast({ title: "Failed to update role." });
+      toast({ title: newRole === "owner" ? "Échec du transfert de propriété." : "Échec de la mise à jour du rôle." });
     }
   }
 
@@ -461,16 +495,27 @@ export default function MemberSection() {
       <ToastContainer />
 
       <Modal open={roleModalOpen} onClose={() => setRoleModalOpen(false)}>
-        <div className="p-4 space-y-4 bg-white text-black rounded-md shadow-xl">
-          <h2 className="text-lg font-semibold">Change role</h2>
+        <div className="p-4 space-y-4 bg-white text-black rounded-md shadow-xl max-w-sm">
+          <h2 className="text-lg font-semibold">Changer le rôle</h2>
 
           <Select
             value={newRole}
-            onChange={(e) => setNewRole(e.target.value as "admin" | "member")}
+            onChange={(e) => setNewRole(e.target.value as "owner" | "admin" | "member")}
           >
             <option value="admin">Admin</option>
-            <option value="member">Member</option>
+            <option value="member">Membre</option>
+            {currentRole === "owner" && (
+              <option value="owner">Propriétaire</option>
+            )}
           </Select>
+
+          {newRole === "owner" && (
+            <p className="text-sm text-orange-600 bg-orange-50 border border-orange-200 rounded p-2">
+              ATTENTION : Vous allez transférer la propriété à{" "}
+              <span className="font-semibold">{selectedMember?.user.username}</span>.
+              Vous deviendrez Admin. Cette action est irréversible.
+            </p>
+          )}
 
           <div className="flex justify-end gap-2">
             <Button
@@ -478,14 +523,14 @@ export default function MemberSection() {
               className="bg-neutral-200 text-black hover:bg-neutral-300"
               onClick={() => setRoleModalOpen(false)}
             >
-              Cancel
+              Annuler
             </Button>
 
             <Button
-              className="bg-black text-white hover:bg-neutral-800"
+              className={newRole === "owner" ? "bg-red-600 text-white hover:bg-red-700" : "bg-black text-white hover:bg-neutral-800"}
               onClick={confirmRoleChange}
             >
-              Confirm
+              Confirmer
             </Button>
           </div>
         </div>

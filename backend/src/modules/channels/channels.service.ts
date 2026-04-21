@@ -33,7 +33,7 @@ async function requireRole(
 ) {
   const membership = await requireMember(serverId, userId);
   if (!roles.includes(membership.role as ServerRole)) {
-    throw new HttpError(403, "Forbidden");
+    throw new HttpError(403, "Seuls les admins et propriétaires peuvent effectuer cette action");
   }
   return membership;
 }
