@@ -174,7 +174,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
   return (
     <>
       <div
-        className={`bg-background border-border flex h-full shrink-0 flex-col items-center justify-between border p-2 ${className}`}
+        className={`bg-background border-border flex h-full shrink-0 flex-col items-center justify-start border p-2 ${className}`}
       >
         <div className="mt-2 flex w-full flex-col items-center gap-2">
           <Link
@@ -190,9 +190,14 @@ export default function ServerBar({ className = "" }: { className?: string }) {
               className="rounded-lg object-cover"
             />
           </Link>
-          <span className="md:hidden text-sm font-semibold px-2">Serveurs</span>
+         
 
-          <hr className="border-border-muted w-full" />
+          
+                  <div className="flex w-full items-center gap-2 mt-2 mb-2">
+          <hr className="border-border-muted flex-1" />
+          <span className="text-muted-foreground text-lg font-bold uppercase">Messages</span>
+          <hr className="border-border-muted flex-1" />
+        </div>
           <Link
             href="/dashboard/dm"
             className={`hover:bg-brand-muted/80 flex w-full items-center gap-3 rounded-lg px-4 py-2 transition-colors hover:cursor-pointer ${pathname?.startsWith("/dashboard/dm")
@@ -208,8 +213,14 @@ export default function ServerBar({ className = "" }: { className?: string }) {
           </Link>
         </div>
 
+        <div className="flex w-full items-center gap-2 mt-4 mb-2">
+          <hr className="border-border-muted flex-1" />
+          <span className="text-muted-foreground text-lg font-bold uppercase">Serveurs</span>
+          <hr className="border-border-muted flex-1" />
+        </div>
+
         {/* Server list */}
-        <div className="flex w-full flex-col gap-2 overflow-y-auto">
+        <div className="flex w-full flex-col gap-2 overflow-y-auto pb-24">
           {servers.map((server) => {
             const isActive = serverIdFromPath === server.id;
             const isOwner = myUserId && server.ownerId === myUserId;
@@ -282,7 +293,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
         </div>
 
         {/* Create / Join */}
-        <div className="flex w-full shrink-0 flex-col items-center gap-2">
+        <div className="mt-auto flex w-full shrink-0 flex-col items-center gap-2">
           <Button
             type="button"
             onClick={() => setCreateOpen(true)}
