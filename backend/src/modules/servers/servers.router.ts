@@ -18,6 +18,7 @@ import {
   banMemberTemporaryController,
   getServerBansController,
   unbanMemberController,
+  transferOwnershipController,
 } from "./servers.controller.js";
 
 export const serversRouter = Router();
@@ -136,3 +137,9 @@ serversRouter.delete(
   asyncHandler(unbanMemberController)
 );
 
+serversRouter.post(
+  "/:id/transfer-ownership/:userId",
+  requireAuth,
+  authorize(["user"]),
+  asyncHandler(transferOwnershipController),
+);
