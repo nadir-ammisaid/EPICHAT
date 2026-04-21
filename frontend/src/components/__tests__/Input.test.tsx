@@ -35,4 +35,33 @@ describe("Input", () => {
 
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
+
+  it("renders label, error and compact width classes", () => {
+    render(
+      <Input
+        type="text"
+        name="username"
+        label="Pseudo"
+        error="Champ requis"
+        fullWidth={false}
+        size="lg"
+      />,
+    );
+
+    expect(screen.getByLabelText("Pseudo")).toBeInTheDocument();
+    expect(screen.getByText("Champ requis")).toBeInTheDocument();
+    expect(screen.getByRole("textbox")).toHaveClass("px-4", "py-3", "text-lg");
+  });
+
+  it("uses the medium and small size variants", () => {
+    const { rerender } = render(
+      <Input type="text" name="first" size="sm" />,
+    );
+
+    expect(screen.getByRole("textbox")).toHaveClass("px-2", "py-1", "text-sm");
+
+    rerender(<Input type="text" name="second" size="md" />);
+
+    expect(screen.getByRole("textbox")).toHaveClass("px-3", "py-2", "text-base");
+  });
 });

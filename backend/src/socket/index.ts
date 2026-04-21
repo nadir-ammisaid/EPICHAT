@@ -18,18 +18,23 @@ function userRoom(userId: string) {
 async function joinRealtimeRoomsForUser(socket: Socket, userId: string) {
   socket.join(userRoom(userId));
 
-  const [memberships, conversations] = await Promise.all([
-    prisma.serverMember.findMany({
-      where: { userId },
-      select: { serverId: true },
-    }),
-    prisma.directConversation.findMany({
+  const memberships = await prisma.serverMember.findMany({
+    where: { userId },
+    select: { serverId: true },
+  });
+
+  let conversations: Array<{ id: string }> = [];
+  try {
+    conversations = await prisma.directConversation.findMany({
       where: {
         OR: [{ participant1Id: userId }, { participant2Id: userId }],
       },
       select: { id: true },
-    }),
-  ]);
+    });
+  } catch (error) {
+    // Do not block server-room subscriptions if DM tables are unavailable.
+    console.log("[socket] failed to hydrate DM rooms", error);
+  }
 
   memberships.forEach((membership) => {
     socket.join(`server:${membership.serverId}`);
@@ -69,8 +74,8 @@ export function initSocket(server: http.Server) {
   io.on("connection", (socket) => {
     const userId = socket.data.user?.id;
     if (userId) {
-      void joinRealtimeRoomsForUser(socket, userId).catch(() => {
-        // Keep socket alive even if room hydration fails.
+      void joinRealtimeRoomsForUser(socket, userId).catch((error) => {
+        console.log("[socket] failed to hydrate realtime rooms", error);
       });
     }
 

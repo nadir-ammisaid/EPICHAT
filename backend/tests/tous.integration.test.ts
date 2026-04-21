@@ -2,6 +2,7 @@ import { io as ClientIO, Socket } from "socket.io-client";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { randomUUID } from "node:crypto";
 import http from "node:http";
+import { execSync } from "node:child_process";
 import { generateTestToken } from "./utils/generateTestToken";
 import { createApp } from "../src/app.js";
 import { initSocket } from "../src/socket/index.js";
@@ -29,6 +30,9 @@ describe("@Tous socket delivery integration", () => {
   const seedServer = { id: serverId, name: "TestServer", ownerId: userA.id };
 
   beforeAll(async () => {
+    // Ensure tables exist in ephemeral DBs used by docker compose run.
+    execSync("npx prisma db push", { stdio: "ignore" });
+
     const app = createApp();
     httpServer = http.createServer(app);
     const io = initSocket(httpServer);
@@ -93,13 +97,14 @@ describe("@Tous socket delivery integration", () => {
     await new Promise<void>((res) => userASocket.on("connect", () => res()));
     await new Promise<void>((res) => userBSocket.on("connect", () => res()));
     userASocket.emit("channel:join", channel.id);
-    userBSocket.emit("channel:join", channel.id);
   });
 
   afterAll(async () => {
-    userASocket.disconnect();
-    userBSocket.disconnect();
-    await new Promise<void>((resolve) => httpServer.close(() => resolve()));
+    userASocket?.disconnect();
+    userBSocket?.disconnect();
+    if (httpServer) {
+      await new Promise<void>((resolve) => httpServer.close(() => resolve()));
+    }
     // Nettoie la base
     await prisma.serverMember.deleteMany({ where: { serverId: seedServer.id } });
     await prisma.channel.deleteMany({ where: { id: channel.id } });
@@ -107,7 +112,7 @@ describe("@Tous socket delivery integration", () => {
     await prisma.user.deleteMany({ where: { id: { in: [userA.id, userB.id] } } });
   });
 
-  it("user B reçoit l'event message:new avec @Tous envoyé par user A", async () => {
+  it("user B reçoit l'event message:new via room serveur pour @Tous envoyé par user A", async () => {
     const messagePromise = waitForEvent(userBSocket, "message:new");
 
     const response = await fetch(`${apiUrl}/channels/${channel.id}/messages`, {

@@ -376,8 +376,14 @@ export function NotificationsProvider({
     };
 
     const onDmMessageNew = (message: DmMessagePayload) => {
-      const userId = myUserIdRef.current;
-      const isOwnMessage = userId && message.authorId === userId;
+      void (async () => {
+      let userId = myUserIdRef.current;
+      if (!userId) {
+        const me = await ensureMeLoaded();
+        userId = me.id;
+      }
+
+      const isOwnMessage = !!userId && message.authorId === userId;
 
       if (!isOwnMessage) {
         notifiedDmIdsRef.current.add(message.id);
@@ -414,6 +420,7 @@ export function NotificationsProvider({
         body: snippet(message.content || ""),
         tag: `dm-${message.conversationId}-${message.id}`,
       });
+      })();
     };
 
     socket.on(SOCKET_EVENTS.MESSAGE_NEW, onMessageNew);
