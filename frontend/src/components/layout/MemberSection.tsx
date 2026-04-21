@@ -61,8 +61,6 @@ export default function MemberSection() {
   // Ban system
   const [bans, setBans] = useState<Ban[]>([]);
 
-  // Cache userId
-  const [usernameCache, setUsernameCache] = useState<Record<string, string>>({});
   const [banModalOpen, setBanModalOpen] = useState(false);
   const [banTarget, setBanTarget] = useState<ServerMember | null>(null);
   const [banDuration, setBanDuration] = useState(1);
@@ -95,14 +93,11 @@ export default function MemberSection() {
         const list: ServerMember[] = Array.isArray(membersData) ? membersData : [];
         setMembers(list);
 
-        const newCache: Record<string, string> = {};
         const statusMap: Record<string, string> = {};
         for (const m of list) {
           statusMap[m.userId] = m.user?.status ?? "offline";
-          newCache[m.userId] = m.user?.username ?? m.userId;
         }
         setOnlineStatus(statusMap);
-        setUsernameCache((prev) => ({ ...prev, ...newCache }));
 
         const raw: Ban[] = Array.isArray(bansData) ? bansData : [];
         setBans(raw);
@@ -233,7 +228,6 @@ export default function MemberSection() {
       setMembers((prev) => {
         const member = prev.find((m) => m.userId === userId);
         if (member) {
-          setUsernameCache((c) => ({ ...c, [userId]: member.user.username }));
           setBans((prevBans) => {
             if (prevBans.some((b) => b.userId === userId)) return prevBans;
             return [
@@ -255,7 +249,6 @@ export default function MemberSection() {
       setMembers((prev) => {
         const member = prev.find((m) => m.userId === userId);
         if (member) {
-          setUsernameCache((c) => ({ ...c, [userId]: member.user.username }));
           setBans((prevBans) => {
             if (prevBans.some((b) => b.userId === userId)) return prevBans;
             return [
@@ -398,7 +391,6 @@ export default function MemberSection() {
         body: JSON.stringify({ userId: member.userId }),
       });
 
-      setUsernameCache((prev) => ({ ...prev, [member.userId]: member.user.username }));
       setMembers((prev) => prev.filter((m) => m.userId !== member.userId));
       setBans((prev) => {
         if (prev.some((b) => b.userId === member.userId)) return prev;
@@ -439,7 +431,6 @@ export default function MemberSection() {
         1000;
       const expiresAt = new Date(Date.now() + durationMs).toISOString();
 
-      setUsernameCache((prev) => ({ ...prev, [banTarget.userId]: banTarget.user.username }));
       setMembers((prev) => prev.filter((m) => m.userId !== banTarget.userId));
       setBans((prev) => {
         if (prev.some((b) => b.userId === banTarget.userId)) return prev;

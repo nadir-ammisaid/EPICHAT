@@ -67,6 +67,7 @@ model ServerMember {
   user   User   @relation(fields: [userId], references: [id])
 
   @@id([serverId, userId])
+  @@index([userId])
   @@map("server_members")
 }
 
