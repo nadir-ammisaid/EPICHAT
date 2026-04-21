@@ -99,7 +99,7 @@ export function MessageItem({
           <button
             type="button"
             className={`hover:bg-background/70 mt-0.5 rounded p-0.5 transition-opacity ${showActions ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
-            onClick={(e) => { if (!showActions) return; onEditStart(); }}
+            onClick={() => { if (!showActions) return; onEditStart(); }}
           >
             <Pencil className="h-4 w-4 opacity-70 hover:opacity-100" />
           </button>
@@ -113,7 +113,7 @@ export function MessageItem({
           <button
             type="button"
             className={`hover:bg-background/70 mt-0.5 rounded p-0.5 transition-opacity ${showActions ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
-            onClick={(e) => { if (!showActions) return; onDelete(); }}
+            onClick={() => { if (!showActions) return; onDelete(); }}
           >
             <Trash2 className="h-4 w-4 opacity-70 hover:opacity-100" />
           </button>
@@ -129,7 +129,7 @@ export function MessageItem({
               ref={emojiButtonRef}
               type="button"
               className={`hover:bg-background/70 mt-0.5 rounded p-0.5 transition-opacity ${showActions ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
-              onClick={(e) => {
+              onClick={() => {
                 if (!showActions) return;
                 const top = emojiButtonRef.current?.getBoundingClientRect().top ?? 999;
                 setOpenDownward(top < 300);

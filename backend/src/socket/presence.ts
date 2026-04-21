@@ -40,20 +40,27 @@ async function emitInitialPresenceSnapshot(socket: Socket, serverIds: string[]) 
 }
 
 async function broadcastUserStatusToAll(io: Server, userId: string, status: "online" | "offline") {
-  // Récupérer tous les serveurs de cet user
+  // Récupérer tous les serveurs de cet user (limiter les champs)
   const memberships = await prisma.serverMember.findMany({
     where: { userId },
     select: { serverId: true },
   });
   const serverIds = memberships.map((m) => m.serverId);
 
-  // Broadcaster à TOUS les clients connectés avec la liste des serveurs concernés
-  io.emit("presence:broadcast", {
-    userId,
-    status,
-    serverIds,
-  });
+  // Log volumétrie
+  console.log(`[presence] broadcastUserStatusToAll: userId=${userId}, status=${status}, serverIds=${serverIds.length}`);
 
+  // Broadcaster uniquement aux rooms concernées
+  for (const serverId of serverIds) {
+    const room = toServerRoom(serverId);
+    io.to(room).emit("presence:broadcast", {
+      userId,
+      status,
+      serverIds: [serverId],
+    });
+    // Log pour chaque room
+    console.log(`[presence] emit to room: ${room}`);
+  }
 }
 
 export function registerPresenceHandlers(io: Server, socket: Socket) {
@@ -80,20 +87,23 @@ export function registerPresenceHandlers(io: Server, socket: Socket) {
         sockets.add(socket.id);
         userSockets.set(userId, sockets);
 
-        // Mettre le statut à online
+
+        // Mettre le statut à online (ne récupérer que le champ status)
         const user = await prisma.user.findUnique({ 
           where: { id: userId }, 
           select: { status: true } 
         });
-        
         if (user?.status === "offline") {
           await prisma.user.update({ where: { id: userId }, data: { status: "online" } });
         }
+        // Log connexion
+        console.log(`[presence] user ${userId} connecté, statut online`);
 
         // Envoyer un snapshot initial au nouvel utilisateur (inclut ceux déjà online)
         await emitInitialPresenceSnapshot(socket, memberServerIds);
+        console.log(`[presence] snapshot initial envoyé à user ${userId} pour serveurs: ${memberServerIds.length}`);
 
-        // Broadcaster le statut GLOBALEMENT (à tous les clients)
+        // Broadcaster le statut uniquement aux rooms concernées
         await broadcastUserStatusToAll(io, userId, "online");
       })
       .catch((e) => console.log("[presence] erreur serverMember findMany:", e));
