@@ -1,8 +1,8 @@
-"use client";
+// i18n.ts
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
 
-import i18n from "i18next";
-import { initReactI18next } from "react-i18next";
-
+// Import des ressources
 import frCommon from "../../public/locales/fr/common.json";
 import frHome from "../../public/locales/fr/home.json";
 import enCommon from "../../public/locales/en/common.json";
@@ -27,7 +27,9 @@ const resources = {
   },
 } as const;
 
-if (!i18n.isInitialized) {
+let isInitialized = false;
+
+if (typeof window !== "undefined" && !isInitialized) {
   i18n.use(initReactI18next).init({
     resources,
     lng: "fr",
@@ -37,8 +39,11 @@ if (!i18n.isInitialized) {
     interpolation: {
       escapeValue: false,
     },
+    react: {
+      useSuspense: false,
+    },
   });
+  isInitialized = true;
 }
 
 export default i18n;
-
