@@ -1,8 +1,6 @@
-// i18n.ts
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-// Import des ressources
 import frCommon from "../../public/locales/fr/common.json";
 import frHome from "../../public/locales/fr/home.json";
 import enCommon from "../../public/locales/en/common.json";

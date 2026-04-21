@@ -10,9 +10,8 @@ import { useTranslation } from "react-i18next";
 export default function HomePage() {
   const { t, i18n } = useTranslation("home");
 
-  // Utiliser directement i18n.isInitialized pour le rendu conditionnel
   if (!i18n.isInitialized) {
-    return null; // ou un composant de chargement
+    return null; 
   }
 
   return (
