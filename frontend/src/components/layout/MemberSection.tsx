@@ -581,7 +581,12 @@ export default function MemberSection() {
       </Modal>
 
       <div className="flex min-w-60 max-w-[280px] shrink-0 flex-col overflow-auto border-l border-border bg-white">
-        <h2 className="h3 border-b border-border px-3 py-2">Membres</h2>
+        <div className="flex items-center gap-2 px-3 py-2 mt-2">
+  <hr className="border-border-muted flex-1" />
+  <span className="text-muted-foreground text-lg font-bold uppercase">Membres</span>
+  <hr className="border-border-muted flex-1" />
+</div>
+
 
         <div className="flex-1 overflow-auto p-2">
           {loading && <p>Loading...</p>}

@@ -19,7 +19,7 @@ export default function UserControls() {
         <div className="flex items-center gap-3 sm:rounded-xl sm:border sm:border-border sm:bg-muted/30 sm:px-3 sm:py-1.5 sm:hover:bg-brand-muted/10 transition-colors cursor-pointer">
             <NotificationBell />
             {username && (
-                <span className="hidden sm:block text-sm font-semibold text-foreground max-w-[120px] truncate">
+                <span className="hidden sm:block text-xl font-bold text-foreground max-w-[120px] truncate">
                     {username}
                 </span>
             )}

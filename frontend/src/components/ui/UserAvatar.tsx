@@ -115,7 +115,7 @@ export default function UserAvatar() {
       }`}
     />
   </div>
-  <span className="text-[10px] leading-none font-semibold">
+  <span className="text-[12px] leading-none font-semibold">
   <span className="sm:hidden">{username ?? ""}</span>
   <span className="hidden sm:block">
     {STATUS_OPTIONS.find((o) => o.value === status)?.label ?? "En ligne"}
