@@ -627,3 +627,56 @@ export async function unbanMember(serverId: string, userId: string) {
   return { success: true };
 }
 
+export async function transferOwnership(
+  serverId: string,
+  newOwnerUserId: string,
+  requesterUserId: string,
+) {
+  const server = await prisma.server.findUnique({
+    where: { id: serverId },
+    select: { ownerId: true },
+  });
+
+  if (!server) {
+    throw new HttpError(404, "Server not found");
+  }
+
+  if (server.ownerId !== requesterUserId) {
+    throw new HttpError(403, "Only the server owner can transfer ownership");
+  }
+
+  if (newOwnerUserId === requesterUserId) {
+    throw new HttpError(400, "You are already the owner");
+  }
+
+  const targetMember = await prisma.serverMember.findUnique({
+    where: { serverId_userId: { serverId, userId: newOwnerUserId } },
+  });
+
+  if (!targetMember) {
+    throw new HttpError(404, "Target user is not a member of this server");
+  }
+
+  await prisma.$transaction([
+    prisma.server.update({
+      where: { id: serverId },
+      data: { ownerId: newOwnerUserId },
+    }),
+    prisma.serverMember.update({
+      where: { serverId_userId: { serverId, userId: requesterUserId } },
+      data: { role: "admin" },
+    }),
+    prisma.serverMember.update({
+      where: { serverId_userId: { serverId, userId: newOwnerUserId } },
+      data: { role: "owner" },
+    }),
+  ]);
+
+  const io = getIO();
+  io.to(serverId).emit("server:ownershipTransferred", {
+    previousOwnerId: requesterUserId,
+    newOwnerId: newOwnerUserId,
+  });
+
+  return { success: true, newOwnerId: newOwnerUserId };
+}

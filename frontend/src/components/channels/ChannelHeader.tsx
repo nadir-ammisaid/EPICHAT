@@ -23,13 +23,9 @@ export default function ChannelHeader({
   const { t } = useTranslation("common");
 
   return (
-    <div className="border-border border-b px-4 py-3">
-      <p className="truncate text-sm font-semibold text-slate-900">
-        {serverId
-          ? t("channels.header.serverLabel", {
-              name: serverName ?? "—",
-            })
-          : t("channels.header.noServer")}
+    <div className="border-border px-4 py-3 mt-3">
+      <p className="truncate text-lg font-bold text-slate-900 text-center">
+        {serverId ? ` ${serverName ?? "—"}` : ""}
       </p>
 
       {permissionError && (
@@ -44,20 +40,23 @@ export default function ChannelHeader({
         </p>
       )}
 
-      <div className="mt-3 flex items-center justify-between">
-        <p className="text-xs font-semibold tracking-wide text-slate-600 uppercase">
-          {t("channels.header.listTitle")}
-        </p>
+      <div className="mt-5 flex items-center gap-2">
+  <hr className="border-border-muted flex-1" />
+  <span className="text-muted-foreground text-lg font-bold uppercase">
+    {t("channels.header.listTitle")}
+  </span>
+  <hr className="border-border-muted flex-1" />
 
-        <button
-          onClick={onCreate}
-          disabled={!canCreate}
-          className="grid h-7 w-7 place-items-center rounded-lg text-slate-500 transition hover:bg-white/60 hover:text-slate-800 disabled:opacity-40"
-          title={t("channels.header.create")}
-        >
-          <Plus className="h-4 w-4" />
-        </button>
-      </div>
+  <button
+    onClick={onCreate}
+    disabled={!canCreate}
+    className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-slate-500 transition hover:bg-white/60 hover:text-slate-800 disabled:opacity-40"
+    title={t("channels.header.create")}
+  >
+    <Plus className="h-4 w-4" />
+  </button>
+</div>
+
     </div>
   );
 }

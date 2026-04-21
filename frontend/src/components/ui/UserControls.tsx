@@ -21,7 +21,7 @@ export default function UserControls() {
             <LanguageSwitcher />
             <NotificationBell />
             {username && (
-                <span className="hidden sm:block text-sm font-semibold text-foreground max-w-[120px] truncate">
+                <span className="hidden sm:block text-xl font-bold text-foreground max-w-[120px] truncate">
                     {username}
                 </span>
             )}

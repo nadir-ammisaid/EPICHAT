@@ -166,18 +166,18 @@ export default function ServerBar({ className = "" }: { className?: string }) {
 
   return (
     <>
-      <div className={`bg-background border-border flex h-full shrink-0 flex-col items-center justify-between border p-2 ${className}`}>
+      <div
+        className={`bg-background border-border flex h-full shrink-0 flex-col items-center justify-start border p-2 ${className}`}
+      >
         <div className="mt-2 flex w-full flex-col items-center gap-2">
           <Link href="/dashboard" className="hidden md:flex shrink-0" aria-label="Accueil">
             <Image src="/images/logo.png" alt="Epichat" width={100} height={100} className="rounded-lg object-cover" />
           </Link>
-
-          <span className="md:hidden text-sm font-semibold px-2">
-            {t("title")}
-          </span>
-
-          <hr className="border-border-muted w-full" />
-
+          <div className="flex w-full items-center gap-2 mt-2 mb-2">
+          <hr className="border-border-muted flex-1" />
+          <span className="text-muted-foreground text-lg font-bold uppercase">Messages</span>
+          <hr className="border-border-muted flex-1" />
+        </div>
           <Link
             href="/dashboard/dm"
             title={t("dm")}
@@ -194,7 +194,14 @@ export default function ServerBar({ className = "" }: { className?: string }) {
           </Link>
         </div>
 
-        <div className="flex w-full flex-col gap-2 overflow-y-auto">
+        <div className="flex w-full items-center gap-2 mt-4 mb-2">
+          <hr className="border-border-muted flex-1" />
+          <span className="text-muted-foreground text-lg font-bold uppercase">{t("title")}</span>
+          <hr className="border-border-muted flex-1" />
+        </div>
+
+        {/* Server list */}
+        <div className="flex w-full flex-col gap-2 overflow-y-auto pb-24">
           {servers.map((server) => {
             const isActive = serverIdFromPath === server.id;
             const isOwner = myUserId && server.ownerId === myUserId;
@@ -265,8 +272,15 @@ export default function ServerBar({ className = "" }: { className?: string }) {
           )}
         </div>
 
-        <div className="flex w-full shrink-0 flex-col items-center gap-2">
-          <Button onClick={() => setCreateOpen(true)}>
+        {/* Create / Join */}
+        <div className="mt-auto flex w-full shrink-0 flex-col items-center gap-2">
+          <Button
+            type="button"
+            onClick={() => setCreateOpen(true)}
+            className="hover:bg-brand-hover bg-brand text-background w-full items-center justify-center gap-2 transition-colors hover:cursor-pointer"
+            title="Créer un serveur"
+            aria-label="Créer un serveur"
+          >
             {t("actions.create")}
           </Button>
 
