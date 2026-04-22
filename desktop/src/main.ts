@@ -1,6 +1,5 @@
 import { app, BrowserWindow } from "electron";
 import * as path from "node:path";
-import { registerIpcHandlers } from "./ipc";
 import { createTray } from "./tray";
 
 const FRONTEND_URL = "http://localhost:3000";
@@ -21,14 +20,13 @@ function loadErrorPage(): void {
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 800,
+    width: 1400,
+    height: 900,
     minWidth: 800,
     minHeight: 600,
     title: "Epichat",
     show: false,
     webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
@@ -66,7 +64,6 @@ function createWindow(): void {
 app.setAppUserModelId(APP_ID);
 
 app.whenReady().then(() => {
-  registerIpcHandlers();
   createWindow();
   createTray(
     () => mainWindow,
