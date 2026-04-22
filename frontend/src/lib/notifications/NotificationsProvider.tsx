@@ -22,7 +22,7 @@ import { getConversations, getConversationMessages } from "@/lib/api/dm";
 import { getChannelDetails } from "@/lib/api/channels";
 import { getServerDetails } from "@/lib/api/servers";
 
-const DEBUG_NOTIF = true;
+const DEBUG_NOTIF = false;
 const log = (...args: unknown[]) =>
   DEBUG_NOTIF && console.log("[Notifications]", ...args);
 

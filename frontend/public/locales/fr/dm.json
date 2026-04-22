@@ -1,0 +1,7 @@
+{
+  "empty": "Sélectionne une conversation pour commencer à discuter.",
+  "loading": "Chargement…",
+  "error": "Erreur lors du chargement des messages",
+  "typing": "est en train d'écrire…",
+  "inputPlaceholder": "Écrire un message…"
+}

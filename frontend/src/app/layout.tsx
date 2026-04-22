@@ -4,6 +4,7 @@ import "../styles/globals.css";
 import "@/styles/body.css";
 import "@/styles/headings.css";
 import "@/styles/button.css";
+import I18nProvider from "./I18nProvider";
 
 const archivo = Archivo({
   variable: "--font-archivo",
@@ -24,7 +25,9 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={`${archivo.variable} bg-background antialiased`}>
-        {children}
+        <I18nProvider locale="fr">
+          {children}
+        </I18nProvider>
       </body>
     </html>
   );

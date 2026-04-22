@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   serverId: string | null;
@@ -19,6 +20,8 @@ export default function ChannelHeader({
   onCreate,
   canCreate,
 }: Props) {
+  const { t } = useTranslation("common");
+
   return (
     <div className="border-border px-4 py-3 mt-3">
       <p className="truncate text-lg font-bold text-slate-900 text-center">
@@ -27,18 +30,20 @@ export default function ChannelHeader({
 
       {permissionError && (
         <p className="mt-1 text-xs text-red-600">
-          Seul le propriétaire peut gérer les canaux
+          {t("channels.header.permissionError")}
         </p>
       )}
 
       {activeLine && (
-        <p className="mt-1 truncate text-[11px] text-slate-500">{activeLine}</p>
+        <p className="mt-1 truncate text-[11px] text-slate-500">
+          {activeLine}
+        </p>
       )}
 
       <div className="mt-5 flex items-center gap-2">
   <hr className="border-border-muted flex-1" />
   <span className="text-muted-foreground text-lg font-bold uppercase">
-    Canaux
+    {t("channels.header.listTitle")}
   </span>
   <hr className="border-border-muted flex-1" />
 
@@ -46,7 +51,7 @@ export default function ChannelHeader({
     onClick={onCreate}
     disabled={!canCreate}
     className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-slate-500 transition hover:bg-white/60 hover:text-slate-800 disabled:opacity-40"
-    title="Créer un canal"
+    title={t("channels.header.create")}
   >
     <Plus className="h-4 w-4" />
   </button>

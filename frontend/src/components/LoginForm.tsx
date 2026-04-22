@@ -4,58 +4,60 @@ import Link from "next/link";
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
 import { useLoginForm } from "@/lib/hooks/useLoginForm";
+import { useTranslation } from "react-i18next";
 
 export default function LoginForm() {
-    const { error, isLoading, handleSubmit } = useLoginForm();
+  const { error, isLoading, handleSubmit } = useLoginForm();
+  const { t } = useTranslation("common");
 
-    return (
-        <div className="flex flex-col items-center justify-center gap-4 py-14">
-            <h1 className="text-4xl font-bold">Bienvenue !</h1>
-            <h2 className="h5">Connectez-vous</h2>
-            <form
-                onSubmit={handleSubmit}
-                className="flex w-full max-w-md flex-col items-center justify-center gap-4"
-            >
-                <Input
-                    type="email"
-                    id="email"
-                    name="email"
-                    placeholder="Email"
-                    size="md"
-                    fullWidth
-                    required
-                />
-                <Input
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="Mot de passe"
-                    size="md"
-                    fullWidth
-                    required
-                />
-                {error && <p className="text-error text-sm">{error}</p>}
-                <Button
-                    type="submit"
-                    variant="primary"
-                    size="md"
-                    className="max-w-78"
-                    fullWidth
-                    disabled={isLoading}
-                >
-                    {isLoading ? "Connexion..." : "Se connecter"}
-                </Button>
-            </form>
+  return (
+    <div className="flex flex-col items-center justify-center gap-4 py-14">
+      <h1 className="text-4xl font-bold">{t("pages.login.title")}</h1>
+      <h2 className="h5">{t("pages.login.subtitle")}</h2>
+      <form
+        onSubmit={handleSubmit}
+        className="flex w-full max-w-md flex-col items-center justify-center gap-4"
+      >
+        <Input
+          type="email"
+          id="email"
+          name="email"
+          placeholder={t("pages.login.emailPlaceholder")}
+          size="md"
+          fullWidth
+          required
+        />
+        <Input
+          type="password"
+          id="password"
+          name="password"
+          placeholder={t("pages.login.passwordPlaceholder")}
+          size="md"
+          fullWidth
+          required
+        />
+        {error && <p className="text-error text-sm">{error}</p>}
+        <Button
+          type="submit"
+          variant="primary"
+          size="md"
+          className="max-w-78"
+          fullWidth
+          disabled={isLoading}
+        >
+          {isLoading ? t("pages.login.loading") : t("pages.login.cta")}
+        </Button>
+      </form>
 
-            <p>
-                Pas encore de compte ?{" "}
-                <Link
-                    href="/register"
-                    className="text-brand underline-offset-2 hover:underline"
-                >
-                    Inscrivez-vous
-                </Link>
-            </p>
-        </div>
-    );
+      <p>
+        {t("pages.login.noAccount")}{" "}
+        <Link
+          href="/register"
+          className="text-brand underline-offset-2 hover:underline"
+        >
+          {t("pages.login.goToRegister")}
+        </Link>
+      </p>
+    </div>
+  );
 }
