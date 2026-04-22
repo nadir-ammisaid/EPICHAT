@@ -160,8 +160,8 @@ export default function ProfilePage() {
                 }
               }}
               className="group focus:ring-brand relative flex shrink-0 rounded-full ring-2 ring-transparent outline-none"
-              title="Changer l'avatar"
-              aria-label="Changer l'avatar"
+              title={t("pages.profile.changeAvatar")}
+              aria-label={t("pages.profile.changeAvatar")}
             >
               <Image
                 src={getRandomAvatar(avatarSeed || username || "default")}

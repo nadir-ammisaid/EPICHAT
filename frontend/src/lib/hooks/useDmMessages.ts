@@ -5,8 +5,10 @@ import { getSocket } from "@/lib/socket/socket";
 import {getConversations,getConversationMessages,deleteDmMessage,updateDmMessage} from "@/lib/api/dm";
 import type { DirectMessage } from "@/lib/types/dm";
 import type { Reaction } from "@/lib/types/message";
+import { useTranslation } from "react-i18next";
 
 export function useDmMessages(conversationId: string | null, myUserId: string | null) {
+  const { t } = useTranslation("common");
   const [messages, setMessages] = useState<DirectMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -133,7 +135,7 @@ export function useDmMessages(conversationId: string | null, myUserId: string | 
         )
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Delete error");
+      setError(e instanceof Error ? e.message : t("status.error"));
     }
   }
 
@@ -148,7 +150,7 @@ export function useDmMessages(conversationId: string | null, myUserId: string | 
       setEditingId(null);
       setEditText("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Edit error");
+      setError(e instanceof Error ? e.message : t("status.error"));
     }
   }
   async function handleToggleDmReaction(messageId: string, emoji: string) {
@@ -174,8 +176,8 @@ export function useDmMessages(conversationId: string | null, myUserId: string | 
     const others = myUserId ? typingUsers.filter((u) => u !== myUserId) : typingUsers;
     if (!others.length) return null;
     const names = others.map((id) => userMap.get(id) ?? id);
-    return `${names.join(", ")} est en train d'écrire…`;
-  }, [typingUsers, myUserId, userMap]);
+    return t("chat.typingOne", { name: names.join(", ") });
+  }, [typingUsers, myUserId, userMap, t]);
 
   return {
     messages, loading, error,

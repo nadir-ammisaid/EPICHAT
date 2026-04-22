@@ -1,4 +1,11 @@
 {
+  "sidebar": {
+    "title": "Messages privés",
+    "emptyContacts": "Rejoignez un serveur pour voir vos contacts."
+  },
+  "section": {
+    "empty": "Selectionnez une conversation pour commencer à chatter."
+  },
   "empty": "Sélectionne une conversation pour commencer à discuter.",
   "loading": "Chargement…",
   "error": "Erreur lors du chargement des messages",

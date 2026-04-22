@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/components/ui/use-toast";
 import { useCurrentUserId } from "@/lib/hooks/useCurrentUserId";
+import { useTranslation } from "react-i18next";
 
 type ServerMember = {
   userId: string;
@@ -47,6 +48,7 @@ export default function MemberSection() {
   const pathname = usePathname();
   const { serverId } = parseDashboardPath(pathname ?? "");
   const { toast, ToastContainer } = useToast();
+  const { t } = useTranslation("members");
 
   const [members, setMembers] = useState<ServerMember[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -103,9 +105,9 @@ export default function MemberSection() {
         setBans(raw);
       } catch (err: unknown) {
         if (err instanceof Error) {
-          setError(err.message ?? "Impossible de charger les membres");
+          setError(err.message ?? t("error"));
         } else {
-          setError("Impossible de charger les membres");
+          setError(t("error"));
         }
         setMembers([]);
       } finally {
@@ -114,7 +116,7 @@ export default function MemberSection() {
     };
 
     fetchMembers();
-  }, [serverId]);
+  }, [serverId, t]);
 
   // Presence socket
   useEffect(() => {
@@ -298,16 +300,18 @@ export default function MemberSection() {
   // Kick
   async function handleKick(member: ServerMember) {
     if (member.userId === myUserId) {
-      toast({ title: "You cannot kick yourself." });
+      toast({ title: t("messages.cannotKickSelf") });
       return;
     }
 
     if (member.role === "owner") {
-      toast({ title: "You cannot kick the owner." });
+      toast({ title: t("messages.cannotKickOwner") });
       return;
     }
 
-    const confirmKick = confirm(`Kick ${member.user.username} du serveur ?`);
+    const confirmKick = confirm(
+      t("confirmations.kick", { username: member.user.username }),
+    );
     if (!confirmKick) return;
 
     try {
@@ -316,9 +320,9 @@ export default function MemberSection() {
       });
 
       setMembers((prev) => prev.filter((m) => m.userId !== member.userId));
-      toast({ title: "Member kicked." });
+      toast({ title: t("messages.kickSuccess") });
     } catch {
-      toast({ title: "Kick failed." });
+      toast({ title: t("messages.kickFailed") });
     }
   }
 
@@ -334,12 +338,12 @@ export default function MemberSection() {
   // Open role modal
   function openRoleModal(member: ServerMember) {
     if (member.userId === myUserId) {
-      toast({ title: "You cannot change your own role." });
+      toast({ title: t("messages.cannotChangeOwnRole") });
       return;
     }
 
     if (member.role === "owner") {
-      toast({ title: "You cannot change the owner's role." });
+      toast({ title: t("messages.cannotChangeOwnerRole") });
       return;
     }
 
@@ -364,7 +368,7 @@ export default function MemberSection() {
             return m;
           }),
         );
-        toast({ title: "Propriété transférée." });
+        toast({ title: t("messages.ownershipTransferred") });
       } else {
         await updateRole(serverId, selectedMember.userId, newRole);
         setMembers((prev) =>
@@ -372,11 +376,16 @@ export default function MemberSection() {
             m.userId === selectedMember.userId ? { ...m, role: newRole } : m,
           ),
         );
-        toast({ title: "Rôle mis à jour." });
+        toast({ title: t("messages.roleUpdated") });
       }
       setRoleModalOpen(false);
     } catch {
-      toast({ title: newRole === "owner" ? "Échec du transfert de propriété." : "Échec de la mise à jour du rôle." });
+      toast({
+        title:
+          newRole === "owner"
+            ? t("messages.ownershipTransferFailed")
+            : t("messages.roleUpdateFailed"),
+      });
     }
   }
 
@@ -404,9 +413,9 @@ export default function MemberSection() {
           },
         ];
       });
-      toast({ title: "Ban permanent appliqué." });
+      toast({ title: t("messages.banPermanentSuccess") });
     } catch {
-      toast({ title: "Échec du ban permanent." });
+      toast({ title: t("messages.banPermanentFailed") });
     }
   }
 
@@ -445,10 +454,10 @@ export default function MemberSection() {
         ];
       });
 
-      toast({ title: "Ban temporaire appliqué." });
+      toast({ title: t("messages.banTemporarySuccess") });
       setBanModalOpen(false);
     } catch {
-      toast({ title: "Échec du ban temporaire." });
+      toast({ title: t("messages.banTemporaryFailed") });
     }
   }
 
@@ -462,16 +471,16 @@ export default function MemberSection() {
       });
 
       setBans((prev) => prev.filter((b) => b.userId !== userId));
-      toast({ title: "Membre débanni." });
+      toast({ title: t("messages.unbanSuccess") });
     } catch {
-      toast({ title: "Échec du débannissement." });
+      toast({ title: t("messages.unbanFailed") });
     }
   }
 
   const roleLabel: Record<string, string> = {
-    owner: "Propriétaire",
-    admin: "Admin",
-    member: "Membre",
+    owner: t("roles.owner"),
+    admin: t("roles.admin"),
+    member: t("roles.member"),
   };
 
   const sortedMembers = [...members].sort((a, b) => {
@@ -487,24 +496,24 @@ export default function MemberSection() {
 
       <Modal open={roleModalOpen} onClose={() => setRoleModalOpen(false)}>
         <div className="p-4 space-y-4 bg-white text-black rounded-md shadow-xl max-w-sm">
-          <h2 className="text-lg font-semibold">Changer le rôle</h2>
+          <h2 className="text-lg font-semibold">{t("modals.role.title")}</h2>
 
           <Select
             value={newRole}
             onChange={(e) => setNewRole(e.target.value as "owner" | "admin" | "member")}
           >
-            <option value="admin">Admin</option>
-            <option value="member">Membre</option>
+            <option value="admin">{t("roles.admin")}</option>
+            <option value="member">{t("roles.member")}</option>
             {currentRole === "owner" && (
-              <option value="owner">Propriétaire</option>
+              <option value="owner">{t("roles.owner")}</option>
             )}
           </Select>
 
           {newRole === "owner" && (
             <p className="text-sm text-orange-600 bg-orange-50 border border-orange-200 rounded p-2">
-              ATTENTION : Vous allez transférer la propriété à{" "}
-              <span className="font-semibold">{selectedMember?.user.username}</span>.
-              Vous deviendrez Admin. Cette action est irréversible.
+              {t("modals.role.ownerWarning", {
+                username: selectedMember?.user.username ?? "",
+              })}
             </p>
           )}
 
@@ -514,14 +523,14 @@ export default function MemberSection() {
               className="bg-neutral-200 text-black hover:bg-neutral-300"
               onClick={() => setRoleModalOpen(false)}
             >
-              Annuler
+              {t("modals.role.cancel")}
             </Button>
 
             <Button
               className={newRole === "owner" ? "bg-red-600 text-white hover:bg-red-700" : "bg-black text-white hover:bg-neutral-800"}
               onClick={confirmRoleChange}
             >
-              Confirmer
+              {t("modals.role.confirm")}
             </Button>
           </div>
         </div>
@@ -529,7 +538,7 @@ export default function MemberSection() {
 
       <Modal open={banModalOpen} onClose={() => setBanModalOpen(false)}>
         <div className="p-4 space-y-4 bg-white text-black rounded-md shadow-xl">
-          <h2 className="text-lg font-semibold">Ban temporaire</h2>
+          <h2 className="text-lg font-semibold">{t("modals.ban.title")}</h2>
 
           <div className="flex gap-2">
             <input
@@ -546,9 +555,9 @@ export default function MemberSection() {
                 setBanUnit(e.target.value as "minutes" | "hours" | "days")
               }
             >
-              <option value="minutes">Minutes</option>
-              <option value="hours">Heures</option>
-              <option value="days">Jours</option>
+              <option value="minutes">{t("modals.ban.minutes")}</option>
+              <option value="hours">{t("modals.ban.hours")}</option>
+              <option value="days">{t("modals.ban.days")}</option>
             </Select>
           </div>
 
@@ -558,14 +567,14 @@ export default function MemberSection() {
               className="bg-neutral-200 text-black hover:bg-neutral-300"
               onClick={() => setBanModalOpen(false)}
             >
-              Annuler
+              {t("modals.ban.cancel")}
             </Button>
 
             <Button
               className="bg-black text-white hover:bg-neutral-800"
               onClick={handleBanTemporary}
             >
-              Confirmer
+              {t("modals.ban.confirm")}
             </Button>
           </div>
         </div>
@@ -574,13 +583,13 @@ export default function MemberSection() {
       <div className="flex min-w-60 max-w-[280px] shrink-0 flex-col overflow-auto border-l border-border bg-white">
         <div className="flex items-center gap-2 px-3 py-2 mt-2">
   <hr className="border-border-muted flex-1" />
-  <span className="text-muted-foreground text-lg font-bold uppercase">Membres</span>
+  <span className="text-muted-foreground text-lg font-bold uppercase">{t("title")}</span>
   <hr className="border-border-muted flex-1" />
 </div>
 
 
         <div className="flex-1 overflow-auto p-2">
-          {loading && <p>Loading...</p>}
+          {loading && <p>{t("loading")}</p>}
           {error && <p className="text-red-500">{error}</p>}
 
           {sortedMembers.map((m) => {
@@ -615,7 +624,7 @@ export default function MemberSection() {
                         handleOpenDm(m.userId);
                       }}
                       className="p-1 rounded hover:bg-neutral-200 text-neutral-600 hover:text-black"
-                      title="Envoyer un message"
+                      title={t("actions.sendMessage")}
                     >
                       <MessageCircle size={16} />
                     </button>
@@ -640,7 +649,7 @@ export default function MemberSection() {
                             handleKick(m);
                           }}
                         >
-                          Expulser
+                          {t("actions.kick")}
                         </button>
 
                         <button
@@ -650,7 +659,7 @@ export default function MemberSection() {
                             handleBanPermanent(m);
                           }}
                         >
-                          Ban permanent
+                          {t("actions.banPermanent")}
                         </button>
 
                         <button
@@ -661,7 +670,7 @@ export default function MemberSection() {
                             setBanModalOpen(true);
                           }}
                         >
-                          Ban temporaire
+                          {t("actions.banTemporary")}
                         </button>
 
                         {currentRole === "owner" && (
@@ -672,7 +681,7 @@ export default function MemberSection() {
                               openRoleModal(m);
                             }}
                           >
-                            Changer le rôle
+                            {t("actions.changeRole")}
                           </button>
                         )}
                       </Dropdown.Menu>
@@ -686,11 +695,11 @@ export default function MemberSection() {
           {(currentRole === "owner" || currentRole === "admin") && (
             <>
               <h3 className="h3 border-t border-b border-border px-3 py-2 mt-4 text-sm font-semibold">
-                Membres bannis
+                {t("bans.title")}
               </h3>
 
               {bans.length === 0 && (
-                <p className="px-3 text-xs text-neutral-400">Aucun membre banni.</p>
+                <p className="px-3 text-xs text-neutral-400">{t("bans.empty")}</p>
               )}
 
               {bans.map((ban) => (
@@ -705,10 +714,12 @@ export default function MemberSection() {
 
                     <span className="text-neutral-500 text-xs">
                       {ban.permanent
-                        ? "Ban permanent"
+                        ? t("actions.banPermanent")
                         : ban.expiresAt
-                        ? `Expire le ${new Date(ban.expiresAt).toLocaleString()}`
-                        : "Ban temporaire"}
+                        ? t("bans.expiresOn", {
+                            date: new Date(ban.expiresAt).toLocaleString(),
+                          })
+                        : t("actions.banTemporary")}
                     </span>
                   </div>
 
@@ -716,7 +727,7 @@ export default function MemberSection() {
                     className="px-2 py-1 rounded bg-blue-600 text-white text-xs hover:bg-blue-700 transition-colors"
                     onClick={() => handleUnban(ban.userId)}
                   >
-                    Débannir
+                    {t("actions.unban")}
                   </button>
                 </div>
               ))}

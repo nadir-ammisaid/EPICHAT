@@ -15,8 +15,10 @@ import ChannelModals from "@/components/channels/ChannelModals";
 import type { Channel } from "@/lib/api/channels";
 import type { ServerDetails } from "@/lib/api/servers";
 import { getServerDetails } from "@/lib/api/servers";
+import { useTranslation } from "react-i18next";
 
 export default function ChannelBar() {
+  const { t } = useTranslation("common");
   const pathname = usePathname();
   const { serverId, channelId } = useMemo(
     () => parseDashboardPath(pathname ?? ""),
@@ -85,10 +87,11 @@ export default function ChannelBar() {
       ? formatDateFR(channelDetails.createdAt)
       : null;
 
-    return `Canal actif : #${channelDetails.name}${
-      date ? ` créé le ${date}` : ""
-    }`;
-  }, [serverId, channelId, channelDetails]);
+    const active = t("chat.activeChannel", { name: channelDetails.name });
+    const created = date ? ` ${t("chat.createdOn", { date })}` : "";
+
+    return `${active}${created}`;
+  }, [serverId, channelId, channelDetails, t]);
 
   const openRename = (ch: Channel) => {
     setSelected(ch);
@@ -120,7 +123,7 @@ export default function ChannelBar() {
       setNewChannelName("");
       setCreateOpen(false);
     } catch (err) {
-      setCreateError(err instanceof Error ? err.message : "Erreur création");
+      setCreateError(err instanceof Error ? err.message : t("status.error"));
     } finally {
       setCreateLoading(false);
     }
@@ -141,7 +144,7 @@ export default function ChannelBar() {
       setRenameOpen(false);
       setSelected(null);
     } catch (err) {
-      setRenameError(err instanceof Error ? err.message : "Erreur renommage");
+      setRenameError(err instanceof Error ? err.message : t("status.error"));
     } finally {
       setRenameLoading(false);
     }
@@ -165,7 +168,7 @@ export default function ChannelBar() {
       setDeleteOpen(false);
       setSelected(null);
     } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : "Erreur suppression");
+      setDeleteError(err instanceof Error ? err.message : t("status.error"));
     } finally {
       setDeleteLoading(false);
     }

@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { getSocket } from "@/lib/socket/socket";
 import { SOCKET_EVENTS } from "@/lib/socket/socket.events";
 import type { Message, Reaction } from "@/lib/types/message";
+import { useTranslation } from "react-i18next";
 
 export function useChannelMessages(channelId: string | null, myUserId: string | null) {
+  const { t } = useTranslation("common");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +52,7 @@ export function useChannelMessages(channelId: string | null, myUserId: string | 
         });
       } catch (e: unknown) {
         if (e instanceof Error && e.name !== "AbortError") {
-          setError(e.message ?? "Failed to load messages");
+          setError(e.message ?? t("status.error"));
         }
       } finally {
         setLoading(false);
@@ -58,7 +60,7 @@ export function useChannelMessages(channelId: string | null, myUserId: string | 
     }
     load();
     return () => controller.abort();
-  }, [channelId]);
+  }, [channelId, t]);
 
   // Socket join/leave
   useEffect(() => {
@@ -169,7 +171,7 @@ export function useChannelMessages(channelId: string | null, myUserId: string | 
         ),
       );
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Failed to delete message");
+      setError(e instanceof Error ? e.message : t("status.error"));
     }
   }
 
@@ -192,7 +194,7 @@ export function useChannelMessages(channelId: string | null, myUserId: string | 
       setEditingId(null);
       setEditText("");
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Failed to edit message");
+      setError(e instanceof Error ? e.message : t("status.error"));
     }
   }
   async function handleToggleReaction(messageId: string, emoji: string) {
@@ -219,9 +221,9 @@ export function useChannelMessages(channelId: string | null, myUserId: string | 
     const others = myUserId ? typingUsers.filter((u) => u !== myUserId) : typingUsers;
     if (!others.length) return null;
     const names = others.map((id) => usernamesById[id] ?? id);
-    if (names.length === 1) return `${names[0]} est en train d'écrire…`;
-    return `${names.slice(0, 2).join(", ")} sont en train d'écrire…`;
-  }, [typingUsers, myUserId, usernamesById]);
+    if (names.length === 1) return t("chat.typingOne", { name: names[0] });
+    return t("chat.typingMany", { names: names.slice(0, 2).join(", ") });
+  }, [typingUsers, myUserId, usernamesById, t]);
 
   return {
     messages,
