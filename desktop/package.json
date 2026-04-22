@@ -1,0 +1,17 @@
+{
+  "name": "epichat-desktop",
+  "version": "0.0.1",
+  "description": "Epichat desktop app (Electron)",
+  "private": true,
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc && node scripts/copy-assets.mjs",
+    "start": "electron .",
+    "dev": "npm run build && npm run start"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.39",
+    "electron": "^41.2.2",
+    "typescript": "^5.9.3"
+  }
+}
