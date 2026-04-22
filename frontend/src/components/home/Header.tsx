@@ -24,7 +24,7 @@ export default function Header() {
         <Link href="/" className="flex items-center">
           <Image
             src="/logo.png"
-            alt="EpiChat"
+            alt="Texte epichat comme logo"
             width={130}
             height={130}
             priority
@@ -47,7 +47,7 @@ export default function Header() {
           </div>
           <Link
             href="/login"
-            className="hidden items-center justify-center rounded-full bg-[#2F6BFF] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#1E4ED8] hover:opacity-90 md:inline-flex"
+            className="hidden items-center justify-center rounded-full bg-brand px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-hover hover:opacity-90 md:inline-flex"
           >
             Se connecter
           </Link>

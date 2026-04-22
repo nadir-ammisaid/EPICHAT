@@ -3,12 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  UserPlus,
-  Trash2,
-  Settings,
-  MessageSquareMore,
-} from "lucide-react";
+import { UserPlus, Trash2, Settings, MessageSquareMore } from "lucide-react";
 import Image from "next/image";
 import { apiClient } from "@/lib/api/client";
 import { useCurrentUserId } from "@/lib/hooks/useCurrentUserId";
@@ -40,7 +35,9 @@ export default function ServerBar({ className = "" }: { className?: string }) {
   const [inviteLoading, setInviteLoading] = useState(false);
   const [createdCode, setCreatedCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [serverActionError, setServerActionError] = useState<string | null>(null);
+  const [serverActionError, setServerActionError] = useState<string | null>(
+    null,
+  );
 
   const serverIdFromPath = pathname?.split("/").filter(Boolean)[1] ?? null;
   const myUserId = useCurrentUserId();
@@ -90,7 +87,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
     try {
       const member = await apiClient.request(
         `/invites/${encodeURIComponent(code)}/join`,
-        { method: "POST" }
+        { method: "POST" },
       );
       await getServers();
       setInviteCode("");
@@ -139,9 +136,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
       if (serverIdFromPath === serverId) router.push("/dashboard");
       await getServers();
     } catch (e) {
-      setServerActionError(
-        e instanceof Error ? e.message : t("errors.delete")
-      );
+      setServerActionError(e instanceof Error ? e.message : t("errors.delete"));
     }
   };
 
@@ -154,9 +149,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
       if (serverIdFromPath === serverId) router.push("/dashboard");
       await getServers();
     } catch (e) {
-      setServerActionError(
-        e instanceof Error ? e.message : t("errors.leave")
-      );
+      setServerActionError(e instanceof Error ? e.message : t("errors.leave"));
     }
   };
 
@@ -166,17 +159,30 @@ export default function ServerBar({ className = "" }: { className?: string }) {
         className={`bg-background border-border flex h-full shrink-0 flex-col items-center justify-start border p-2 ${className}`}
       >
         <div className="mt-2 flex w-full flex-col items-center gap-2">
-          <Link href="/dashboard" className="hidden md:flex shrink-0" aria-label="Accueil">
-            <Image src="/images/logo.png" alt="Epichat" width={100} height={100} className="rounded-lg object-cover" />
+          <Link
+            href="/dashboard"
+            className="hidden shrink-0 md:flex"
+            aria-label="Accueil"
+          >
+            <Image
+              src="/images/logo.png"
+              alt="Epichat"
+              width={100}
+              height={100}
+              className="rounded-lg object-cover"
+            />
           </Link>
-          <div className="flex w-full items-center gap-2 mt-2 mb-2">
-          <hr className="border-border-muted flex-1" />
-          <span className="text-muted-foreground text-lg font-bold uppercase">Messages</span>
-          <hr className="border-border-muted flex-1" />
-        </div>
+          <div className="mt-2 mb-2 flex w-full items-center gap-2">
+            <hr className="border-border-muted flex-1" />
+            <span className="text-muted-foreground text-lg font-bold uppercase">
+              Messages
+            </span>
+            <hr className="border-border-muted flex-1" />
+          </div>
           <Link
             href="/dashboard/dm"
-            title={t("dm")}
+            aria-label="Link to my messages"
+            title="link to my messages"
             className={`hover:bg-brand-muted/80 flex w-full items-center gap-3 rounded-lg px-4 py-2 transition-colors hover:cursor-pointer ${
               pathname?.startsWith("/dashboard/dm")
                 ? "bg-brand-hover font-medium"
@@ -190,9 +196,11 @@ export default function ServerBar({ className = "" }: { className?: string }) {
           </Link>
         </div>
 
-        <div className="flex w-full items-center gap-2 mt-4 mb-2">
+        <div className="mt-4 mb-2 flex w-full items-center gap-2">
           <hr className="border-border-muted flex-1" />
-          <span className="text-muted-foreground text-lg font-bold uppercase">{t("title")}</span>
+          <span className="text-muted-foreground text-lg font-bold uppercase">
+            {t("title")}
+          </span>
           <hr className="border-border-muted flex-1" />
         </div>
 
@@ -274,35 +282,36 @@ export default function ServerBar({ className = "" }: { className?: string }) {
             type="button"
             onClick={() => setCreateOpen(true)}
             className="hover:bg-brand-hover bg-brand text-background w-full items-center justify-center gap-2 transition-colors hover:cursor-pointer"
-            title="Créer un serveur"
-            aria-label="Créer un serveur"
+            title="Bouton de création de serveur"
+            aria-label="Bouton de création de serveur"
           >
             {t("actions.create")}
           </Button>
 
-          {/* <Button variant="outline" size="sm" onClick={() => setJoinOpen(true)}>
-            {t("actions.join")}
-          </Button> */}
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="hover:!text-brand-hover w-full items-center justify-center gap-2 !text-black"
+            className="w-full items-center justify-center gap-2 text-black"
             onClick={() => {
               setJoinError(null);
               setInviteCode("");
               setJoinOpen(true);
             }}
-            title={t("actions.join")}
-            aria-label={t("actions.join")}
+            title="Bouton pour rejoindre un serveur"
+            aria-label="Bouton pour rejoindre un serveur"
           >
             {t("actions.join")}
-          </Button>        
+          </Button>
         </div>
       </div>
 
       {/* Modale de création  */}
-      <Modal open={createOpen} onClose={() => setCreateOpen(false)} title={t("createModal.title")}>
+      <Modal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        title={t("createModal.title")}
+      >
         <form onSubmit={handleCreate} className="flex flex-col gap-3">
           <Input
             label={t("createModal.nameLabel")}
@@ -318,7 +327,11 @@ export default function ServerBar({ className = "" }: { className?: string }) {
       </Modal>
 
       {/* Modale pour rejoindre  */}
-      <Modal open={joinOpen} onClose={() => setJoinOpen(false)} title={t("joinModal.title")}>
+      <Modal
+        open={joinOpen}
+        onClose={() => setJoinOpen(false)}
+        title={t("joinModal.title")}
+      >
         <form onSubmit={handleJoin} className="flex flex-col gap-3">
           <Input
             label={t("joinModal.codeLabel")}
@@ -334,7 +347,11 @@ export default function ServerBar({ className = "" }: { className?: string }) {
       </Modal>
 
       {/* Modale d'invitation  */}
-      <Modal open={inviteOpen} onClose={() => setInviteOpen(false)} title={t("inviteModal.title")}>
+      <Modal
+        open={inviteOpen}
+        onClose={() => setInviteOpen(false)}
+        title={t("inviteModal.title")}
+      >
         <div className="flex flex-col gap-3">
           {inviteLoading && <p>{t("inviteModal.generating")}</p>}
           {createdCode && (

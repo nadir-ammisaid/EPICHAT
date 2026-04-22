@@ -20,8 +20,6 @@ import { useCurrentUserId } from "@/lib/hooks/useCurrentUserId";
 import getInitials from "@/lib/utils/getInitials";
 import UserControls from "@/components/ui/UserControls";
 
-
-
 export default function DashboardShell() {
   const pathname = usePathname();
   const router = useRouter();
@@ -31,7 +29,10 @@ export default function DashboardShell() {
   const myUserId = useCurrentUserId();
   const [username, setUsername] = useState<string | null>(null);
   const [showMembers, setShowMembers] = useState(false);
-  const [dmContact, setDmContact] = useState<{ username: string; status: string } | null>(null);
+  const [dmContact, setDmContact] = useState<{
+    username: string;
+    status: string;
+  } | null>(null);
 
   // Inizialiser les listeners de présence globaux au démarrage
   useInitializeGlobalPresence();
@@ -65,10 +66,11 @@ export default function DashboardShell() {
   useEffect(() => {
     apiClient
       .request("/me")
-      .then((user: { username?: string }) => setUsername(user?.username ?? null))
+      .then((user: { username?: string }) =>
+        setUsername(user?.username ?? null),
+      )
       .catch(() => setUsername(null));
   }, []);
-
 
   useEffect(() => {
     const code = searchParams.get("invite");
@@ -87,36 +89,47 @@ export default function DashboardShell() {
   }, [searchParams, router]);
 
   return (
-    <>
+    <main>
       <div className="hidden h-screen overflow-hidden md:flex">
+        <h1 className="hidden" aria-label="Mon dashboard">
+          Mon dashboard
+        </h1>
         <ServerBar />
         {serverId === "dm" ? (
           <>
             <DmBar />
             <div className="flex min-w-0 flex-1 flex-col">
-              <div className="bg-background border-b border-border h-[10%] flex items-center w-full px-4 justify-between">
+              <div className="bg-background border-border flex h-[10%] w-full items-center justify-between border-b px-4">
                 {dmContact ? (
                   <div className="flex items-center gap-2">
-                    <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-muted/80 text-xs font-semibold text-foreground">
+                    <span className="bg-brand-muted/80 text-foreground relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
                       {getInitials(dmContact.username) ?? "?"}
-                      <span className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background ${dmContact.status === "online" ? "bg-green-500" :
-                        dmContact.status === "away" ? "bg-yellow-500" :
-                          dmContact.status === "busy" ? "bg-red-500" : "bg-gray-400"
-                        }`} />
+                      <span
+                        className={`border-background absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 ${
+                          dmContact.status === "online"
+                            ? "bg-green-500"
+                            : dmContact.status === "away"
+                              ? "bg-yellow-500"
+                              : dmContact.status === "busy"
+                                ? "bg-red-500"
+                                : "bg-gray-400"
+                        }`}
+                      />
                     </span>
-                    <span className="text-sm font-semibold">{dmContact.username}</span>
+                    <span className="text-sm font-semibold">
+                      {dmContact.username}
+                    </span>
                   </div>
                 ) : (
-                  <h2 className="text-lg font-semibold">
+                  <h1 className="text-lg font-semibold">
                     Bienvenue{username ? `, ${username}` : ""} !
-                  </h2>
+                  </h1>
                 )}
                 <UserControls />
               </div>
               <DmSection />
             </div>
           </>
-
         ) : (
           <>
             <ChannelBar />
@@ -131,28 +144,36 @@ export default function DashboardShell() {
         )}
       </div>
 
-
       {/* Mobile  */}
       <div className="flex h-screen flex-col overflow-hidden md:hidden">
         {!serverId && (
           <div className="flex h-full w-full flex-col">
-            <header className="flex shrink-0 items-center justify-between border-b border-border bg-background px-3 py-2">
+            <header className="border-border bg-background flex shrink-0 items-center justify-between border-b px-3 py-2">
               <Link href="/dashboard" aria-label="Accueil">
-                <Image src="/images/logo.png" alt="Epichat" width={96} height={96} className="rounded-lg object-cover" />
+                <Image
+                  src="/images/logo.png"
+                  alt="Epichat"
+                  width={96}
+                  height={96}
+                  className="rounded-lg object-cover"
+                />
               </Link>
 
               <UserControls />
             </header>
             <div className="min-h-0 flex-1">
-              <ServerBar className="w-full min-w-0 max-w-none" />
+              <ServerBar className="w-full max-w-none min-w-0" />
             </div>
           </div>
         )}
 
         {serverId === "dm" && !channelId && (
           <div className="flex h-full w-full flex-col">
-            <header className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-background px-3 py-2">
-              <Link href="/dashboard" className="text-sm font-medium text-brand hover:underline flex items-center gap-2">
+            <header className="border-border bg-background flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2">
+              <Link
+                href="/dashboard"
+                className="text-brand flex items-center gap-2 text-sm font-medium hover:underline"
+              >
                 <ArrowLeftIcon className="h-4 w-4" />
               </Link>
               <UserControls />
@@ -165,22 +186,34 @@ export default function DashboardShell() {
 
         {serverId === "dm" && channelId && (
           <div className="flex h-full w-full flex-col">
-            <header className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-background px-3 py-2">
+            <header className="border-border bg-background flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2">
               <div className="flex items-center gap-2">
-                <Link href="/dashboard/dm" className="text-sm font-medium text-brand hover:underline flex items-center gap-2">
+                <Link
+                  href="/dashboard/dm"
+                  className="text-brand flex items-center gap-2 text-sm font-medium hover:underline"
+                >
                   <ArrowLeftIcon className="h-4 w-4" />
                   Retour
                 </Link>
                 {dmContact && (
                   <div className="flex items-center gap-2">
-                    <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-muted/80 text-xs font-semibold text-foreground">
+                    <span className="bg-brand-muted/80 text-foreground relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
                       {getInitials(dmContact.username) ?? "?"}
-                      <span className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background ${dmContact.status === "online" ? "bg-green-500" :
-                        dmContact.status === "away" ? "bg-yellow-500" :
-                          dmContact.status === "busy" ? "bg-red-500" : "bg-gray-400"
-                        }`} />
+                      <span
+                        className={`border-background absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 ${
+                          dmContact.status === "online"
+                            ? "bg-green-500"
+                            : dmContact.status === "away"
+                              ? "bg-yellow-500"
+                              : dmContact.status === "busy"
+                                ? "bg-red-500"
+                                : "bg-gray-400"
+                        }`}
+                      />
                     </span>
-                    <span className="text-sm font-semibold">{dmContact.username}</span>
+                    <span className="text-sm font-semibold">
+                      {dmContact.username}
+                    </span>
                   </div>
                 )}
               </div>
@@ -193,11 +226,13 @@ export default function DashboardShell() {
           </div>
         )}
 
-
         {serverId && serverId !== "dm" && !channelId && (
           <div className="flex h-full w-full flex-col">
-            <header className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-background px-3 py-2">
-              <Link href="/dashboard" className="text-sm font-medium text-brand hover:underline flex items-center gap-2 hover:cursor-pointer">
+            <header className="border-border bg-background flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2">
+              <Link
+                href="/dashboard"
+                className="text-brand flex items-center gap-2 text-sm font-medium hover:cursor-pointer hover:underline"
+              >
                 <ArrowLeftIcon className="h-4 w-4" />
                 Retour
               </Link>
@@ -210,18 +245,20 @@ export default function DashboardShell() {
         )}
         {serverId && serverId !== "dm" && channelId && (
           <div className="flex h-full w-full flex-col">
-            <header className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-background px-3 py-2">
-              <Link href={`/dashboard/${serverId}`} className="text-sm font-medium text-brand hover:underline flex items-center gap-2 hover:cursor-pointer">
+            <header className="border-border bg-background flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2">
+              <Link
+                href={`/dashboard/${serverId}`}
+                className="text-brand flex items-center gap-2 text-sm font-medium hover:cursor-pointer hover:underline"
+              >
                 <ArrowLeftIcon className="h-4 w-4" />
                 Retour
               </Link>
               <button
                 type="button"
                 onClick={() => setShowMembers(true)}
-                className="rounded-lg p-1.5 hover:bg-brand-muted/10 transition-colors"
+                className="hover:bg-brand-muted/10 rounded-lg p-1.5 transition-colors"
               >
-                <Users className="h-5 w-5 text-foreground" />
-                
+                <Users className="text-foreground h-5 w-5" />
               </button>
             </header>
             <UserBar />
@@ -234,16 +271,14 @@ export default function DashboardShell() {
                   className="fixed inset-0 z-40 bg-black/40"
                   onClick={() => setShowMembers(false)}
                 />
-                <div className="fixed inset-y-0 right-0 z-50 w-72 overflow-auto bg-background shadow-xl">
+                <div className="bg-background fixed inset-y-0 right-0 z-50 w-72 overflow-auto shadow-xl">
                   <MemberSection />
                 </div>
               </>
             )}
           </div>
         )}
-
-
-      </div >
-    </>
+      </div>
+    </main>
   );
 }

@@ -32,7 +32,7 @@ export default function ChannelList({
 
   if (!serverId) {
     return (
-      <p className="px-2 py-3 text-sm text-slate-500">
+      <p className="px-2 py-3 text-sm text-slate-600">
         {t("channels.selectServer")}
       </p>
     );
@@ -40,9 +40,7 @@ export default function ChannelList({
 
   if (loading) {
     return (
-      <p className="px-2 py-3 text-sm text-slate-500">
-        {t("status.loading")}
-      </p>
+      <p className="px-2 py-3 text-sm text-slate-600">{t("status.loading")}</p>
     );
   }
 
@@ -51,10 +49,8 @@ export default function ChannelList({
   return (
     <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
       {isEmpty ? (
-        <p className="px-2 py-3 text-sm text-slate-500">
-          {query
-            ? t("channels.noResults", { query })
-            : t("channels.empty")}
+        <p className="px-2 py-3 text-sm text-slate-600">
+          {query ? t("channels.noResults", { query }) : t("channels.empty")}
         </p>
       ) : (
         <ul className="space-y-1">
@@ -83,9 +79,7 @@ export default function ChannelList({
                   </Link>
 
                   <button
-                    onClick={() =>
-                      setMenuFor(isMenuOpen ? null : ch.id)
-                    }
+                    onClick={() => setMenuFor(isMenuOpen ? null : ch.id)}
                     className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 hover:bg-white/70 hover:text-slate-700"
                   >
                     <Settings className="h-4 w-4" />
