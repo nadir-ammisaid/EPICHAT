@@ -11,7 +11,6 @@ export const presenceSubscribers = new Set<(map: Map<string, string>) => void>()
 
 function setupPresenceListener(s: Socket) {
   if (presenceListenerSetup) {
-    console.warn("[socket] setupPresenceListener: déjà setup, skip");
     return;
   }
   presenceListenerSetup = true;
@@ -25,13 +24,11 @@ function setupPresenceListener(s: Socket) {
       globalPresenceMap.set(uid, status);
     }
     presenceSubscribers.forEach((cb) => cb(new Map(globalPresenceMap)));
-    console.log("[socket] presence:snapshot reçu");
   });
 
   s.on("presence:broadcast", (payload: { userId: string; status: string; serverIds: string[] }) => {
     globalPresenceMap.set(payload.userId, payload.status);
     presenceSubscribers.forEach((cb) => cb(new Map(globalPresenceMap)));
-    console.log("[socket] presence:broadcast reçu", payload);
   });
 }
 
@@ -59,9 +56,6 @@ export function getSocket() {
     if (token && currentToken !== token) {
       socket.auth = { token };
       socket.disconnect().connect();
-      console.log("[socket] reconnexion avec nouveau token");
-    } else {
-      console.log("[socket] socket déjà existant, reuse");
     }
     return socket;
   }
@@ -74,7 +68,6 @@ export function getSocket() {
     auth: token ? { token } : undefined,
   });
 
-  console.log("[socket] nouvelle connexion socket.io");
   setupPresenceListener(socket);
   setupUnloadDisconnect(socket);
   return socket;

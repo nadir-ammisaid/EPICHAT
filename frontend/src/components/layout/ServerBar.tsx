@@ -38,7 +38,6 @@ export default function ServerBar({ className = "" }: { className?: string }) {
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteLoading, setInviteLoading] = useState(false);
-  const [inviteError, setInviteError] = useState<string | null>(null);
   const [createdCode, setCreatedCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [serverActionError, setServerActionError] = useState<string | null>(null);
@@ -108,7 +107,6 @@ export default function ServerBar({ className = "" }: { className?: string }) {
 
   const openInviteModal = (serverId?: string) => {
     const id = serverId ?? serverIdFromPath;
-    setInviteError(null);
     setCreatedCode(null);
     setInviteOpen(true);
     if (id) {
@@ -116,9 +114,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
       apiClient
         .request(`/servers/${id}/invites`, { method: "POST" })
         .then((invite: { code: string }) => setCreatedCode(invite.code))
-        .catch((e: Error) =>
-          setInviteError(e instanceof Error ? e.message : "Error")
-        )
+        .catch(() => setCreatedCode(null))
         .finally(() => setInviteLoading(false));
     }
   };

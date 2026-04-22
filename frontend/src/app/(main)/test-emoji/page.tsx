@@ -10,7 +10,6 @@ export default function TestEmojiPage() {
 
   const handleSend = (content: string) => {
     setMessages((prev) => [...prev, content]);
-    console.log("Message sent:", content);
   };
 
   return (
@@ -32,8 +31,8 @@ export default function TestEmojiPage() {
       {/* Message input with emoji picker */}
       <MessageInput
         onSendMessage={handleSend}
-        onTypingStart={() => console.log("Started typing...")}
-        onTypingStop={() => console.log("Stopped typing...")}
+        onTypingStart={() => {}}
+        onTypingStop={() => {}}
         placeholder={t("pages.testEmoji.placeholder")}
       />
     </div>
