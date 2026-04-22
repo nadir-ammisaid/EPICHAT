@@ -1,0 +1,29 @@
+{
+  "name": "epichat-desktop",
+  "version": "0.0.1",
+  "description": "Epichat desktop app (Electron)",
+"author": {
+  "name": "Epichat Team",
+  "email": "contact@epichat.example.com"
+},
+"homepage": "https://epichat.example.com",
+
+  "license": "MIT",
+  "private": true,
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc && node scripts/copy-assets.mjs",
+    "start": "electron .",
+    "dev": "npm run build && npm run start",
+    "dist": "npm run build && electron-builder",
+    "dist:linux": "npm run build && electron-builder --linux",
+    "dist:win": "npm run build && electron-builder --win",
+    "dist:mac": "npm run build && electron-builder --mac"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.39",
+    "electron": "^41.2.2",
+    "electron-builder": "^26.8.1",
+    "typescript": "^5.9.3"
+  }
+}

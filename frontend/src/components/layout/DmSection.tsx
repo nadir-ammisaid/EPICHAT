@@ -59,7 +59,7 @@ useEffect(() => {
 
   if (!conversationId) {
     return (
-      <div className="flex min-h-0 flex-1 flex-col border border-border bg-background">
+      <div className="flex min-h-0 flex-1 flex-col border-border bg-background">
         <div className="flex-1 overflow-y-auto p-4">
           <p className="text-sm text-muted-foreground">
             {t("section.empty")}
