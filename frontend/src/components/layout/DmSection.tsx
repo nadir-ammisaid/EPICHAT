@@ -10,11 +10,13 @@ import { sendDmMessage } from "@/lib/api/dm";
 import { useCurrentUserId } from "@/lib/hooks/useCurrentUserId";
 import { useScrollToBottom } from "@/lib/hooks/useScrollToBottom";
 import { useDmMessages } from "@/lib/hooks/useDmMessages";
+import { useTranslation } from "react-i18next";
 
 export default function DmSection() {
   const pathname = usePathname();
   const conversationId = pathname?.split("/").filter(Boolean)[2] ?? null;
   const myUserId = useCurrentUserId();
+  const { t } = useTranslation("dm");
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -60,7 +62,7 @@ useEffect(() => {
       <div className="flex min-h-0 flex-1 flex-col border border-border bg-background">
         <div className="flex-1 overflow-y-auto p-4">
           <p className="text-sm text-muted-foreground">
-            Selectionnez une conversation pour commencer à chatter.
+            {t("section.empty")}
           </p>
         </div>
       </div>
@@ -70,7 +72,7 @@ useEffect(() => {
   return (
     <div className="flex min-h-0 flex-1 flex-col border border-border bg-background">
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
-        {loading && <p className="text-sm">Loading…</p>}
+        {loading && <p className="text-sm">{t("loading")}</p>}
         {error && <p className="text-red-500 text-sm">{error}</p>}
         {messages.map((m) => (
           <MessageItem
@@ -110,7 +112,7 @@ useEffect(() => {
           await sendDmMessage(conversationId!, { type: "gif", mediaUrl: gif.gifUrl, content: gif.title });
         }}
         disabled={sending}
-        placeholder="Ecrire un message…"
+        placeholder={t("inputPlaceholder")}
         inputRef={inputRef}
       />
     </div>

@@ -19,10 +19,12 @@ import { useInitializeGlobalPresence } from "@/lib/hooks/useGlobalPresence";
 import { useCurrentUserId } from "@/lib/hooks/useCurrentUserId";
 import getInitials from "@/lib/utils/getInitials";
 import UserControls from "@/components/ui/UserControls";
+import { useTranslation } from "react-i18next";
 
 
 
 export default function DashboardShell() {
+  const { t } = useTranslation(["common", "servers"]);
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -108,7 +110,8 @@ export default function DashboardShell() {
                   </div>
                 ) : (
                   <h2 className="text-lg font-semibold">
-                    Bienvenue{username ? `, ${username}` : ""} !
+                    {t("chat.userWelcome", { ns: "common" })}
+                    {username ? `, ${username}` : ""} !
                   </h2>
                 )}
                 <UserControls />
@@ -137,8 +140,8 @@ export default function DashboardShell() {
         {!serverId && (
           <div className="flex h-full w-full flex-col">
             <header className="flex shrink-0 items-center justify-between border-b border-border bg-background px-3 py-2">
-              <Link href="/dashboard" aria-label="Accueil">
-                <Image src="/images/logo.png" alt="Epichat" width={96} height={96} className="rounded-lg object-cover" />
+              <Link href="/dashboard" aria-label={t("homeAria", { ns: "servers" })}>
+                <Image src="/images/logo.png" alt={t("logoAlt", { ns: "servers" })} width={96} height={96} className="rounded-lg object-cover" />
               </Link>
 
               <UserControls />
@@ -169,7 +172,7 @@ export default function DashboardShell() {
               <div className="flex items-center gap-2">
                 <Link href="/dashboard/dm" className="text-sm font-medium text-brand hover:underline flex items-center gap-2">
                   <ArrowLeftIcon className="h-4 w-4" />
-                  Retour
+                  {t("navigation.back", { ns: "common" })}
                 </Link>
                 {dmContact && (
                   <div className="flex items-center gap-2">
@@ -199,7 +202,7 @@ export default function DashboardShell() {
             <header className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-background px-3 py-2">
               <Link href="/dashboard" className="text-sm font-medium text-brand hover:underline flex items-center gap-2 hover:cursor-pointer">
                 <ArrowLeftIcon className="h-4 w-4" />
-                Retour
+                {t("navigation.back", { ns: "common" })}
               </Link>
               <UserControls />
             </header>
@@ -213,7 +216,7 @@ export default function DashboardShell() {
             <header className="flex shrink-0 items-center justify-between gap-2 border-b border-border bg-background px-3 py-2">
               <Link href={`/dashboard/${serverId}`} className="text-sm font-medium text-brand hover:underline flex items-center gap-2 hover:cursor-pointer">
                 <ArrowLeftIcon className="h-4 w-4" />
-                Retour
+                {t("navigation.back", { ns: "common" })}
               </Link>
               <button
                 type="button"

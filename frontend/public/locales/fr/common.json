@@ -5,7 +5,9 @@
     "home": "Accueil",
     "about": "À propos",
     "settings": "Paramètres",
-    "logout": "Se déconnecter"
+    "logout": "Se déconnecter",
+    "openMenu": "Ouvrir le menu",
+    "back": "Retour"
   },
   "buttons": {
     "login": "Se connecter",
@@ -28,19 +30,53 @@
   "chat": {
     "channelWelcome": "Bienvenue dans ce canal de discussion",
     "userWelcome": "Bienvenue",
-    "selectCanal": "Sélectionnez un canal pour commencer à chatter"
+    "selectCanal": "Sélectionnez un canal pour commencer à chatter",
+    "activeChannel": "Canal actif : #{{name}}",
+    "createdOn": "créé le {{date}}",
+    "typingOne": "{{name}} est en train d'écrire…",
+    "typingMany": "{{names}} sont en train d'écrire…",
+    "edited": "(modifié)",
+    "deleted": "(supprimé)"
   },
   "channels": {
   "selectServer": "Sélectionnez un serveur pour afficher les canaux.",
   "empty": "Aucun canal pour le moment.",
+  "searchPlaceholder": "Rechercher un canal",
+  "noResults": "Aucun canal trouvé pour \"{{query}}\".",
   "rename": "Renommer",
   "delete": "Supprimer",
+  "footerCount": "{{count}} canal(aux)",
+  "actions": {
+    "rename": "Renommer",
+    "delete": "Supprimer"
+  },
   "header": {
     "serverLabel": "Serveur : {{name}}",
     "noServer": "Sélectionnez un serveur",
     "listTitle": "Canaux",
     "create": "Créer un canal",
     "permissionError": "Seul le propriétaire peut gérer les canaux"
+  },
+  "modals": {
+    "create": {
+      "title": "Nouveau canal",
+      "nameLabel": "Nom du canal",
+      "namePlaceholder": "Nom du canal",
+      "submit": "Créer",
+      "loading": "Création…"
+    },
+    "rename": {
+      "title": "Renommer le canal",
+      "nameLabel": "Nouveau nom",
+      "submit": "Renommer",
+      "loading": "En cours…"
+    },
+    "delete": {
+      "title": "Supprimer le canal",
+      "confirmText": "Tu es sûr de vouloir supprimer",
+      "submit": "Supprimer",
+      "loading": "Suppression…"
+    }
   }
 },
   "footer": {
@@ -108,6 +144,7 @@
       "notificationsPermissionDefault": "Non demandées",
       "notificationsAllowButton": "Autoriser les notifications",
       "notificationsNotSupported": "Les notifications ne sont pas prises en charge par ce navigateur.",
+      "changeAvatar": "Changer l'avatar",
       "deleteTitle": "Supprimer le compte ?",
       "deleteNotice": "La suppression du compte est définitive. Toutes vos données seront effacées.",
       "deleteWarning": "Cette action est irréversible. Toutes vos données (serveurs, messages, etc.) seront définitivement supprimées.",
@@ -119,6 +156,27 @@
       "title": "Test du support Emoji",
       "empty": "Envoyez un message avec des emojis...",
       "placeholder": "Tapez un message avec des emojis..."
+    },
+    "servers": {
+      "loading": "Chargement...",
+      "error": "Une erreur est survenue."
     }
+  },
+  "auth": {
+    "checkingSession": "Vérification de la session…"
+  },
+  "messageInput": {
+    "openGifSearch": "Ouvrir la recherche GIF",
+    "openEmojiPicker": "Ouvrir le sélecteur d'emojis",
+    "placeholder": "Ecrire un message...",
+    "send": "Envoyer",
+    "gifModalTitle": "Rechercher un GIF",
+    "gifSearchPlaceholder": "Rechercher sur Giphy...",
+    "preview": "Prévisualisation",
+    "empty": "Aucun GIF pour le moment.",
+    "loadMore": "Charger plus",
+    "sendGif": "Envoyer le GIF",
+    "searchError": "Erreur lors de la recherche de GIF",
+    "sendError": "Erreur lors de l'envoi du GIF"
   }
 }

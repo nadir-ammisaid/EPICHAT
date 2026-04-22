@@ -5,7 +5,9 @@
     "home": "Home",
     "about": "About",
     "settings": "Settings",
-    "logout": "Log out"
+    "logout": "Log out",
+    "openMenu": "Open menu",
+    "back": "Back"
   },
   "buttons": {
     "login": "Log in",
@@ -28,20 +30,54 @@
   "chat": {
     "channelWelcome": "Welcome to this channel",
     "userWelcome": "Welcome",
-    "selectCanal": "Select a chanel to start chatting",
-    "channelListMessage": "Select a channel to start chatting"
+    "selectCanal": "Select a channel to start chatting",
+    "channelListMessage": "Select a channel to start chatting",
+    "activeChannel": "Active channel: #{{name}}",
+    "createdOn": "created on {{date}}",
+    "typingOne": "{{name}} is typing…",
+    "typingMany": "{{names}} are typing…",
+    "edited": "(edited)",
+    "deleted": "(deleted)"
   },
   "channels": {
   "selectServer": "Select a server to view channels.",
   "empty": "No channels yet.",
+  "searchPlaceholder": "Search for a channel",
+  "noResults": "No channel found for \"{{query}}\".",
   "rename": "Rename",
   "delete": "Delete",
+  "footerCount": "{{count}} channel(s)",
+  "actions": {
+    "rename": "Rename",
+    "delete": "Delete"
+  },
   "header": {
     "serverLabel": "Server: {{name}}",
     "noServer": "Select a server",
     "listTitle": "Channels",
     "create": "Create channel",
     "permissionError": "Only the owner can manage channels"
+  },
+  "modals": {
+    "create": {
+      "title": "New channel",
+      "nameLabel": "Channel name",
+      "namePlaceholder": "Channel name",
+      "submit": "Create",
+      "loading": "Creating…"
+    },
+    "rename": {
+      "title": "Rename channel",
+      "nameLabel": "New name",
+      "submit": "Rename",
+      "loading": "Updating…"
+    },
+    "delete": {
+      "title": "Delete channel",
+      "confirmText": "Are you sure you want to delete",
+      "submit": "Delete",
+      "loading": "Deleting…"
+    }
   }
 },
   "footer": {
@@ -91,7 +127,7 @@
       "back": "Back",
       "title": "My profile",
       "avatarHint": "Click the avatar to generate another one",
-      "infoTitle": "Informations",
+      "infoTitle": "Information",
       "emailLabel": "Email",
       "usernameLabel": "Username",
       "usernamePlaceholder": "My nickname",
@@ -109,6 +145,7 @@
       "notificationsPermissionDefault": "Not requested",
       "notificationsAllowButton": "Allow notifications",
       "notificationsNotSupported": "Notifications are not supported by this browser.",
+      "changeAvatar": "Change avatar",
       "deleteTitle": "Delete account?",
       "deleteNotice": "Account deletion is permanent. All your data will be erased.",
       "deleteWarning": "This action is irreversible. All your data (servers, messages, etc.) will be permanently deleted.",
@@ -120,6 +157,27 @@
       "title": "Emoji support test",
       "empty": "Send a message with emojis...",
       "placeholder": "Type a message with emojis..."
+    },
+    "servers": {
+      "loading": "Loading...",
+      "error": "An error occurred."
     }
+  },
+  "auth": {
+    "checkingSession": "Checking session…"
+  },
+  "messageInput": {
+    "openGifSearch": "Open GIF search",
+    "openEmojiPicker": "Open emoji picker",
+    "placeholder": "Write a message...",
+    "send": "Send",
+    "gifModalTitle": "Search for a GIF",
+    "gifSearchPlaceholder": "Search on Giphy...",
+    "preview": "Preview",
+    "empty": "No GIFs for now.",
+    "loadMore": "Load more",
+    "sendGif": "Send GIF",
+    "searchError": "Failed to search GIFs",
+    "sendError": "Failed to send GIF"
   }
 }

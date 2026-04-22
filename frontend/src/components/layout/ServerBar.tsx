@@ -166,12 +166,12 @@ export default function ServerBar({ className = "" }: { className?: string }) {
         className={`bg-background border-border flex h-full shrink-0 flex-col items-center justify-start border p-2 ${className}`}
       >
         <div className="mt-2 flex w-full flex-col items-center gap-2">
-          <Link href="/dashboard" className="hidden md:flex shrink-0" aria-label="Accueil">
-            <Image src="/images/logo.png" alt="Epichat" width={100} height={100} className="rounded-lg object-cover" />
+          <Link href="/dashboard" className="hidden md:flex shrink-0" aria-label={t("homeAria")}>
+            <Image src="/images/logo.png" alt={t("logoAlt")} width={100} height={100} className="rounded-lg object-cover" />
           </Link>
           <div className="flex w-full items-center gap-2 mt-2 mb-2">
           <hr className="border-border-muted flex-1" />
-          <span className="text-muted-foreground text-lg font-bold uppercase">Messages</span>
+          <span className="text-muted-foreground text-lg font-bold uppercase">{t("messages")}</span>
           <hr className="border-border-muted flex-1" />
         </div>
           <Link
@@ -274,8 +274,8 @@ export default function ServerBar({ className = "" }: { className?: string }) {
             type="button"
             onClick={() => setCreateOpen(true)}
             className="hover:bg-brand-hover bg-brand text-background w-full items-center justify-center gap-2 transition-colors hover:cursor-pointer"
-            title="Créer un serveur"
-            aria-label="Créer un serveur"
+            title={t("createServerAria")}
+            aria-label={t("createServerAria")}
           >
             {t("actions.create")}
           </Button>
