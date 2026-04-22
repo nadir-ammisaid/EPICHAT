@@ -1,70 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
-import { registerSchema } from "@/lib/validation/auth";
+import { useRegisterForm } from "@/lib/hooks/useRegisterForm";
+import { useTranslation } from "react-i18next";
 
 export default function RegisterForm() {
-  const router = useRouter();
-  const [error, setError] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
-
-    const formData = new FormData(e.currentTarget);
-    const raw = {
-      email: formData.get("email") as string,
-      username: formData.get("username") as string,
-      password: formData.get("password") as string,
-      confirmPassword: formData.get("confirmPassword") as string,
-    };
-
-    const result = registerSchema.safeParse(raw);
-    if (!result.success) {
-      const firstIssue = result.error.issues[0];
-      setError(firstIssue.message);
-      setIsLoading(false);
-      return;
-    }
-
-    const { email, username, password } = result.data;
-
-    try {
-      const API_URL =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-      const res = await fetch(`${API_URL}/auth/signup`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, username, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.message || "Erreur lors de l'inscription");
-        setIsLoading(false);
-        return;
-      }
-
-      router.push("/login");
-    } catch {
-      setError("Erreur lors de l'inscription");
-      setIsLoading(false);
-    }
-  };
+  const { error, isLoading, handleSubmit } = useRegisterForm();
+  const { t } = useTranslation("common");
 
   return (
     <div className="flex flex-col items-center justify-center gap-4 py-14">
-      <h1 className="text-4xl font-bold">Bienvenue !</h1>
-      <h2 className="h5">Inscrivez-vous</h2>
+      <h1 className="text-4xl font-bold">{t("pages.register.title")}</h1>
+      <h2 className="h5">{t("pages.register.subtitle")}</h2>
       <form
         onSubmit={handleSubmit}
         className="flex w-full max-w-md flex-col items-center justify-center gap-4"
@@ -73,7 +22,7 @@ export default function RegisterForm() {
           type="email"
           id="email"
           name="email"
-          placeholder="Email"
+          placeholder={t("pages.register.emailPlaceholder")}
           size="md"
           fullWidth
           required
@@ -82,7 +31,7 @@ export default function RegisterForm() {
           type="text"
           id="username"
           name="username"
-          placeholder="Nom d'utilisateur"
+          placeholder={t("pages.register.usernamePlaceholder")}
           size="md"
           fullWidth
           required
@@ -93,7 +42,7 @@ export default function RegisterForm() {
           type="password"
           id="password"
           name="password"
-          placeholder="Mot de passe"
+          placeholder={t("pages.register.passwordPlaceholder")}
           size="md"
           fullWidth
           required
@@ -103,7 +52,7 @@ export default function RegisterForm() {
           type="password"
           id="confirmPassword"
           name="confirmPassword"
-          placeholder="Confirmation du mot de passe"
+          placeholder={t("pages.register.confirmPasswordPlaceholder")}
           size="md"
           fullWidth
           required
@@ -117,17 +66,17 @@ export default function RegisterForm() {
           fullWidth
           disabled={isLoading}
         >
-          {isLoading ? "Inscription..." : "Inscrire"}
+          {isLoading ? t("pages.register.loading") : t("pages.register.cta")}
         </Button>
       </form>
 
       <p>
-        Déjà un compte ?{" "}
+        {t("pages.register.hasAccount")}{" "}
         <Link
           href="/login"
           className="text-brand underline-offset-2 hover:underline"
         >
-          Connectez-vous
+          {t("pages.register.goToLogin")}
         </Link>
       </p>
     </div>

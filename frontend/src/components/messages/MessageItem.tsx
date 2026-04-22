@@ -1,11 +1,11 @@
-// Cleaned version without merge artefacts
 "use client";
 
-import React, { useState } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { EmojiPicker } from "@/components/ui/EmojiPicker";
 import { Check, Pencil, Trash2, X, SmilePlus } from "lucide-react";
 import { formatDate } from "@/lib/utils/formatDate";
 import type { MessageType } from "@/lib/types/message";
+import { useTranslation } from "react-i18next";
 
 type MessageItemProps = {
   id: string;
@@ -25,7 +25,7 @@ type MessageItemProps = {
   onEditConfirm: () => void;
   onEditTextChange: (value: string) => void;
   onDelete: () => void;
-  renderTextContent?: (content: string) => React.ReactNode;
+  renderTextContent?: (content: string) => ReactNode;
   reactions?: { emoji: string; count: number; userIds: string[] }[];
   myUserId?: string;
   onToggleReaction?: (emoji: string) => void;
@@ -53,10 +53,32 @@ export function MessageItem({
   myUserId,
   onToggleReaction,
 }: MessageItemProps) {
+  const { t } = useTranslation("common");
   const wasEdited = updatedAt && updatedAt !== createdAt && !deletedAt;
   const [showQuickPicker, setShowQuickPicker] = useState(false);
   const [showFullPicker, setShowFullPicker] = useState(false);
   const QUICK_EMOJIS = ["👍", "❤️", "😂", "😮", "🔥"];
+  const emojiButtonRef = useRef<HTMLButtonElement | null>(null);
+  const [openDownward, setOpenDownward] = useState(false);
+  const [showActions, setShowActions] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!showActions) return;
+    const handleOutside = (e: Event) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowActions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutside);
+    document.addEventListener("touchstart", handleOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("touchstart", handleOutside);
+    };
+  }, [showActions]);
+
+
 
   if (type === "system_new_member") {
     return (
@@ -69,14 +91,17 @@ export function MessageItem({
   }
 
   return (
-    <div className="group hover:bg-muted/40 mb-2 flex items-start gap-1 px-1 py-1">
+    <div
+      ref={containerRef}
+      className="group hover:bg-muted/40 mb-2 flex items-start gap-1 px-1 py-1"
+      onClick={() => setShowActions(true)}>
       {/* Actions colonne gauche */}
       <div className="flex w-16 shrink-0 justify-start gap-0.5">
         {canEdit && !isEditing ? (
           <button
             type="button"
-            className="hover:bg-background/70 mt-0.5 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-            onClick={onEditStart}
+            className={`hover:bg-background/70 mt-0.5 rounded p-0.5 transition-opacity ${showActions ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+            onClick={() => { if (!showActions) return; onEditStart(); }}
           >
             <Pencil className="h-4 w-4 opacity-70 hover:opacity-100" />
           </button>
@@ -89,8 +114,8 @@ export function MessageItem({
         {canDelete && !isEditing ? (
           <button
             type="button"
-            className="hover:bg-background/70 mt-0.5 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-            onClick={onDelete}
+            className={`hover:bg-background/70 mt-0.5 rounded p-0.5 transition-opacity ${showActions ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+            onClick={() => { if (!showActions) return; onDelete(); }}
           >
             <Trash2 className="h-4 w-4 opacity-70 hover:opacity-100" />
           </button>
@@ -103,14 +128,22 @@ export function MessageItem({
         {!isEditing && onToggleReaction && (
           <div className="relative mt-0.5">
             <button
+              ref={emojiButtonRef}
               type="button"
-              className="hover:bg-background/70 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-              onClick={() => setShowQuickPicker((v) => !v)}
+              className={`hover:bg-background/70 mt-0.5 rounded p-0.5 transition-opacity ${showActions ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+              onClick={() => {
+                if (!showActions) return;
+                const top = emojiButtonRef.current?.getBoundingClientRect().top ?? 999;
+                setOpenDownward(top < 300);
+                setShowQuickPicker((v) => !v);
+              }}
+
             >
+
               <SmilePlus className="h-4 w-4 opacity-70 hover:opacity-100" />
             </button>
             {showQuickPicker && (
-              <div className="border-border bg-background absolute bottom-full left-0 z-10 mb-1 flex gap-1 rounded-lg border p-1 shadow-lg">
+              <div className={`border-border bg-background absolute left-0 z-10 flex gap-1 rounded-lg border p-1 shadow-lg ${openDownward ? "top-full mt-1" : "bottom-full mb-1"}`}>
                 {QUICK_EMOJIS.map((e) => (
                   <button
                     key={e}
@@ -143,6 +176,7 @@ export function MessageItem({
                 onToggleReaction(emoji);
                 setShowFullPicker(false);
               }}
+              openDownward={openDownward}
             />
           </div>
         )}
@@ -154,7 +188,7 @@ export function MessageItem({
           <span>{authorName}</span>
           <span>-</span>
           <span>{formatDate(createdAt)}</span>
-          {wasEdited && <span className="italic">(modifié)</span>}
+          {wasEdited && <span className="italic">{t("chat.edited")}</span>}
         </div>
 
         {isEditing ? (
@@ -187,7 +221,7 @@ export function MessageItem({
         ) : (
           <div className="text-sm leading-5">
             {deletedAt ? (
-              <i className="opacity-60">(supprimé)</i>
+              <i className="opacity-60">{t("chat.deleted")}</i>
             ) : type === "gif" && mediaUrl ? (
               <a
                 href={mediaUrl}
@@ -213,7 +247,19 @@ export function MessageItem({
 
         {reactions && reactions.length > 0 && (
           <div className="mt-1 flex flex-wrap gap-1">
-            {reactions.map((r) => {
+            {Object.values(
+              reactions.reduce((acc, r) => {
+                if (acc[r.emoji]) {
+                  acc[r.emoji] = {
+                    ...acc[r.emoji],
+                    userIds: [...(acc[r.emoji].userIds ?? []), ...(r.userIds ?? [])],
+                  };
+                } else {
+                  acc[r.emoji] = r;
+                }
+                return acc;
+              }, {} as Record<string, typeof reactions[0]>)
+            ).map((r) => {
               const reacted = myUserId
                 ? (r.userIds ?? []).includes(myUserId)
                 : false;
@@ -222,11 +268,10 @@ export function MessageItem({
                   key={r.emoji}
                   type="button"
                   onClick={() => onToggleReaction?.(r.emoji)}
-                  className={`flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-xs transition-colors ${
-                    reacted
-                      ? "border-brand bg-brand/20 text-brand"
-                      : "border-border bg-muted hover:bg-muted/70"
-                  }`}
+                  className={`flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-xs transition-colors ${reacted
+                    ? "border-brand bg-brand/20 text-brand"
+                    : "border-border bg-muted hover:bg-muted/70"
+                    }`}
                 >
                   <span>{r.emoji}</span>
                   <span>{r.count}</span>

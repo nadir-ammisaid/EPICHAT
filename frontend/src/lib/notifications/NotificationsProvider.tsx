@@ -22,11 +22,12 @@ import { getConversations, getConversationMessages } from "@/lib/api/dm";
 import { getChannelDetails } from "@/lib/api/channels";
 import { getServerDetails } from "@/lib/api/servers";
 
-const DEBUG_NOTIF = true;
+const DEBUG_NOTIF = false;
 const log = (...args: unknown[]) =>
   DEBUG_NOTIF && console.log("[Notifications]", ...args);
 
 const MAX_BODY_LENGTH = 80;
+const MAX_NOTIFICATIONS = 20;
 const DM_NOTIFIED_IDS_STORAGE_KEY = "epichat:notifiedDmMessageIds";
 
 function snippet(text: string): string {
@@ -34,7 +35,11 @@ function snippet(text: string): string {
   return t.length <= MAX_BODY_LENGTH ? t : t.slice(0, MAX_BODY_LENGTH) + "…";
 }
 
-function isMention(content: string, username: string): boolean {
+function hasTousMention(content: string): boolean {
+  return /@Tous\b/i.test(content);
+}
+
+function hasUserMention(content: string, username: string): boolean {
   if (!username) return false;
   const regex = new RegExp(
     `@${username.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
@@ -42,6 +47,11 @@ function isMention(content: string, username: string): boolean {
   );
   return regex.test(content);
 }
+
+function isMentionForUser(content: string, username: string | null): boolean {
+  return hasTousMention(content) || (!!username && hasUserMention(content, username));
+}
+
 
 type NotificationsContextValue = {
   hasUnread: boolean;
@@ -63,6 +73,14 @@ type NotificationItem = {
   href?: string;
   createdAt: string;
 };
+
+function prependUniqueNotification(
+  prev: NotificationItem[],
+  next: NotificationItem,
+): NotificationItem[] {
+  const withoutDuplicate = prev.filter((item) => item.id !== next.id);
+  return [next, ...withoutDuplicate].slice(0, MAX_NOTIFICATIONS);
+}
 
 function readNotifiedDmIds(): Set<string> {
   if (typeof window === "undefined") return new Set();
@@ -100,6 +118,43 @@ export function NotificationsProvider({
   const myUsernameRef = useRef(myUsername);
   const myUserIdRef = useRef(myUserId);
   const notifiedDmIdsRef = useRef<Set<string>>(new Set());
+  const meRequestRef = useRef<Promise<{ id: string | null; username: string | null }> | null>(null);
+
+  const ensureMeLoaded = () => {
+    if (myUserIdRef.current || myUsernameRef.current) {
+      return Promise.resolve({
+        id: myUserIdRef.current,
+        username: myUsernameRef.current,
+      });
+    }
+
+    if (!meRequestRef.current) {
+      meRequestRef.current = apiClient
+        .request("/me")
+        .then((data: { id?: string; username?: string }) => {
+          const id = data?.id ?? null;
+          const username = data?.username ?? null;
+          setMyUserId(id);
+          setMyUsername(username);
+          myUserIdRef.current = id;
+          myUsernameRef.current = username;
+          log("ensureMeLoaded /me", { id, username });
+          return { id, username };
+        })
+        .catch((err) => {
+          log("ensureMeLoaded /me error", err);
+          return {
+            id: myUserIdRef.current,
+            username: myUsernameRef.current,
+          };
+        })
+        .finally(() => {
+          meRequestRef.current = null;
+        });
+    }
+
+    return meRequestRef.current;
+  };
 
   useEffect(() => {
     channelIdRef.current = channelId;
@@ -176,7 +231,6 @@ export function NotificationsProvider({
 
               setHasUnread(true);
               setNotifications((prev) => {
-                if (prev.some((n) => n.id === latest.id)) return prev;
                 const next: NotificationItem = {
                   id: latest.id,
                   type: "dm",
@@ -185,7 +239,7 @@ export function NotificationsProvider({
                   href: `/dashboard/dm/${conv.id}`,
                   createdAt: new Date().toISOString(),
                 };
-                return [next, ...prev].slice(0, 20);
+                return prependUniqueNotification(prev, next);
               });
 
               const prefs = getNotificationPreferences();
@@ -214,73 +268,90 @@ export function NotificationsProvider({
     log("Listeners setup (once)");
 
     const onMessageNew = (message: MessagePayload) => {
+      void (async () => {
       const currentChannelId = channelIdRef.current;
-      const currentMyUsername = myUsernameRef.current;
+      const content = message.content || "";
+
+      let currentMyUsername = myUsernameRef.current;
+      let currentMyUserId = myUserIdRef.current;
+      if (!currentMyUsername || !currentMyUserId) {
+        const me = await ensureMeLoaded();
+        if (!currentMyUsername) currentMyUsername = me.username;
+        if (!currentMyUserId) currentMyUserId = me.id;
+      }
+
       const isCurrentChannel =
         currentChannelId && message.channelId === currentChannelId;
       const prefs = getNotificationPreferences();
+      const isOwnMessage =
+        !!currentMyUserId && message.authorId === currentMyUserId;
+
+      const isMentionNotification =
+        !isOwnMessage &&
+        prefs.mentions &&
+        isMentionForUser(content, currentMyUsername);
 
       log("message:new reçu", {
         messageChannelId: message.channelId,
         currentChannelId,
         isCurrentChannel,
+        currentMyUsername,
+        currentMyUserId,
+        isOwnMessage,
+        isMentionNotification,
         prefs,
         author: message.author?.username,
       });
 
-      if (!isCurrentChannel) {
-        const authorName = message.author?.username ?? "Quelqu'un";
-        const body = snippet(message.content || "");
-        const isMentionNotification =
-          currentMyUsername &&
-          isMention(message.content || "", currentMyUsername) &&
-          prefs.mentions;
+      const authorName = message.author?.username ?? "Quelqu'un";
+      const body = snippet(content);
 
-        // Pour les canaux, on ne badge + dropdown QUE pour les mentions
-        if (isMentionNotification) {
-          setHasUnread(true);
-          log("→ setHasUnread(true) (mention)");
+      // Pour les canaux, on ne badge + dropdown QUE pour les mentions.
+      if (isMentionNotification) {
+        setHasUnread(true);
+        log("→ setHasUnread(true) (mention)");
 
-          (async () => {
-            try {
-              const channel = await getChannelDetails(message.channelId);
-              const server = channel.serverId
-                ? await getServerDetails(channel.serverId).catch(() => null)
-                : null;
+        (async () => {
+          try {
+            const channel = await getChannelDetails(message.channelId);
+            const server = channel.serverId
+              ? await getServerDetails(channel.serverId).catch(() => null)
+              : null;
 
-              const title = server
-                ? `Nouvelle mention dans ${server.name}`
-                : `Nouvelle mention dans #${channel.name}`;
+            const title = server
+              ? `Nouvelle mention dans ${server.name}`
+              : `Nouvelle mention dans #${channel.name}`;
 
-              const href =
-                channel.serverId && message.channelId
-                  ? `/dashboard/${channel.serverId}/${message.channelId}`
-                  : undefined;
+            const href =
+              channel.serverId && message.channelId
+                ? `/dashboard/${channel.serverId}/${message.channelId}`
+                : undefined;
 
-              const next: NotificationItem = {
-                id: message.id,
-                type: "channel",
-                title,
-                body: `${authorName}: ${body}`,
-                href,
-                createdAt: new Date().toISOString(),
-              };
+            const next: NotificationItem = {
+              id: message.id,
+              type: "channel",
+              title,
+              body: `${authorName}: ${body}`,
+              href,
+              createdAt: new Date().toISOString(),
+            };
 
-              setNotifications((prev) => [next, ...prev].slice(0, 20));
-            } catch (e) {
-              log("Erreur lors de la récupération des infos canal/serveur", e);
-              const fallback: NotificationItem = {
-                id: message.id,
-                type: "channel",
-                title: "Nouvelle mention",
-                body: `${authorName}: ${body}`,
-                href: undefined,
-                createdAt: new Date().toISOString(),
-              };
-              setNotifications((prev) => [fallback, ...prev].slice(0, 20));
-            }
-          })();
-        }
+            setNotifications((prev) => prependUniqueNotification(prev, next));
+          } catch (e) {
+            log("Erreur lors de la récupération des infos canal/serveur", e);
+            const fallback: NotificationItem = {
+              id: message.id,
+              type: "channel",
+              title: "Nouvelle mention",
+              body: `${authorName}: ${body}`,
+              href: undefined,
+              createdAt: new Date().toISOString(),
+            };
+            setNotifications((prev) =>
+              prependUniqueNotification(prev, fallback),
+            );
+          }
+        })();
       }
 
       if (!prefs.enabled || isCurrentChannel) {
@@ -291,13 +362,9 @@ export function NotificationsProvider({
         return;
       }
 
-      if (
-        currentMyUsername &&
-        isMention(message.content || "", currentMyUsername) &&
-        prefs.mentions
-      ) {
+      if (isMentionNotification) {
         const authorName = message.author?.username ?? "Quelqu'un";
-        const body = snippet(message.content || "");
+        const body = snippet(content);
         log("→ notif mention", authorName);
         showNativeNotification("Tu as été mentionné", {
           body: `${authorName}: ${body}`,
@@ -305,11 +372,18 @@ export function NotificationsProvider({
         });
         return;
       }
+      })();
     };
 
     const onDmMessageNew = (message: DmMessagePayload) => {
-      const userId = myUserIdRef.current;
-      const isOwnMessage = userId && message.authorId === userId;
+      void (async () => {
+      let userId = myUserIdRef.current;
+      if (!userId) {
+        const me = await ensureMeLoaded();
+        userId = me.id;
+      }
+
+      const isOwnMessage = !!userId && message.authorId === userId;
 
       if (!isOwnMessage) {
         notifiedDmIdsRef.current.add(message.id);
@@ -335,7 +409,7 @@ export function NotificationsProvider({
           createdAt: new Date().toISOString(),
         };
 
-        setNotifications((prev) => [next, ...prev].slice(0, 20));
+        setNotifications((prev) => prependUniqueNotification(prev, next));
       }
 
       const prefs = getNotificationPreferences();
@@ -346,6 +420,7 @@ export function NotificationsProvider({
         body: snippet(message.content || ""),
         tag: `dm-${message.conversationId}-${message.id}`,
       });
+      })();
     };
 
     socket.on(SOCKET_EVENTS.MESSAGE_NEW, onMessageNew);

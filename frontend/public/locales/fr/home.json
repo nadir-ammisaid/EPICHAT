@@ -1,0 +1,45 @@
+{
+  "pageTitle": "Epichat - Chat en temps réel",
+  "pageDescription": "Epichat est une application de chat en temps réel pour le projet RTC.",
+  "welcome": "Bienvenue sur Epichat",
+  "hero": {
+    "title": "Discutez en temps réel avec votre équipe",
+    "subtitle": "Créez des salons, échangez des messages instantanés et collaborez efficacement."
+  },
+  "sections": {
+    "roomsTitle": "Vos salons de discussion",
+    "noRooms": "Vous n'avez encore rejoint aucun salon.",
+    "createRoom": "Créer un nouveau salon",
+    "recentMessages": "Derniers messages",
+    "why": {
+      "id": "pourquoi",
+      "title": "Pourquoi EpiChat ?",
+      "description": "Organisez vos échanges par serveurs et canaux, gardez un historique clair, et discutez sans friction en équipe.",
+      "imageAlt": "Pourquoi EpiChat"
+    },
+    "features": {
+      "id": "fonctionnalites",
+      "title": "Fonctionnalités",
+      "description": "Canaux, messages instantanés, organisation simple… tout ce qu’il faut pour un chat moderne et efficace.",
+      "imageAlt": "Fonctionnalités"
+    },
+    "security": {
+      "id": "securite",
+      "title": "Sécurité & accès",
+      "description": "Authentification, routes protégées et contrôle d’accès : vous gardez la main sur qui peut voir et faire quoi.",
+      "imageAlt": "Sécurité"
+    },
+    "forWho": {
+      "id": "pourqui",
+      "title": "Pour qui ?",
+      "description": "Groupes de travail, communautés, projets… dès que vous avez besoin d’échanger vite et de rester organisé.",
+      "imageAlt": "Pour qui"
+    }
+  },
+  "chat": {
+    "placeholder": "Écrivez votre message...",
+    "send": "Envoyer",
+    "typing": "{{user}} est en train d'écrire...",
+    "onlineUsers": "Utilisateurs en ligne"
+  }
+}

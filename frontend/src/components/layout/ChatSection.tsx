@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { flushSync } from "react-dom";
 import { usePathname } from "next/navigation";
 import parseDashboardPath from "@/lib/utils/parseDashboardPath";
@@ -13,22 +13,31 @@ import { useScrollToBottom } from "@/lib/hooks/useScrollToBottom";
 import { useChannelMessages } from "@/lib/hooks/useChannelMessages";
 import { useMentions } from "@/lib/hooks/useMentions";
 import { useNotificationPreferences } from "@/lib/notifications/preferences";
-
-type Member = { id: string; username: string };
+import {
+  listServerMembers,
+  sendChannelGifMessage,
+  sendChannelTextMessage,
+  type ServerMember,
+} from "@/lib/api/channels";
+import { useTranslation } from "react-i18next";
 
 function renderContent(content: string) {
   const mentionRegex = /@(\w+)/g;
-  const parts: (string | React.ReactNode)[] = [];
+  const parts: (string | ReactNode)[] = [];
   let lastIndex = 0;
   let match;
   while ((match = mentionRegex.exec(content)) !== null) {
     if (match.index > lastIndex)
       parts.push(content.slice(lastIndex, match.index));
-    parts.push(
-      <span key={match.index} className="text-brand font-medium">
-        {match[0]}
-      </span>,
-    );
+   parts.push(
+  <span
+    key={match.index}
+      className={match[0] === "@Tous" ? "font-medium text-violet-800" : "text-brand font-medium"}
+  >
+    {match[0]}
+  </span>,
+);
+
     lastIndex = match.index + match[0].length;
   }
   if (lastIndex < content.length) parts.push(content.slice(lastIndex));
@@ -41,9 +50,12 @@ export default function ChatSection() {
   const myUserId = useCurrentUserId();
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
-  const [members, setMembers] = useState<Member[]>([]);
+  const [members, setMembers] = useState<ServerMember[]>([]);
+  const myMember = members.find((m) => m.id === myUserId);
+  const canModerate = myMember?.role === "owner" || myMember?.role === "admin";
   const inputRef = useRef<HTMLInputElement | null>(null);
   const typingStopTimer = useRef<number | null>(null);
+  const { t } = useTranslation("common");
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -84,31 +96,11 @@ export default function ChatSection() {
 
   useEffect(() => {
     if (!serverId) return;
+    const currentServerId = serverId;
+
     async function fetchMembers() {
       try {
-        const token = localStorage.getItem("token");
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/servers/${serverId}/members`,
-          {
-            headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-          },
-        );
-        if (res.ok) {
-          const data = await res.json();
-          const list = data?.members ?? data ?? [];
-          setMembers(
-            list.map(
-              (m: {
-                user?: { id: string; username: string };
-                userId?: string;
-                username?: string;
-              }) => ({
-                id: m.user?.id ?? m.userId,
-                username: m.user?.username ?? m.username,
-              }),
-            ),
-          );
-        }
+        setMembers(await listServerMembers(currentServerId));
       } catch {}
     }
     fetchMembers();
@@ -132,22 +124,7 @@ export default function ChatSection() {
     if (!content) return;
     setSending(true);
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/channels/${channelId}/messages`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify({ type: "text", content }),
-        },
-      );
-      if (!res.ok) {
-        const t = await res.text();
-        throw new Error(`${res.status} ${res.statusText} - ${t}`);
-      }
+      await sendChannelTextMessage(channelId, content);
       setText("");
       if (myUserId)
         getSocket().emit(SOCKET_EVENTS.TYPING_STOP, {
@@ -167,7 +144,7 @@ export default function ChatSection() {
       <div className="border-border bg-background flex min-h-0 flex-1 flex-col border">
         <div className="flex-1 overflow-y-auto p-4">
           <p className="text-muted-foreground text-sm">
-            Selectionnez un canal pour commencer à chatter.
+            {t("chat.selectCanal")}
           </p>
         </div>
       </div>
@@ -177,7 +154,7 @@ export default function ChatSection() {
   return (
     <div className="border-border bg-background flex min-h-0 flex-1 flex-col border">
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
-        {loading && <p className="text-sm">Loading…</p>}
+        {loading && <p className="text-sm">{t("status.loading")}</p>}
         {error && <p className="text-red-500 text-sm">{error}</p>}
         {messages
           .filter((m) => {
@@ -204,7 +181,7 @@ export default function ChatSection() {
                 !m.deletedAt &&
                 m.type === "text"
               }
-              canDelete={!!myUserId && m.authorId === myUserId && !m.deletedAt}
+              canDelete={!!myUserId && !m.deletedAt && (m.authorId === myUserId || canModerate)}
               isEditing={editingId === m.id}
               editText={editText}
               onEditStart={() => startEditing(m)}
@@ -227,30 +204,9 @@ export default function ChatSection() {
         value={text}
         onChange={handleTypingChange}
         onSend={handleSendText}
-        onSendGif={async (gif) => {
-          const token = localStorage.getItem("token");
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/channels/${channelId}/messages`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                ...(token ? { Authorization: `Bearer ${token}` } : {}),
-              },
-              body: JSON.stringify({
-                type: "gif",
-                mediaUrl: gif.gifUrl,
-                content: gif.title,
-              }),
-            },
-          );
-          if (!res.ok) {
-            const t = await res.text();
-            throw new Error(`${res.status} - ${t}`);
-          }
-        }}
+        onSendGif={(gif) => sendChannelGifMessage(channelId, gif)}
         disabled={sending}
-        placeholder="Ecrire un message..."
+        placeholder={t("messageInput.placeholder")}
         inputRef={inputRef}
         aboveInput={
           showMentions && filteredMembers.length > 0 ? (

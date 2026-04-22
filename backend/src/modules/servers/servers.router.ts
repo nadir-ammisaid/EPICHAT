@@ -14,6 +14,11 @@ import {
   getServerMembersController,
   updateMemberRoleController,
   kickMemberController,
+  banMemberPermanentController,
+  banMemberTemporaryController,
+  getServerBansController,
+  unbanMemberController,
+  transferOwnershipController,
 } from "./servers.controller.js";
 
 export const serversRouter = Router();
@@ -105,3 +110,36 @@ serversRouter.post(
   asyncHandler(kickMemberController),
 );
 
+serversRouter.post(
+  "/:id/ban",
+  requireAuth,
+  authorize(["user"]),
+  asyncHandler(banMemberPermanentController),
+);
+
+serversRouter.post(
+  "/:id/tempban",
+  requireAuth,
+  authorize(["user"]),
+  asyncHandler(banMemberTemporaryController),
+);
+
+serversRouter.get(
+  "/:id/bans",
+  requireAuth,
+  authorize(["user"]),
+  asyncHandler(getServerBansController)
+);
+
+serversRouter.delete(
+  "/:id/unban/:userId",
+  requireAuth,
+  asyncHandler(unbanMemberController)
+);
+
+serversRouter.post(
+  "/:id/transfer-ownership/:userId",
+  requireAuth,
+  authorize(["user"]),
+  asyncHandler(transferOwnershipController),
+);

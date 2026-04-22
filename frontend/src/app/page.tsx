@@ -1,10 +1,15 @@
+"use client";
+
 import Header from "@/components/home/Header";
 import Hero from "@/components/home/Hero";
 import HomeSection from "@/components/home/Section";
 import Footer from "@/components/home/Footer";
 import RedirectIfAuthed from "@/components/dashboard/RedirectIfAuthed";
+import { useTranslation } from "react-i18next";
 
 export default function HomePage() {
+  const { t } = useTranslation("home");
+
   return (
     <>
       <RedirectIfAuthed />
@@ -12,33 +17,33 @@ export default function HomePage() {
       <main>
         <Hero />
         <HomeSection
-          id="pourquoi"
-          title="Pourquoi EpiChat ?"
-          description="Organisez vos échanges par serveurs et canaux, gardez un historique clair, et discutez sans friction en équipe."
+          id={t("sections.why.id")}
+          title={t("sections.why.title")}
+          description={t("sections.why.description")}
           imageSrc="/sections/why.png"
-          imageAlt="Pourquoi EpiChat"
+          imageAlt={t("sections.why.imageAlt")}
         />
         <HomeSection
-          id="fonctionnalites"
-          title="Fonctionnalités"
-          description="Canaux, messages instantanés, organisation simple… tout ce qu’il faut pour un chat moderne et efficace."
+          id={t("sections.features.id")}
+          title={t("sections.features.title")}
+          description={t("sections.features.description")}
           imageSrc="/sections/features.png"
-          imageAlt="Fonctionnalités"
+          imageAlt={t("sections.features.imageAlt")}
           reverse
         />
         <HomeSection
-          id="securite"
-          title="Sécurité & accès"
-          description="Authentification, routes protégées et contrôle d’accès : vous gardez la main sur qui peut voir et faire quoi."
+          id={t("sections.security.id")}
+          title={t("sections.security.title")}
+          description={t("sections.security.description")}
           imageSrc="/sections/security.png"
-          imageAlt="Sécurité"
+          imageAlt={t("sections.security.imageAlt")}
         />
         <HomeSection
-          id="pourqui"
-          title="Pour qui ?"
-          description="Groupes de travail, communautés, projets… dès que vous avez besoin d’échanger vite et de rester organisé."
+          id={t("sections.forWho.id")}
+          title={t("sections.forWho.title")}
+          description={t("sections.forWho.description")}
           imageSrc="/sections/forwho.png"
-          imageAlt="Pour qui"
+          imageAlt={t("sections.forWho.imageAlt")}
           reverse
         />
       </main>

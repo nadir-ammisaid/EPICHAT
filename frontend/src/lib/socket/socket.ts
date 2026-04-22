@@ -10,8 +10,14 @@ export const globalPresenceMap = new Map<string, string>();
 export const presenceSubscribers = new Set<(map: Map<string, string>) => void>();
 
 function setupPresenceListener(s: Socket) {
-  if (presenceListenerSetup) return;
+  if (presenceListenerSetup) {
+    return;
+  }
   presenceListenerSetup = true;
+
+  // Nettoyer d'abord les anciens listeners pour éviter les doublons
+  s.off("presence:snapshot");
+  s.off("presence:broadcast");
 
   s.on("presence:snapshot", (payload: { presenceMap: Record<string, string> }) => {
     for (const [uid, status] of Object.entries(payload.presenceMap ?? {})) {

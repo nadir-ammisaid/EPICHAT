@@ -22,7 +22,7 @@ export type ShowNotificationOptions = {
   silent?: boolean;
 };
 
-const DEBUG_NOTIF = true;
+const DEBUG_NOTIF = false;
 const log = (...args: unknown[]) =>
   DEBUG_NOTIF && console.log("[Notifications native]", ...args);
 

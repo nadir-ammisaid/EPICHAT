@@ -1,0 +1,77 @@
+{
+  "title": "Members",
+  "loading": "Loading...",
+  "error": "Failed to load members",
+
+  "roles": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "member": "Member"
+  },
+
+  "status": {
+    "online": "Online",
+    "away": "Away",
+    "busy": "Busy",
+    "offline": "Offline"
+  },
+
+  "actions": {
+    "sendMessage": "Send message",
+    "kick": "Kick",
+    "banPermanent": "Permanent ban",
+    "banTemporary": "Temporary ban",
+    "changeRole": "Change role",
+    "unban": "Unban"
+  },
+
+  "bans": {
+    "title": "Banned members",
+    "empty": "No banned members.",
+    "expiresOn": "Expires on {{date}}"
+  },
+
+  "modals": {
+    "role": {
+      "title": "Change role",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "ownerWarning": "WARNING: You are about to transfer ownership to {{username}}. You will become Admin. This action is irreversible."
+    },
+    "ban": {
+      "title": "Temporary ban",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "minutes": "Minutes",
+      "hours": "Hours",
+      "days": "Days"
+    }
+  },
+
+  "messages": {
+    "cannotKickSelf": "You cannot kick yourself.",
+    "cannotKickOwner": "You cannot kick the owner.",
+    "kickSuccess": "Member kicked.",
+    "kickFailed": "Kick failed.",
+
+    "cannotChangeOwnRole": "You cannot change your own role.",
+    "cannotChangeOwnerRole": "You cannot change the owner's role.",
+    "roleUpdated": "Role updated.",
+    "roleUpdateFailed": "Failed to update role.",
+    "ownershipTransferred": "Ownership transferred.",
+    "ownershipTransferFailed": "Ownership transfer failed.",
+
+    "banPermanentSuccess": "Permanent ban applied.",
+    "banPermanentFailed": "Failed to apply permanent ban.",
+
+    "banTemporarySuccess": "Temporary ban applied.",
+    "banTemporaryFailed": "Failed to apply temporary ban.",
+
+    "unbanSuccess": "Member unbanned.",
+    "unbanFailed": "Failed to unban member."
+  },
+
+  "confirmations": {
+    "kick": "Kick {{username}} from the server?"
+  }
+}

@@ -2,6 +2,7 @@ import "dotenv/config";
 import http from "http";
 import { createApp } from "./app.js";
 import { initSocket } from "./socket/index.js";
+import { startUnbanCron } from "./cron/unbanExpired.js";
 
 export function startServer() {
   const app = createApp();
@@ -9,6 +10,7 @@ export function startServer() {
   const io = initSocket(server);
 
   app.locals.io = io;
+  startUnbanCron(io);
 
   const port = process.env.PORT ? Number(process.env.PORT) : 3001;
   server.listen(port, "0.0.0.0", () => {

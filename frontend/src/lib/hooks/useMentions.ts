@@ -1,27 +1,36 @@
-import { useMemo, useState } from "react";
-import React from "react";
+import { useMemo, useState, type RefObject } from "react";
 
 type Member = { id: string; username: string };
+const TOUS = { id: "tous", username: "Tous" };
 
 export function useMentions(
   members: Member[],
   text: string,
   onInsert: (newText: string) => void,
-  inputRef: React.RefObject<HTMLInputElement | null>,
+  inputRef: RefObject<HTMLInputElement | null>,
 ) {
   const [showMentions, setShowMentions] = useState(false);
   const [mentionFilter, setMentionFilter] = useState("");
   const [mentionIndex, setMentionIndex] = useState(0);
-
   const filteredMembers = useMemo(() => {
-    if (!mentionFilter) return members;
-    return members.filter((m) => m.username?.toLowerCase().includes(mentionFilter));
+    const allMembers = [TOUS, ...members];
+    if (!mentionFilter) return allMembers;
+    return allMembers.filter((m) =>
+      m.username?.toLowerCase().includes(mentionFilter),
+    );
   }, [members, mentionFilter]);
+
 
   function onTextChange(value: string) {
     const atMatch = value.match(/@(\w*)$/);
-    if (atMatch) { setShowMentions(true); setMentionFilter(atMatch[1].toLowerCase()); setMentionIndex(0); }
-    else { setShowMentions(false); setMentionFilter(""); }
+    if (atMatch) {
+      setShowMentions(true);
+      setMentionFilter(atMatch[1].toLowerCase());
+      setMentionIndex(0);
+    } else {
+      setShowMentions(false);
+      setMentionFilter("");
+    }
   }
 
   function insertMention(username: string) {
@@ -31,5 +40,13 @@ export function useMentions(
     inputRef.current?.focus();
   }
 
-  return { showMentions, setShowMentions, mentionIndex, setMentionIndex, filteredMembers, onTextChange, insertMention };
+  return {
+    showMentions,
+    setShowMentions,
+    mentionIndex,
+    setMentionIndex,
+    filteredMembers,
+    onTextChange,
+    insertMention,
+  };
 }

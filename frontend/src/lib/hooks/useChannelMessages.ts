@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { getSocket } from "@/lib/socket/socket";
 import { SOCKET_EVENTS } from "@/lib/socket/socket.events";
 import type { Message, Reaction } from "@/lib/types/message";
+import { useTranslation } from "react-i18next";
 
 export function useChannelMessages(channelId: string | null, myUserId: string | null) {
+  const { t } = useTranslation("common");
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,39 +27,54 @@ export function useChannelMessages(channelId: string | null, myUserId: string | 
           `${process.env.NEXT_PUBLIC_API_URL}/channels/${channelId}/messages?limit=50`,
           {
             method: "GET",
-            headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
             signal: controller.signal,
           },
         );
-        if (!res.ok) { const t = await res.text(); throw new Error(`${res.status} ${res.statusText} - ${t}`); }
+        if (!res.ok) {
+          const t = await res.text();
+          throw new Error(`${res.status} ${res.statusText} - ${t}`);
+        }
         const data = await res.json();
         const list = data?.result?.messages ?? data?.messages ?? [];
         setMessages(list);
         setUsernamesById((prev) => {
           const next = { ...prev };
           for (const m of list) {
-            if (m?.authorId && m?.author?.username) next[m.authorId] = m.author.username;
+            if (m?.authorId && m?.author?.username) {
+              next[m.authorId] = m.author.username;
+            }
           }
           return next;
         });
       } catch (e: unknown) {
-        if (e instanceof Error && e.name !== "AbortError") setError(e.message ?? "Failed to load messages");
+        if (e instanceof Error && e.name !== "AbortError") {
+          setError(e.message ?? t("status.error"));
+        }
       } finally {
         setLoading(false);
       }
     }
     load();
     return () => controller.abort();
-  }, [channelId]);
+  }, [channelId, t]);
 
   // Socket join/leave
   useEffect(() => {
     if (!channelId) return;
     const socket = getSocket();
-    const onConnect = () => { socket.emit(SOCKET_EVENTS.CHANNEL_JOIN, channelId); };
+    const onConnect = () => {
+      socket.emit(SOCKET_EVENTS.CHANNEL_JOIN, channelId);
+    };
     socket.on("connect", onConnect);
     if (socket.connected) onConnect();
-    return () => { socket.emit(SOCKET_EVENTS.CHANNEL_LEAVE, channelId); socket.off("connect", onConnect); };
+    return () => {
+      socket.emit(SOCKET_EVENTS.CHANNEL_LEAVE, channelId);
+      socket.off("connect", onConnect);
+    };
   }, [channelId]);
 
   // Socket events
@@ -74,11 +91,27 @@ export function useChannelMessages(channelId: string | null, myUserId: string | 
         }
         return prev;
       });
-      setMessages((prev) => { if (prev.some((m) => m.id === message.id)) return prev; return [...prev, message]; });
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === message.id)) {
+          return prev;
+        }
+        return [...prev, message];
+      });
     };
     const onMessageDeleted = (payload: { id: string; channelId?: string }) => {
       if (payload.channelId && payload.channelId !== channelId) return;
-      setMessages((prev) => prev.map((m) => m.id === payload.id ? { ...m, content: "", mediaUrl: null, deletedAt: new Date().toISOString() } : m));
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === payload.id
+            ? {
+                ...m,
+                content: "",
+                mediaUrl: null,
+                deletedAt: new Date().toISOString(),
+              }
+            : m,
+        ),
+      );
     };
     const onTypingUpdate = (payload: { channelId: string; userIds: string[] }) => {
       if (payload.channelId !== channelId) return;
@@ -95,7 +128,9 @@ export function useChannelMessages(channelId: string | null, myUserId: string | 
     socket.on("message:updated", onMessageUpdated);
     const onReactionUpdate = (payload: { messageId: string; reactions: Reaction[] }) => {
       setMessages((prev) =>
-        prev.map((m) => m.id === payload.messageId ? { ...m, reactions: payload.reactions } : m)
+        prev.map((m) =>
+          m.id === payload.messageId ? { ...m, reactions: payload.reactions } : m,
+        ),
       );
     };
     socket.on("message:reaction", onReactionUpdate);
@@ -119,9 +154,25 @@ export function useChannelMessages(channelId: string | null, myUserId: string | 
         method: "DELETE",
         headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       });
-      if (!res.ok) { const t = await res.text(); throw new Error(`${res.status} ${res.statusText} - ${t}`); }
-      setMessages((prev) => prev.map((m) => m.id === messageId ? { ...m, content: "", mediaUrl: null, deletedAt: new Date().toISOString() } : m));
-    } catch (e: unknown) { setError(e instanceof Error ? e.message : "Failed to delete message"); }
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error(`${res.status} ${res.statusText} - ${t}`);
+      }
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === messageId
+            ? {
+                ...m,
+                content: "",
+                mediaUrl: null,
+                deletedAt: new Date().toISOString(),
+              }
+            : m,
+        ),
+      );
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t("status.error"));
+    }
   }
 
   async function handleEdit(messageId: string) {
@@ -134,12 +185,17 @@ export function useChannelMessages(channelId: string | null, myUserId: string | 
         headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({ content: editText.trim() }),
       });
-      if (!res.ok) { const t = await res.text(); throw new Error(`${res.status} ${res.statusText} - ${t}`); }
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error(`${res.status} ${res.statusText} - ${t}`);
+      }
       const updated = await res.json();
       setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, ...updated } : m)));
       setEditingId(null);
       setEditText("");
-    } catch (e: unknown) { setError(e instanceof Error ? e.message : "Failed to edit message"); }
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : t("status.error"));
+    }
   }
   async function handleToggleReaction(messageId: string, emoji: string) {
     const token = localStorage.getItem("token");
@@ -150,18 +206,37 @@ export function useChannelMessages(channelId: string | null, myUserId: string | 
     });
   }
 
-  function startEditing(message: Message) { setEditingId(message.id); setEditText(message.content); }
-  function cancelEditing() { setEditingId(null); setEditText(""); }
+  function startEditing(message: Message) {
+    setEditingId(message.id);
+    setEditText(message.content);
+  }
+
+  function cancelEditing() {
+    setEditingId(null);
+    setEditText("");
+  }
 
   const typingText = useMemo(() => {
     if (!typingUsers.length) return null;
     const others = myUserId ? typingUsers.filter((u) => u !== myUserId) : typingUsers;
     if (!others.length) return null;
     const names = others.map((id) => usernamesById[id] ?? id);
-    if (names.length === 1) return `${names[0]} est en train d'écrire…`;
-    return `${names.slice(0, 2).join(", ")} sont en train d'écrire…`;
-  }, [typingUsers, myUserId, usernamesById]);
+    if (names.length === 1) return t("chat.typingOne", { name: names[0] });
+    return t("chat.typingMany", { names: names.slice(0, 2).join(", ") });
+  }, [typingUsers, myUserId, usernamesById, t]);
 
-  return { messages, loading, error, editingId, editText, setEditText, handleDelete, handleEdit, handleToggleReaction, startEditing, cancelEditing, typingText };
-
+  return {
+    messages,
+    loading,
+    error,
+    editingId,
+    editText,
+    setEditText,
+    handleDelete,
+    handleEdit,
+    handleToggleReaction,
+    startEditing,
+    cancelEditing,
+    typingText,
+  };
 }

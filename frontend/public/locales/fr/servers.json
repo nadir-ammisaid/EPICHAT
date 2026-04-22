@@ -1,0 +1,50 @@
+{
+  "title": "Serveurs",
+  "dm": "Messages privés",
+  "messages": "Messages",
+  "homeAria": "Accueil",
+  "logoAlt": "Epichat",
+  "createServerAria": "Créer un serveur",
+  "options": "Options du serveur",
+  "invite": "Inviter",
+  "delete": "Supprimer le serveur",
+  "leave": "Quitter le serveur",
+
+  "actions": {
+    "create": "Créer un serveur",
+    "join": "Rejoindre un serveur"
+  },
+
+  "createModal": {
+    "title": "Nouveau serveur",
+    "nameLabel": "Nom du serveur",
+    "namePlaceholder": "Mon serveur",
+    "submit": "Créer",
+    "loading": "Création…",
+    "error": "Erreur lors de la création"
+  },
+
+  "joinModal": {
+    "title": "Rejoindre un serveur",
+    "codeLabel": "Code d'invitation",
+    "codePlaceholder": "Collez le code reçu",
+    "submit": "Rejoindre",
+    "loading": "Connexion…",
+    "error": "Code invalide ou expiré"
+  },
+
+  "inviteModal": {
+    "title": "Inviter des utilisateurs",
+    "generating": "Génération du lien…",
+    "description": "Partagez ce lien ou ce code pour permettre à d'autres de rejoindre le serveur.",
+    "copy": "Copier le lien",
+    "copied": "Copié",
+    "codeLabel": "Code :",
+    "close": "Fermer"
+  },
+
+  "errors": {
+    "delete": "Erreur lors de la suppression du serveur",
+    "leave": "Erreur lors de la sortie du serveur"
+  }
+}
