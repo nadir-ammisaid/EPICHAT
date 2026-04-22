@@ -1,0 +1,7 @@
+{
+  "empty": "Select a conversation to start chatting.",
+  "loading": "Loading…",
+  "error": "Error while loading messages",
+  "typing": "is typing…",
+  "inputPlaceholder": "Write a message…"
+}

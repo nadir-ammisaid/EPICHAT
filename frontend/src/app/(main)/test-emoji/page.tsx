@@ -2,9 +2,11 @@
 
 import { MessageInput } from "@/components/ui";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function TestEmojiPage() {
   const [messages, setMessages] = useState<string[]>([]);
+  const { t } = useTranslation("common");
 
   const handleSend = (content: string) => {
     setMessages((prev) => [...prev, content]);
@@ -13,12 +15,11 @@ export default function TestEmojiPage() {
 
   return (
     <div className="flex h-screen flex-col p-4">
-      <h1 className="mb-4 text-2xl font-bold">Test Emoji Support</h1>
+      <h1 className="mb-4 text-2xl font-bold">{t("pages.testEmoji.title")}</h1>
 
-      {/* Messages list */}
       <div className="border-border mb-4 flex-1 overflow-y-auto rounded-lg border p-4">
         {messages.length === 0 ? (
-          <p className="text-muted-foreground">Send a message with emojis...</p>
+          <p className="text-muted-foreground">{t("pages.testEmoji.empty")}</p>
         ) : (
           messages.map((msg, i) => (
             <div key={i} className="bg-muted mb-2 rounded-lg p-2">
@@ -33,7 +34,7 @@ export default function TestEmojiPage() {
         onSendMessage={handleSend}
         onTypingStart={() => console.log("Started typing...")}
         onTypingStop={() => console.log("Stopped typing...")}
-        placeholder="Type a message with emojis..."
+        placeholder={t("pages.testEmoji.placeholder")}
       />
     </div>
   );

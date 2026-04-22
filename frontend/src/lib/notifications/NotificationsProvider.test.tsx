@@ -318,7 +318,7 @@ describe("NotificationsProvider mention flow", () => {
     vi.mocked(getChannelDetails).mockResolvedValueOnce({
       id: "ch-1",
       name: "general",
-      serverId: null,
+      serverId: "",
     });
 
     render(

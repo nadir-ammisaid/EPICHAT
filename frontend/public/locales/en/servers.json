@@ -1,0 +1,46 @@
+{
+  "title": "Servers",
+  "dm": "Direct messages",
+  "options": "Server options",
+  "invite": "Invite",
+  "delete": "Delete server",
+  "leave": "Leave server",
+
+  "actions": {
+    "create": "Create server",
+    "join": "Join server"
+  },
+
+  "createModal": {
+    "title": "New server",
+    "nameLabel": "Server name",
+    "namePlaceholder": "My server",
+    "submit": "Create",
+    "loading": "Creating…",
+    "error": "Error while creating"
+  },
+
+  "joinModal": {
+    "title": "Join a server",
+    "codeLabel": "Invite code",
+    "codePlaceholder": "Paste the received code",
+    "submit": "Join",
+    "loading": "Joining…",
+    "error": "Invalid or expired code"
+  },
+
+  "inviteModal": {
+    "title": "Invite users",
+    "generating": "Generating link…",
+    "description": "Share this link or code so others can join the server.",
+    "copy": "Copy link",
+    "copied": "Copied",
+    "codeLabel": "Code:",
+    "close": "Close"
+  },
+
+  "errors": {
+    "delete": "Error while deleting server",
+    "leave": "Error while leaving server"
+  }
+}

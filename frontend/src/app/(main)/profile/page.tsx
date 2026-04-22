@@ -18,6 +18,8 @@ import {
   isSupported as isNotificationsSupported,
 } from "@/lib/notifications/native";
 import { ArrowLeft, Bell, MessageCircleWarning, RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const AVATAR_SEED_STORAGE_KEY = "epichat.avatarSeed";
 const AVATAR_SEED_UPDATED_EVENT = "epichat:avatar-seed-updated";
@@ -44,6 +46,7 @@ export default function ProfilePage() {
   const [notificationPermission, setNotificationPermission] = useState<
     "granted" | "denied" | "default"
   >("default");
+  const { t } = useTranslation("common");
 
   const {
     preferences: notifPrefs,
@@ -130,16 +133,19 @@ export default function ProfilePage() {
   return (
     <AuthGuard>
       <div className="bg-background mx-auto flex min-h-screen w-full max-w-md flex-col items-center justify-start gap-6 p-6 md:max-w-3xl md:p-12 lg:max-w-5xl lg:p-16 xl:max-w-6xl">
-        <div className="flex w-full items-center justify-start gap-4">
+        <div className="flex w-full items-center justify-between gap-4">
           <Link
             href="/dashboard"
             className="border-border hover:bg-muted flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            Retour
+            {t("pages.profile.back")}
           </Link>
+          <LanguageSwitcher />
         </div>
-        <h1 className="h3 w-full text-center md:text-left">Mon profil</h1>
+        <h1 className="h3 w-full text-center md:text-left">
+          {t("pages.profile.title")}
+        </h1>
 
         <section className="border-border flex w-full flex-col gap-8 rounded-lg border p-6 md:flex-row md:p-8">
           <div className="flex flex-col items-center gap-3 md:w-1/3">
@@ -170,25 +176,25 @@ export default function ProfilePage() {
               </span>
             </button>
             <span className="text-muted-foreground text-center text-xs">
-              Cliquez sur l&apos;avatar pour en générer un autre
+              {t("pages.profile.avatarHint")}
             </span>
           </div>
           <div className="flex flex-col gap-4 md:w-2/3">
-            <h2 className="h4">Informations</h2>
+            <h2 className="h4">{t("pages.profile.infoTitle")}</h2>
             <form onSubmit={handleSave} className="flex flex-col gap-3">
               <Input
-                label="Email"
+                label={t("pages.profile.emailLabel")}
                 value={email ?? ""}
                 disabled
                 className="bg-muted border-border text-border"
                 size="md"
               />
               <Input
-                label="Nom d'utilisateur"
+                label={t("pages.profile.usernameLabel")}
                 name="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="Mon pseudo"
+                placeholder={t("pages.profile.usernamePlaceholder")}
                 maxLength={32}
                 disabled={saveLoading}
                 size="md"
@@ -199,11 +205,13 @@ export default function ProfilePage() {
                   disabled={saveLoading || username === originalUsername}
                   className="md:w-fit"
                 >
-                  {saveLoading ? "Enregistrement…" : "Enregistrer"}
+                  {saveLoading
+                    ? t("pages.profile.saving")
+                    : t("pages.profile.save")}
                 </Button>
                 {saved && (
                   <span className="text-sm font-medium text-green-600">
-                    Modifications enregistrées
+                    {t("pages.profile.saved")}
                   </span>
                 )}
               </div>
@@ -215,11 +223,11 @@ export default function ProfilePage() {
           <section className="border-border flex w-full flex-col gap-4 rounded-lg border p-6 md:p-8">
             <h2 className="h4 flex items-center gap-2">
               <Bell className="h-5 w-5" />
-              Notifications
+              {t("pages.profile.notificationsTitle")}
             </h2>
             <div className="flex flex-col gap-4">
               <label className="text-foreground flex cursor-pointer items-center justify-between gap-4 text-sm">
-                <span>Activer les notifications</span>
+                <span>{t("pages.profile.notificationsEnable")}</span>
                 <input
                   type="checkbox"
                   checked={notifPrefs.enabled}
@@ -228,7 +236,7 @@ export default function ProfilePage() {
                 />
               </label>
               <label className="text-foreground flex cursor-pointer items-center justify-between gap-4 text-sm">
-                <span>Notifications pour les messages directs (DM)</span>
+                <span>{t("pages.profile.notificationsDm")}</span>
                 <input
                   type="checkbox"
                   checked={notifPrefs.dm}
@@ -238,7 +246,7 @@ export default function ProfilePage() {
                 />
               </label>
               <label className="text-foreground flex cursor-pointer items-center justify-between gap-4 text-sm">
-                <span>Notifications pour les mentions (@moi)</span>
+                <span>{t("pages.profile.notificationsMentions")}</span>
                 <input
                   type="checkbox"
                   checked={notifPrefs.mentions}
@@ -248,9 +256,7 @@ export default function ProfilePage() {
                 />
               </label>
               <label className="text-foreground flex cursor-pointer items-center justify-between gap-4 text-sm">
-                <span>
-                  Afficher les messages système de nouveau membre dans le chat
-                </span>
+                <span>{t("pages.profile.notificationsSystemJoins")}</span>
                 <input
                   type="checkbox"
                   checked={notifPrefs.systemJoins}
@@ -263,12 +269,12 @@ export default function ProfilePage() {
             {isNotificationsSupported() ? (
               <div className="text-muted-foreground flex flex-wrap items-center gap-2 text-sm">
                 <span>
-                  Permission navigateur :{" "}
+                  {t("pages.profile.notificationsBrowserPermissionLabel")}{" "}
                   {notificationPermission === "granted"
-                    ? "Autorisées"
+                    ? t("pages.profile.notificationsPermissionGranted")
                     : notificationPermission === "denied"
-                      ? "Refusées"
-                      : "Non demandées"}
+                      ? t("pages.profile.notificationsPermissionDenied")
+                      : t("pages.profile.notificationsPermissionDefault")}
                 </span>
                 {notificationPermission === "default" && (
                   <Button
@@ -277,14 +283,13 @@ export default function ProfilePage() {
                     size="sm"
                     onClick={handleRequestNotificationPermission}
                   >
-                    Autoriser les notifications
+                    {t("pages.profile.notificationsAllowButton")}
                   </Button>
                 )}
               </div>
             ) : (
               <p className="text-muted-foreground text-sm">
-                Les notifications ne sont pas prises en charge par ce
-                navigateur.
+                {t("pages.profile.notificationsNotSupported")}
               </p>
             )}
           </section>
@@ -294,8 +299,7 @@ export default function ProfilePage() {
           <span className="flex items-center gap-2 text-center md:text-left">
             <MessageCircleWarning className="shrink-0" />
             <p className="text-foreground text-sm">
-              La suppression du compte est définitive. Toutes vos données seront
-              effacées.
+              {t("pages.profile.deleteNotice")}
             </p>
           </span>
           <Button
@@ -304,7 +308,7 @@ export default function ProfilePage() {
             type="button"
             onClick={() => setDeleteOpen(true)}
           >
-            Supprimer mon compte
+            {t("pages.profile.deleteCta")}
           </Button>
         </section>
       </div>
@@ -312,12 +316,11 @@ export default function ProfilePage() {
       <Modal
         open={deleteOpen}
         onClose={() => !deleteLoading && setDeleteOpen(false)}
-        title="Supprimer le compte ?"
+        title={t("pages.profile.deleteTitle")}
       >
         <div className="flex flex-col gap-4">
           <p className="text-foreground text-sm">
-            Cette action est irréversible. Toutes vos données (serveurs,
-            messages, etc.) seront définitivement supprimées.
+            {t("pages.profile.deleteWarning")}
           </p>
           {deleteError && <p className="text-error text-sm">{deleteError}</p>}
           <div className="flex gap-2">
@@ -326,7 +329,7 @@ export default function ProfilePage() {
               onClick={() => setDeleteOpen(false)}
               disabled={deleteLoading}
             >
-              Annuler
+              {t("buttons.cancel")}
             </Button>
             <Button
               variant="primary"
@@ -334,7 +337,9 @@ export default function ProfilePage() {
               onClick={handleDelete}
               disabled={deleteLoading}
             >
-              {deleteLoading ? "Suppression…" : "Supprimer mon compte"}
+              {deleteLoading
+                ? t("pages.profile.deleteLoading")
+                : t("pages.profile.deleteCta")}
             </Button>
           </div>
         </div>

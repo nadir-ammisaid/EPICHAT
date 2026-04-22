@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Hash, Settings, PencilLine, Trash2 } from "lucide-react";
 import type { Channel } from "@/lib/api/channels";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   serverId: string | null;
@@ -27,88 +28,93 @@ export default function ChannelList({
   onOpenRename,
   onOpenDelete,
 }: Props) {
+  const { t } = useTranslation("common");
+
   if (!serverId) {
     return (
       <p className="px-2 py-3 text-sm text-slate-500">
-        Sélectionne un serveur pour afficher les canaux.
+        {t("channels.selectServer")}
       </p>
     );
   }
 
   if (loading) {
-    return <p className="px-2 py-3 text-sm text-slate-500">Chargement…</p>;
-  }
-
-  if (!channels.length) {
     return (
       <p className="px-2 py-3 text-sm text-slate-500">
-        Aucun canal pour le moment.
+        {t("status.loading")}
       </p>
     );
   }
 
+  const isEmpty = channels.length === 0;
+
   return (
     <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
-      <ul className="space-y-1">
-        {channels.map((ch) => {
-          const isActive = channelId === ch.id;
-          const isMenuOpen = menuFor === ch.id;
+      {isEmpty ? (
+        <p className="px-2 py-3 text-sm text-slate-500">
+          {query
+            ? t("channels.noResults", { query })
+            : t("channels.empty")}
+        </p>
+      ) : (
+        <ul className="space-y-1">
+          {channels.map((ch) => {
+            const isActive = channelId === ch.id;
+            const isMenuOpen = menuFor === ch.id;
 
-          return (
-            <li key={ch.id} className="relative">
-              <div
-                className={[
-                  "group flex items-center justify-between gap-2 rounded-xl border px-3 py-2 transition",
-                  isActive
-                    ? "border-blue-200 bg-white/80"
-                    : "border-transparent bg-white/40 hover:border-blue-200 hover:bg-white/70",
-                ].join(" ")}
-              >
-                <Link
-                  href={`/dashboard/${serverId}/${ch.id}`}
-                  className="flex-1"
+            return (
+              <li key={ch.id} className="relative">
+                <div
+                  className={[
+                    "group flex items-center justify-between gap-2 rounded-xl border px-3 py-2 transition",
+                    isActive
+                      ? "border-blue-200 bg-white/80"
+                      : "border-transparent bg-white/40 hover:border-blue-200 hover:bg-white/70",
+                  ].join(" ")}
                 >
-                  <span className="flex items-center gap-2 truncate text-sm">
-                    <Hash className="h-4 w-4 text-slate-400" />
-                    {ch.name}
-                  </span>
-                </Link>
-
-                <button
-                  onClick={() => setMenuFor(isMenuOpen ? null : ch.id)}
-                  className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 hover:bg-white/70 hover:text-slate-700"
-                >
-                  <Settings className="h-4 w-4" />
-                </button>
-              </div>
-
-              {isMenuOpen && (
-                <div className="absolute top-12 right-2 z-20 w-44 rounded-xl border bg-white shadow">
-                  <button
-                    onClick={() => onOpenRename(ch)}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50"
+                  <Link
+                    href={`/dashboard/${serverId}/${ch.id}`}
+                    className="flex-1"
                   >
-                    <PencilLine className="h-4 w-4" />
-                    Renommer
-                  </button>
+                    <span className="flex items-center gap-2 truncate text-sm">
+                      <Hash className="h-4 w-4 text-slate-400" />
+                      {ch.name}
+                    </span>
+                  </Link>
+
                   <button
-                    onClick={() => onOpenDelete(ch)}
-                    className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                    onClick={() =>
+                      setMenuFor(isMenuOpen ? null : ch.id)
+                    }
+                    className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 hover:bg-white/70 hover:text-slate-700"
                   >
-                    <Trash2 className="h-4 w-4" />
-                    Supprimer
+                    <Settings className="h-4 w-4" />
                   </button>
                 </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
 
-      {!channels.length && query && (
-        <p className="px-2 py-3 text-sm text-slate-500">
-          Aucun résultat pour “{query}”.
-        </p>
+                {isMenuOpen && (
+                  <div className="absolute top-12 right-2 z-20 w-44 rounded-xl border bg-white shadow">
+                    <button
+                      onClick={() => onOpenRename(ch)}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-slate-50"
+                    >
+                      <PencilLine className="h-4 w-4" />
+                      {t("channels.actions.rename")}
+                    </button>
+
+                    <button
+                      onClick={() => onOpenDelete(ch)}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      {t("channels.actions.delete")}
+                    </button>
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
       )}
     </div>
   );

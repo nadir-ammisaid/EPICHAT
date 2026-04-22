@@ -4,6 +4,7 @@ import { Bell, MessageCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Dropdown } from "@/components/ui/Dropdown";
 import { useNotifications } from "@/lib/notifications/NotificationsProvider";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   className?: string;
@@ -11,6 +12,8 @@ type Props = {
 
 export default function NotificationBell({ className = "" }: Props) {
   const router = useRouter();
+  const { t } = useTranslation("notifications");
+
   const { hasUnread, notifications, clearAll, removeNotification } =
     useNotifications();
 
@@ -22,7 +25,11 @@ export default function NotificationBell({ className = "" }: Props) {
         <button
           type="button"
           className="hover:bg-muted relative flex h-9 w-9 items-center justify-center rounded-full transition-colors"
-          aria-label={hasUnread ? "Notifications non lues" : "Notifications"}
+          aria-label={
+            hasUnread
+              ? t("aria.unread")
+              : t("aria.default")
+          }
         >
           <Bell className="text-muted-foreground h-5 w-5" />
           {hasUnread && (
@@ -33,15 +40,18 @@ export default function NotificationBell({ className = "" }: Props) {
           )}
         </button>
       </Dropdown.Trigger>
+
       <Dropdown.Menu position="bottom" align="right">
         <div className="border-border text-muted-foreground border-b px-3 py-2 text-xs font-semibold tracking-wide uppercase">
-          Notifications
+          {t("title")}
         </div>
+
         {!hasItems && (
           <div className="text-muted-foreground px-3 py-3 text-sm">
-            Aucune notification récente
+            {t("empty")}
           </div>
         )}
+
         {hasItems && (
           <ul className="max-h-80 w-72 overflow-y-auto text-sm">
             {notifications.map((n) => (
@@ -51,15 +61,14 @@ export default function NotificationBell({ className = "" }: Props) {
                   className="hover:bg-muted flex w-full items-start gap-2 px-3 py-2 text-left"
                   role="menuitem"
                   onClick={() => {
-                    if (n.href) {
-                      router.push(n.href);
-                    }
-                      removeNotification(n.id);
+                    if (n.href) router.push(n.href);
+                    removeNotification(n.id);
                   }}
                 >
                   <span className="mt-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-blue-500/10 text-blue-500">
                     <MessageCircle className="h-4 w-4" />
                   </span>
+
                   <span className="flex min-w-0 flex-col gap-0.5">
                     <span className="text-foreground font-medium">
                       {n.title}
@@ -73,14 +82,15 @@ export default function NotificationBell({ className = "" }: Props) {
             ))}
           </ul>
         )}
+
         {hasItems && (
           <button
             type="button"
             className="hover:bg-muted text-muted-foreground mt-1 block w-full px-3 py-2 text-left text-xs"
             role="menuitem"
-            onClick={() => clearAll()}
+            onClick={clearAll}
           >
-            Tout marquer comme lu
+            {t("markAllRead")}
           </button>
         )}
       </Dropdown.Menu>
