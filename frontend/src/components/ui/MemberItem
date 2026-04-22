@@ -1,0 +1,45 @@
+import { Settings } from "lucide-react";
+import { Dropdown } from "@/components/ui/Dropdown";
+
+export function MemberItem({ member, onKick, onBan, onRoleChange }) {
+  return (
+    <div className="flex items-center justify-between px-3 py-2 hover:bg-neutral-800 rounded-md">
+      <div className="flex flex-col">
+        <span className="text-sm font-medium text-white">
+          {member.user.username}
+        </span>
+        <span className="text-xs text-neutral-400">
+          {member.role === "owner"
+            ? "Propriétaire"
+            : member.role === "admin"
+            ? "Admin"
+            : "Membre"}
+        </span>
+      </div>
+
+      <Dropdown
+        trigger={
+          <button className="p-1 rounded hover:bg-neutral-700 text-neutral-400 hover:text-white">
+            <Settings size={16} />
+          </button>
+        }
+        items={[
+          {
+            label: "Expulser",
+            danger: true,
+            onClick: () => onKick(member),
+          },
+          {
+            label: "Bannir",
+            danger: true,
+            onClick: () => onBan(member),
+          },
+          {
+            label: "Changer le rôle",
+            onClick: () => onRoleChange(member),
+          },
+        ]}
+      />
+    </div>
+  );
+}

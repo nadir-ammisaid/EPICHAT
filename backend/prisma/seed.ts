@@ -14,6 +14,17 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter });
 
+function capitalizePersonName(value: string): string {
+  return value
+    .split(/([\s-]+)/)
+    .map((part) => {
+      if (/^[\s-]+$/.test(part)) return part;
+      const [first = "", ...rest] = part;
+      return first.toUpperCase() + rest.join("").toLowerCase();
+    })
+    .join("");
+}
+
 async function main() {
   console.log("Starting database seed...\n");
 
@@ -35,7 +46,7 @@ async function main() {
   }
 
   console.log("Creating users...");
-  const passwordHash = await bcrypt.hash("password123", 10);
+  const passwordHash = await bcrypt.hash("Password123-", 10);
 
   const usersData = [
     { username: "nadir", email: "nadir@epichat.com" },
@@ -56,7 +67,7 @@ async function main() {
     users[u.username] = await prisma.user.create({
       data: {
         email: u.email,
-        username: u.username,
+        username: capitalizePersonName(u.username),
         passwordHash,
         status: "offline",
       },
@@ -174,7 +185,7 @@ async function main() {
     {
       name: "React Developers",
       owner: "warith",
-      members: ["nadir", "lucas", "pierre", "julie"], // Missing: Younes, Michaël, Emma, Sophie, Thomas
+      members: ["nadir", "lucas", "pierre", "julie"],
       channels: [
         {
           name: "general",
@@ -248,7 +259,7 @@ async function main() {
     {
       name: "Gaming Lounge",
       owner: "younes",
-      members: ["nadir", "warith", "michael", "pierre", "sophie"], // Missing: Lucas, Emma, Thomas, Julie
+      members: ["nadir", "warith", "michael", "pierre", "sophie"],
       channels: [
         {
           name: "general",
@@ -319,7 +330,7 @@ async function main() {
     {
       name: "Cinephiles Club",
       owner: "michael",
-      members: ["emma", "thomas", "julie", "sophie"], // Missing: Nadir, Warith, Younes, Pierre, Lucas
+      members: ["emma", "thomas", "julie", "sophie", "nadir"],
       channels: [
         {
           name: "general",
@@ -384,7 +395,7 @@ async function main() {
     {
       name: "Hiking Adventures",
       owner: "pierre",
-      members: ["lucas", "julie", "sophie", "thomas", "emma"], // Missing: Nadir, Warith, Younes, Michaël
+      members: ["lucas", "julie", "sophie", "thomas", "emma", "warith", "younes"],
       channels: [
         {
           name: "general",
@@ -467,7 +478,7 @@ async function main() {
     {
       name: "Startup Nation",
       owner: "sophie",
-      members: ["nadir", "warith", "lucas", "julie"], // Missing: Younes, Michaël, Pierre, Emma, Thomas
+      members: ["nadir", "warith", "lucas", "julie"],
       channels: [
         {
           name: "general",

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import type { Channel } from "@/lib/api/channels";
+import { useTranslation } from "react-i18next";
 
 export default function ChannelModals({
   // CREATE
@@ -60,38 +61,57 @@ export default function ChannelModals({
 
   selected: Channel | null;
 }) {
+  const { t } = useTranslation("common");
+
   return (
     <>
-      <Modal open={createOpen} onClose={onCloseCreate} title="Nouveau canal">
+      <Modal open={createOpen} onClose={onCloseCreate} title={t("channels.modals.create.title")}>
         <form onSubmit={onSubmitCreate} className="flex flex-col gap-3">
           <Input
-            label="Nom du canal"
+            label={t("channels.modals.create.nameLabel")}
             value={newChannelName}
             onChange={(e) => setNewChannelName(e.target.value)}
-            placeholder="Nom du canal"
+            placeholder={t("channels.modals.create.namePlaceholder")}
             maxLength={100}
             required
             disabled={createLoading}
           />
 
-          {createError && <p className="text-sm text-error">{createError}</p>}
+          {createError && <p className="text-error text-sm">{createError}</p>}
 
           <div className="flex gap-2">
-            <Button type="button" variant="outline" className="flex-1" onClick={onCloseCreate} disabled={createLoading}>
-              Annuler
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={onCloseCreate}
+              disabled={createLoading}
+            >
+              {t("buttons.cancel")}
             </Button>
 
-            <Button type="submit" variant="primary" className="flex-1" disabled={createLoading || !newChannelName.trim()}>
-              {createLoading ? "Création…" : "Créer"}
+            <Button
+              type="submit"
+              variant="primary"
+              className="flex-1"
+              disabled={createLoading || !newChannelName.trim()}
+            >
+              {createLoading
+                ? t("channels.modals.create.loading")
+                : t("channels.modals.create.submit")}
             </Button>
           </div>
         </form>
       </Modal>
 
-      <Modal open={renameOpen} onClose={onCloseRename} title="Renommer le canal">
+      <Modal
+        open={renameOpen}
+        onClose={onCloseRename}
+        title={t("channels.modals.rename.title")}
+      >
         <form onSubmit={onSubmitRename} className="flex flex-col gap-3">
           <Input
-            label="Nouveau nom"
+            label={t("channels.modals.rename.nameLabel")}
             value={renameValue}
             onChange={(e) => setRenameValue(e.target.value)}
             maxLength={100}
@@ -99,31 +119,55 @@ export default function ChannelModals({
             disabled={renameLoading}
           />
 
-          {renameError && <p className="text-sm text-error">{renameError}</p>}
+          {renameError && <p className="text-error text-sm">{renameError}</p>}
 
           <div className="flex gap-2">
-            <Button type="button" variant="outline" className="flex-1" onClick={onCloseRename} disabled={renameLoading}>
-              Annuler
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={onCloseRename}
+              disabled={renameLoading}
+            >
+              {t("buttons.cancel")}
             </Button>
 
-            <Button type="submit" variant="primary" className="flex-1" disabled={renameLoading || !renameValue.trim()}>
-              {renameLoading ? "En cours…" : "Renommer"}
+            <Button
+              type="submit"
+              variant="primary"
+              className="flex-1"
+              disabled={renameLoading || !renameValue.trim()}
+            >
+              {renameLoading
+                ? t("channels.modals.rename.loading")
+                : t("channels.modals.rename.submit")}
             </Button>
           </div>
         </form>
       </Modal>
 
-      <Modal open={deleteOpen} onClose={onCloseDelete} title="Supprimer le canal">
+      <Modal
+        open={deleteOpen}
+        onClose={onCloseDelete}
+        title={t("channels.modals.delete.title")}
+      >
         <div className="flex flex-col gap-3">
           <p className="text-sm text-slate-700">
-            Tu es sûr de vouloir supprimer <span className="font-semibold">#{selected?.name}</span> ?
+            {t("channels.modals.delete.confirmText")}{" "}
+            <span className="font-semibold">#{selected?.name}</span> ?
           </p>
 
-          {deleteError && <p className="text-sm text-error">{deleteError}</p>}
+          {deleteError && <p className="text-error text-sm">{deleteError}</p>}
 
           <div className="flex gap-2">
-            <Button type="button" variant="outline" className="flex-1" onClick={onCloseDelete} disabled={deleteLoading}>
-              Annuler
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={onCloseDelete}
+              disabled={deleteLoading}
+            >
+              {t("buttons.cancel")}
             </Button>
 
             <Button
@@ -132,7 +176,9 @@ export default function ChannelModals({
               onClick={onConfirmDelete}
               disabled={deleteLoading}
             >
-              {deleteLoading ? "Suppression…" : "Supprimer"}
+              {deleteLoading
+                ? t("channels.modals.delete.loading")
+                : t("channels.modals.delete.submit")}
             </Button>
           </div>
         </div>

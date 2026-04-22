@@ -1,3 +1,8 @@
+"use client";
+
+import { useTranslation } from "react-i18next";
+
 export default function Loading() {
-  return <div>Chargement...</div>;
+  const { t } = useTranslation("common");
+  return <div>{t("pages.servers.loading")}</div>;
 }

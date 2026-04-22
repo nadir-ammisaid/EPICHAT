@@ -1,24 +1,10 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+import { getStoredToken, clearStoredToken } from "@/lib/auth/token";
 
-export async function api(endpoint: string, options: RequestInit = {}) {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-  const res = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token && { Authorization: `Bearer ${token}` }),
-      ...options.headers,
-    },
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.message || "Request failed");
-  return data;
-};
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 export const apiClient = {
   async request(endpoint: string, options: RequestInit = {}) {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    
+    const token = getStoredToken();
     const headers: HeadersInit = {
       "Content-Type": "application/json",
       ...(token && { Authorization: `Bearer ${token}` }),
@@ -31,7 +17,9 @@ export const apiClient = {
     });
 
     const data = await response.json().catch(() => ({}));
-    
+    if (response.status === 401) {
+      clearStoredToken();
+    }
     if (!response.ok) {
       throw new Error(data.message || "Erreur lors de la requête");
     }

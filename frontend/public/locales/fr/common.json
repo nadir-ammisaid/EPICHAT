@@ -1,0 +1,182 @@
+{
+  "appName": "Epichat",
+  "brandTagline": "Chat en temps réel pour le projet RTC",
+  "navigation": {
+    "home": "Accueil",
+    "about": "À propos",
+    "settings": "Paramètres",
+    "logout": "Se déconnecter",
+    "openMenu": "Ouvrir le menu",
+    "back": "Retour"
+  },
+  "buttons": {
+    "login": "Se connecter",
+    "signup": "Créer un compte",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "save": "Enregistrer",
+    "send": "Envoyer"
+  },
+  "forms": {
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "username": "Nom d'utilisateur"
+  },
+  "status": {
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite",
+    "empty": "Aucun résultat"
+  },
+  "chat": {
+    "channelWelcome": "Bienvenue dans ce canal de discussion",
+    "userWelcome": "Bienvenue",
+    "selectCanal": "Sélectionnez un canal pour commencer à chatter",
+    "activeChannel": "Canal actif : #{{name}}",
+    "createdOn": "créé le {{date}}",
+    "typingOne": "{{name}} est en train d'écrire…",
+    "typingMany": "{{names}} sont en train d'écrire…",
+    "edited": "(modifié)",
+    "deleted": "(supprimé)"
+  },
+  "channels": {
+  "selectServer": "Sélectionnez un serveur pour afficher les canaux.",
+  "empty": "Aucun canal pour le moment.",
+  "searchPlaceholder": "Rechercher un canal",
+  "noResults": "Aucun canal trouvé pour \"{{query}}\".",
+  "rename": "Renommer",
+  "delete": "Supprimer",
+  "footerCount": "{{count}} canal(aux)",
+  "actions": {
+    "rename": "Renommer",
+    "delete": "Supprimer"
+  },
+  "header": {
+    "serverLabel": "Serveur : {{name}}",
+    "noServer": "Sélectionnez un serveur",
+    "listTitle": "Canaux",
+    "create": "Créer un canal",
+    "permissionError": "Seul le propriétaire peut gérer les canaux"
+  },
+  "modals": {
+    "create": {
+      "title": "Nouveau canal",
+      "nameLabel": "Nom du canal",
+      "namePlaceholder": "Nom du canal",
+      "submit": "Créer",
+      "loading": "Création…"
+    },
+    "rename": {
+      "title": "Renommer le canal",
+      "nameLabel": "Nouveau nom",
+      "submit": "Renommer",
+      "loading": "En cours…"
+    },
+    "delete": {
+      "title": "Supprimer le canal",
+      "confirmText": "Tu es sûr de vouloir supprimer",
+      "submit": "Supprimer",
+      "loading": "Suppression…"
+    }
+  }
+},
+  "footer": {
+    "title": "EPICHAT",
+    "descriptionLines": [
+      "Une plateforme de discussion",
+      "moderne pour collaborer,",
+      "échanger et organiser",
+      "vos équipes simplement."
+    ],
+    "navigationTitle": "Navigation",
+    "projectTitle": "Projet",
+    "projectItems": ["Epitech", "Projet RTC", "Année 2026", "Promo 2028"],
+    "madeByTitle": "Réalisé par",
+    "copyright": "© {{year}} EpiChat - Tous droits réservés"
+  },
+  "pages": {
+    "login": {
+      "title": "Bienvenue !",
+      "subtitle": "Connectez-vous",
+      "emailPlaceholder": "Email",
+      "passwordPlaceholder": "Mot de passe",
+      "cta": "Se connecter",
+      "loading": "Connexion...",
+      "noAccount": "Pas encore de compte ?",
+      "goToRegister": "Inscrivez-vous",
+      "illustrationAlt": "Illustration de connexion"
+    },
+    "register": {
+      "title": "Bienvenue !",
+      "subtitle": "Inscrivez-vous",
+      "emailPlaceholder": "Email",
+      "usernamePlaceholder": "Nom d'utilisateur",
+      "passwordPlaceholder": "Mot de passe",
+      "confirmPasswordPlaceholder": "Confirmation du mot de passe",
+      "cta": "Inscrire",
+      "loading": "Inscription...",
+      "hasAccount": "Déjà un compte ?",
+      "goToLogin": "Connectez-vous",
+      "illustrationAlt": "Illustration de connexion"
+    },
+    "servers": {
+      "listTitle": "Serveurs",
+      "serverTitle": "Serveur : {{id}}"
+    },
+    "profile": {
+      "back": "Retour",
+      "title": "Mon profil",
+      "avatarHint": "Cliquez sur l'avatar pour en générer un autre",
+      "infoTitle": "Informations",
+      "emailLabel": "Email",
+      "usernameLabel": "Nom d'utilisateur",
+      "usernamePlaceholder": "Mon pseudo",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "saved": "Modifications enregistrées",
+      "notificationsTitle": "Notifications",
+      "notificationsEnable": "Activer les notifications",
+      "notificationsDm": "Notifications pour les messages directs (DM)",
+      "notificationsMentions": "Notifications pour les mentions (@moi)",
+      "notificationsSystemJoins": "Notifications pour les messages système (joins/quits)",
+      "notificationsBrowserPermissionLabel": "Permission navigateur :",
+      "notificationsPermissionGranted": "Autorisées",
+      "notificationsPermissionDenied": "Refusées",
+      "notificationsPermissionDefault": "Non demandées",
+      "notificationsAllowButton": "Autoriser les notifications",
+      "notificationsNotSupported": "Les notifications ne sont pas prises en charge par ce navigateur.",
+      "changeAvatar": "Changer l'avatar",
+      "deleteTitle": "Supprimer le compte ?",
+      "deleteNotice": "La suppression du compte est définitive. Toutes vos données seront effacées.",
+      "deleteWarning": "Cette action est irréversible. Toutes vos données (serveurs, messages, etc.) seront définitivement supprimées.",
+      "deleteErrorFallback": "Erreur",
+      "deleteCta": "Supprimer mon compte",
+      "deleteLoading": "Suppression…"
+    },
+    "testEmoji": {
+      "title": "Test du support Emoji",
+      "empty": "Envoyez un message avec des emojis...",
+      "placeholder": "Tapez un message avec des emojis..."
+    },
+    "servers": {
+      "loading": "Chargement...",
+      "error": "Une erreur est survenue."
+    }
+  },
+  "auth": {
+    "checkingSession": "Vérification de la session…"
+  },
+  "messageInput": {
+    "openGifSearch": "Ouvrir la recherche GIF",
+    "openEmojiPicker": "Ouvrir le sélecteur d'emojis",
+    "placeholder": "Ecrire un message...",
+    "send": "Envoyer",
+    "gifModalTitle": "Rechercher un GIF",
+    "gifSearchPlaceholder": "Rechercher sur Giphy...",
+    "preview": "Prévisualisation",
+    "empty": "Aucun GIF pour le moment.",
+    "loadMore": "Charger plus",
+    "sendGif": "Envoyer le GIF",
+    "searchError": "Erreur lors de la recherche de GIF",
+    "sendError": "Erreur lors de l'envoi du GIF"
+  }
+}

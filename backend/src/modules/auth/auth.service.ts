@@ -1,19 +1,14 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { prisma } from "../../prisma/client.js";
-import type { LoginInput, SignupInput, UpdateProfileInput } from "./auth.schemas.js";
+import { getJwtSecret } from "../../shared/utils/env.js";
+import type {
+  LoginInput,
+  SignupInput,
+  UpdateProfileInput,
+} from "./auth.schemas.js";
 
 const SALT_ROUNDS = 10;
-
-// JWT
-
-function getJwtSecret(): string {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    throw new Error("JWT_SECRET is not defined");
-  }
-  return secret;
-}
 
 function getJwtExpiresInSeconds(): number {
   const raw = process.env.JWT_EXPIRES_IN;

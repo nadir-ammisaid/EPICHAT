@@ -2,75 +2,119 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const navItems = [
-  { label: "Pourquoi EpiChat ?", href: "#pourquoi" },
-  { label: "Fonctionnalités", href: "#fonctionnalites" },
-  { label: "Sécurité & accès", href: "#securite" },
-  { label: "Pour qui ?", href: "#pourqui" },
+  { labelKey: "sections.why.title", href: "#pourquoi" },
+  { labelKey: "sections.features.title", href: "#fonctionnalites" },
+  { labelKey: "sections.security.title", href: "#securite" },
+  { labelKey: "sections.forWho.title", href: "#pourqui" },
 ];
 
 export default function Header() {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    function onClick(e: MouseEvent) {
-      if (!open) return;
-      const target = e.target as Node;
-      if (panelRef.current && !panelRef.current.contains(target)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, [open]);
+  const { t } = useTranslation(["home", "common"]);
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur border-b border-border">
-      <div className="mx-auto max-w-6xl px-4 h-16 flex items-center justify-between">
+    <header className="bg-background/80 border-border sticky top-0 z-50 w-full border-b backdrop-blur">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link href="/" className="flex items-center">
-        <Image src="/logo.png" alt="EpiChat" width={130} height={130} priority/>
+          <Image
+            src="/logo.png"
+            alt="EpiChat"
+            width={130}
+            height={130}
+            priority
+          />
         </Link>
-        <nav className="hidden md:flex items-center gap-6 text-sm">
+        <nav className="hidden items-center gap-6 text-sm md:flex">
           {navItems.map((item) => (
-            <a key={item.href} href={item.href} className="text-foreground/80 hover:text-foreground transition">
-              {item.label}
+            <a
+              key={item.href}
+              href={item.href}
+              className="text-foreground/80 hover:text-foreground transition"
+            >
+              {t(item.labelKey)}
             </a>
           ))}
         </nav>
         <div className="flex items-center gap-3">
+          <div className="hidden md:flex">
+            <LanguageSwitcher />
+          </div>
           <Link
-            href="/login" className="hidden md:inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-medium bg-[#2F6BFF] hover:bg-[#1E4ED8] text-white hover:opacity-90 transition">
-            Se connecter
+            href="/login"
+            className="hidden items-center justify-center rounded-full bg-[#2F6BFF] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#1E4ED8] hover:opacity-90 md:inline-flex"
+          >
+            {t("buttons.login", { ns: "common" })}
           </Link>
-          <button type="button" className="md:hidden inline-flex items-center justify-center rounded-full p-2 border border-border hover:bg-foreground/5 transition" aria-label="Open menu"
+          <button
+            type="button"
+            className="border-border hover:bg-foreground/5 inline-flex items-center justify-center rounded-full border p-2 transition md:hidden"
+            aria-label={t("navigation.openMenu", { ns: "common" })}
             aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 7H20" stroke="currentColor" strokeWidth="2"strokeLinecap="round"/>
-              <path d="M4 12H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M4 17H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            onClick={() => setOpen((v) => !v)}
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M4 7H20"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M4 12H20"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M4 17H20"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
             </svg>
           </button>
         </div>
       </div>
 
       {open && (
-        <div className="md:hidden px-4 pb-4">
-          <div ref={panelRef} className="mx-auto max-w-6xl rounded-2xl border border-border bg-background shadow-sm overflow-hidden">
+        <div className="px-4 pb-4 md:hidden">
+          <div
+            ref={panelRef}
+            className="border-border bg-background mx-auto max-w-6xl overflow-hidden rounded-2xl border shadow-sm"
+          >
             <div className="p-2">
-              <Link href="/login" className="flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium hover:bg-foreground/5 transition"
-                onClick={() => setOpen(false)}>
-                Se connecter
+              <div className="mb-2 flex items-center justify-end gap-2">
+                <LanguageSwitcher />
+              </div>
+              <Link
+                href="/login"
+                className="hover:bg-foreground/5 flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition"
+                onClick={() => setOpen(false)}
+              >
+                {t("buttons.login", { ns: "common" })}
                 <span className="text-foreground/50">→</span>
               </Link>
-              <div className="my-2 border-t border-border" />
+              <div className="border-border my-2 border-t" />
               {navItems.map((item) => (
-                <a key={item.href} href={item.href} className="block rounded-xl px-4 py-3 text-sm text-foreground/80 hover:text-foreground hover:bg-foreground/5 transition"
-                  onClick={() => setOpen(false)}>
-                  {item.label}
+                <a
+                  key={item.href}
+                  href={item.href}
+                  className="text-foreground/80 hover:text-foreground hover:bg-foreground/5 block rounded-xl px-4 py-3 text-sm transition"
+                  onClick={() => setOpen(false)}
+                >
+                  {t(item.labelKey)}
                 </a>
               ))}
             </div>

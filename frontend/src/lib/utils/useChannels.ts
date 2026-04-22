@@ -1,16 +1,29 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Channel, ChannelDetails } from "@/lib/api/channels";
-import {createChannel, deleteChannel, getChannelDetails, listServerChannels, renameChannel,} from "@/lib/api/channels";
+import {
+  createChannel,
+  deleteChannel,
+  getChannelDetails,
+  listServerChannels,
+  renameChannel,
+} from "@/lib/api/channels";
 
-export default function useChannels(serverId: string | null, channelId: string | null) {
+export default function useChannels(
+  serverId: string | null,
+  channelId: string | null,
+) {
+  const { t } = useTranslation("common");
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [permissionError, setPermissionError] = useState<string | null>(null);
 
-  const [channelDetails, setChannelDetails] = useState<ChannelDetails | null>(null);
+  const [channelDetails, setChannelDetails] = useState<ChannelDetails | null>(
+    null,
+  );
 
   const refreshChannels = useCallback(async () => {
     if (!serverId) return;
@@ -71,7 +84,7 @@ export default function useChannels(serverId: string | null, channelId: string |
           setChannels((prev) => [created, ...prev]);
         } catch (e) {
           if (e instanceof Error && e.message.includes("403")) {
-            setPermissionError("Seul le propriétaire peut gérer les canaux");
+            setPermissionError(t("channels.header.permissionError"));
             return;
           }
           throw e;
@@ -86,12 +99,16 @@ export default function useChannels(serverId: string | null, channelId: string |
         try {
           const updated = await renameChannel(id, trimmed);
 
-          setChannels((prev) => prev.map((c) => (c.id === id ? { ...c, ...updated } : c)));
+          setChannels((prev) =>
+            prev.map((c) => (c.id === id ? { ...c, ...updated } : c)),
+          );
 
-          setChannelDetails((prev) => (prev?.id === id ? { ...prev, ...updated } : prev));
+          setChannelDetails((prev) =>
+            prev?.id === id ? { ...prev, ...updated } : prev,
+          );
         } catch (e) {
           if (e instanceof Error && e.message.includes("403")) {
-            setPermissionError("Seul le propriétaire peut gérer les canaux");
+            setPermissionError(t("channels.header.permissionError"));
             return;
           }
           throw e;
@@ -106,14 +123,14 @@ export default function useChannels(serverId: string | null, channelId: string |
           setChannels((prev) => prev.filter((c) => c.id !== id));
         } catch (e) {
           if (e instanceof Error && e.message.includes("403")) {
-            setPermissionError("Seul le propriétaire peut gérer les canaux");
+            setPermissionError(t("channels.header.permissionError"));
             return;
           }
           throw e;
         }
       },
     };
-  }, [serverId, clearPermissionError]);
+  }, [serverId, clearPermissionError, t]);
 
   return {
     channels,

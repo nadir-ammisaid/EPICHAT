@@ -13,8 +13,19 @@ export async function createInvite(serverId: string, userId: string) {
       serverId_userId: { serverId, userId },
     },
   });
+
   if (!membership) {
-    throw new HttpError(403, "You must be a member of this server to create an invite");
+    throw new HttpError(
+      403,
+      "You must be a member of this server to create an invite",
+    );
+  }
+
+  if (membership.role !== "owner" && membership.role !== "admin") {
+    throw new HttpError
+      (403, 
+      "Seuls les admins et propriétaires peuvent effectuer cette action"
+      );
   }
 
   let code: string;

@@ -1,8 +1,13 @@
 import type { Request, Response } from "express";
-import { loginSchema, signupSchema, updateProfileSchema } from "./auth.schemas.js";
+import {
+  loginSchema,
+  signupSchema,
+  updateProfileSchema,
+} from "./auth.schemas.js";
 import { login, signup, updateProfile, deleteAccount } from "./auth.service.js";
 import HttpError from "../../shared/errors/httpError.js";
 import { getBearerToken } from "../../shared/utils/authHeader.js";
+import { requireUserId } from "../../shared/utils/requestUser.js";
 import { revokeToken } from "./tokenBlacklist.js";
 import { prisma } from "../../prisma/client.js";
 
@@ -65,10 +70,7 @@ export async function logoutController(_req: Request, res: Response) {
 //Me
 
 export async function meController(req: Request, res: Response) {
-  const userId = (req as any).user?.userId;
-  if (!userId) {
-    throw new HttpError(401, "Unauthorized");
-  }
+  const userId = requireUserId(req);
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -91,8 +93,7 @@ export async function meController(req: Request, res: Response) {
 // Update profile
 
 export async function updateProfileController(req: Request, res: Response) {
-  const userId = (req as any).user?.userId;
-  if (!userId) throw new HttpError(401, "Unauthorized");
+  const userId = requireUserId(req);
 
   const parsed = updateProfileSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -113,8 +114,7 @@ export async function updateProfileController(req: Request, res: Response) {
 // Delete account
 
 export async function deleteAccountController(req: Request, res: Response) {
-  const userId = (req as any).user?.userId;
-  if (!userId) throw new HttpError(401, "Unauthorized");
+  const userId = requireUserId(req);
 
   await deleteAccount(userId);
   res.status(204).send();
@@ -123,8 +123,7 @@ export async function deleteAccountController(req: Request, res: Response) {
 const VALID_STATUSES = ["online", "away", "busy", "invisible", "offline"];
 
 export async function updateStatusController(req: Request, res: Response) {
-  const userId = (req as any).user?.userId;
-  if (!userId) throw new HttpError(401, "Unauthorized");
+  const userId = requireUserId(req);
 
   const { status } = req.body;
   if (!status || !VALID_STATUSES.includes(status)) {

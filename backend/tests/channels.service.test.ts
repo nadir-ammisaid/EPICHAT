@@ -34,11 +34,15 @@ describe("channels.service", () => {
         id: "server-123",
       });
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         role: "admin",
       });
 
-      (prisma.channel.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (prisma.channel.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+        null,
+      );
 
       (prisma.channel.create as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: "channel-123",
@@ -63,11 +67,15 @@ describe("channels.service", () => {
         id: "server-123",
       });
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         role: "owner",
       });
 
-      (prisma.channel.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (prisma.channel.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(
+        null,
+      );
 
       (prisma.channel.create as ReturnType<typeof vi.fn>).mockResolvedValue({
         id: "channel-123",
@@ -90,7 +98,9 @@ describe("channels.service", () => {
         id: "server-123",
       });
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         role: "member",
       });
 
@@ -99,21 +109,23 @@ describe("channels.service", () => {
           serverId: "server-123",
           userId: "user-123",
           name: "general",
-        })
+        }),
       ).rejects.toThrow();
     });
 
     it("should throw 404 for non-existent server", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+      (prisma.server.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(
+        null,
+      );
 
       await expect(
         channelsService.createChannelService({
           serverId: "server-123",
           userId: "user-123",
           name: "general",
-        })
+        }),
       ).rejects.toThrow();
     });
 
@@ -124,7 +136,9 @@ describe("channels.service", () => {
         id: "server-123",
       });
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         role: "admin",
       });
 
@@ -137,7 +151,7 @@ describe("channels.service", () => {
           serverId: "server-123",
           userId: "user-123",
           name: "general",
-        })
+        }),
       ).rejects.toThrow();
     });
   });
@@ -150,7 +164,9 @@ describe("channels.service", () => {
         id: "server-123",
       });
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         role: "member",
       });
 
@@ -159,7 +175,10 @@ describe("channels.service", () => {
         { id: "ch-2", name: "random" },
       ]);
 
-      const result = await channelsService.getServerChannelsService("server-123", "user-123");
+      const result = await channelsService.getServerChannelsService(
+        "server-123",
+        "user-123",
+      );
 
       expect(result).toHaveLength(2);
     });
@@ -169,12 +188,16 @@ describe("channels.service", () => {
     it("should delete channel for admin", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      (prisma.channel.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
-        id: "channel-123",
-        serverId: "server-123",
-      });
+      (prisma.channel.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(
+        {
+          id: "channel-123",
+          serverId: "server-123",
+        },
+      );
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         role: "admin",
       });
 
@@ -184,19 +207,23 @@ describe("channels.service", () => {
         channelsService.deleteChannelService({
           channelId: "channel-123",
           userId: "user-123",
-        })
+        }),
       ).resolves.not.toThrow();
     });
 
     it("should throw 403 for member trying to delete", async () => {
       const { prisma } = await import("../src/prisma/client.js");
 
-      (prisma.channel.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
-        id: "channel-123",
-        serverId: "server-123",
-      });
+      (prisma.channel.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(
+        {
+          id: "channel-123",
+          serverId: "server-123",
+        },
+      );
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+      (
+        prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+      ).mockResolvedValue({
         role: "member",
       });
 
@@ -204,94 +231,118 @@ describe("channels.service", () => {
         channelsService.deleteChannelService({
           channelId: "channel-123",
           userId: "user-123",
-        })
+        }),
       ).rejects.toThrow();
     });
-  
-  describe("getChannelDetailsService", () => {
-    it("should return channel details for member", async () => {
-      const { prisma } = await import("../src/prisma/client.js");
 
-      (prisma.channel.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
-        id: "channel-123",
-        serverId: "server-123",
-        name: "general"
+    describe("getChannelDetailsService", () => {
+      it("should return channel details for member", async () => {
+        const { prisma } = await import("../src/prisma/client.js");
+
+        (
+          prisma.channel.findUnique as ReturnType<typeof vi.fn>
+        ).mockResolvedValue({
+          id: "channel-123",
+          serverId: "server-123",
+          name: "general",
+        });
+
+        (
+          prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+        ).mockResolvedValue({
+          role: "member",
+        });
+
+        const result = await channelsService.getChannelDetailsService(
+          "channel-123",
+          "user-123",
+        );
+        expect(result).toBeDefined();
+        expect(result.id).toBe("channel-123");
       });
 
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
-        role: "member"
-      });
+      it("should throw 404 if channel not found", async () => {
+        const { prisma } = await import("../src/prisma/client.js");
+        (
+          prisma.channel.findUnique as ReturnType<typeof vi.fn>
+        ).mockResolvedValue(null);
 
-      const result = await channelsService.getChannelDetailsService("channel-123", "user-123");
-      expect(result).toBeDefined();
-      expect(result.id).toBe("channel-123");
+        await expect(
+          channelsService.getChannelDetailsService("unknown", "user-123"),
+        ).rejects.toThrow("Channel not found");
+      });
     });
 
-    it("should throw 404 if channel not found", async () => {
-      const { prisma } = await import("../src/prisma/client.js");
-      (prisma.channel.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
+    describe("updateChannelService", () => {
+      it("should update channel for admin", async () => {
+        const { prisma } = await import("../src/prisma/client.js");
 
-      await expect(channelsService.getChannelDetailsService("unknown", "user-123"))
-        .rejects.toThrow("Channel not found");
+        (
+          prisma.channel.findUnique as ReturnType<typeof vi.fn>
+        ).mockResolvedValue({
+          id: "channel-123",
+          serverId: "server-123",
+        });
+
+        (
+          prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+        ).mockResolvedValue({
+          role: "admin",
+        });
+
+        (prisma.channel.update as ReturnType<typeof vi.fn>).mockResolvedValue({
+          id: "channel-123",
+          name: "new-name",
+        });
+
+        const result = await channelsService.updateChannelService({
+          channelId: "channel-123",
+          userId: "user-123",
+          name: "new-name",
+        });
+
+        expect(result.name).toBe("new-name");
+      });
+
+      it("should throw 403 for member", async () => {
+        const { prisma } = await import("../src/prisma/client.js");
+
+        (
+          prisma.channel.findUnique as ReturnType<typeof vi.fn>
+        ).mockResolvedValue({
+          id: "channel-123",
+          serverId: "server-123",
+        });
+
+        (
+          prisma.serverMember.findUnique as ReturnType<typeof vi.fn>
+        ).mockResolvedValue({
+          role: "member",
+        });
+
+        await expect(
+          channelsService.updateChannelService({
+            channelId: "channel-123",
+            userId: "user-123",
+            name: "new-name",
+          }),
+        ).rejects.toThrow();
+      });
+
+      it("should throw 404 if channel not found", async () => {
+        const { prisma } = await import("../src/prisma/client.js");
+        (
+          prisma.channel.findUnique as ReturnType<typeof vi.fn>
+        ).mockResolvedValue(null);
+
+        await expect(
+          channelsService.updateChannelService({
+            channelId: "unknown",
+            userId: "user-123",
+            name: "new-name",
+          }),
+        ).rejects.toThrow("Channel not found");
+      });
     });
   });
-
-  describe("updateChannelService", () => {
-    it("should update channel for admin", async () => {
-      const { prisma } = await import("../src/prisma/client.js");
-
-      (prisma.channel.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
-        id: "channel-123",
-        serverId: "server-123"
-      });
-
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
-        role: "admin"
-      });
-
-      (prisma.channel.update as ReturnType<typeof vi.fn>).mockResolvedValue({
-        id: "channel-123",
-        name: "new-name"
-      });
-
-      const result = await channelsService.updateChannelService({
-        channelId: "channel-123",
-        userId: "user-123",
-        name: "new-name"
-      });
-
-      expect(result.name).toBe("new-name");
-    });
-
-    it("should throw 403 for member", async () => {
-       const { prisma } = await import("../src/prisma/client.js");
-
-      (prisma.channel.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
-        id: "channel-123",
-        serverId: "server-123"
-      });
-
-      (prisma.serverMember.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
-        role: "member"
-      });
-
-      await expect(channelsService.updateChannelService({
-        channelId: "channel-123",
-        userId: "user-123",
-        name: "new-name"
-      })).rejects.toThrow();
-    });
-
-    it("should throw 404 if channel not found", async () => {
-      const { prisma } = await import("../src/prisma/client.js");
-      (prisma.channel.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(null);
-
-      await expect(channelsService.updateChannelService({
-        channelId: "unknown",
-        userId: "user-123",
-        name: "new-name"
-      })).rejects.toThrow("Channel not found");
-    });
-  });
-});
 });

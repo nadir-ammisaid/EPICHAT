@@ -1,0 +1,77 @@
+{
+  "title": "Membres",
+  "loading": "Chargement...",
+  "error": "Impossible de charger les membres",
+
+  "roles": {
+    "owner": "Propriétaire",
+    "admin": "Admin",
+    "member": "Membre"
+  },
+
+  "status": {
+    "online": "En ligne",
+    "away": "Absent",
+    "busy": "Occupé",
+    "offline": "Hors ligne"
+  },
+
+  "actions": {
+    "sendMessage": "Envoyer un message",
+    "kick": "Expulser",
+    "banPermanent": "Ban permanent",
+    "banTemporary": "Ban temporaire",
+    "changeRole": "Changer le rôle",
+    "unban": "Débannir"
+  },
+
+  "bans": {
+    "title": "Membres bannis",
+    "empty": "Aucun membre banni.",
+    "expiresOn": "Expire le {{date}}"
+  },
+
+  "modals": {
+    "role": {
+      "title": "Changer le rôle",
+      "confirm": "Confirmer",
+      "cancel": "Annuler",
+      "ownerWarning": "ATTENTION : Vous allez transférer la propriété à {{username}}. Vous deviendrez Admin. Cette action est irréversible."
+    },
+    "ban": {
+      "title": "Ban temporaire",
+      "confirm": "Confirmer",
+      "cancel": "Annuler",
+      "minutes": "Minutes",
+      "hours": "Heures",
+      "days": "Jours"
+    }
+  },
+
+  "messages": {
+    "cannotKickSelf": "Vous ne pouvez pas vous expulser.",
+    "cannotKickOwner": "Vous ne pouvez pas expulser le propriétaire.",
+    "kickSuccess": "Membre expulsé.",
+    "kickFailed": "Échec de l'expulsion.",
+
+    "cannotChangeOwnRole": "Vous ne pouvez pas changer votre propre rôle.",
+    "cannotChangeOwnerRole": "Vous ne pouvez pas changer le rôle du propriétaire.",
+    "roleUpdated": "Rôle mis à jour.",
+    "roleUpdateFailed": "Échec de la mise à jour du rôle.",
+    "ownershipTransferred": "Propriété transférée.",
+    "ownershipTransferFailed": "Échec du transfert de propriété.",
+
+    "banPermanentSuccess": "Ban permanent appliqué.",
+    "banPermanentFailed": "Échec du ban permanent.",
+
+    "banTemporarySuccess": "Ban temporaire appliqué.",
+    "banTemporaryFailed": "Échec du ban temporaire.",
+
+    "unbanSuccess": "Membre débanni.",
+    "unbanFailed": "Échec du débannissement."
+  },
+
+  "confirmations": {
+    "kick": "Expulser {{username}} du serveur ?"
+  }
+}

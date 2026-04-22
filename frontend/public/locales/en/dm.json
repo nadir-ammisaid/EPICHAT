@@ -1,0 +1,14 @@
+{
+  "sidebar": {
+    "title": "Direct messages",
+    "emptyContacts": "Join a server to view your contacts."
+  },
+  "section": {
+    "empty": "Select a conversation to start chatting."
+  },
+  "empty": "Select a conversation to start chatting.",
+  "loading": "Loading…",
+  "error": "Error while loading messages",
+  "typing": "is typing…",
+  "inputPlaceholder": "Write a message…"
+}

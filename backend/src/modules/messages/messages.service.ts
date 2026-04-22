@@ -1,10 +1,15 @@
 import { prisma } from "../../prisma/client.js";
 import HttpError from "../../shared/errors/httpError.js";
+import { buildPaginationArgs, paginateResult } from "../../shared/utils/pagination.js";
+
+type SendMessagePayload =
+  | { type: "text"; content: string }
+  | { type: "gif"; mediaUrl: string; content?: string };
 
 export async function sendMessage(
   userId: string,
   channelId: string,
-  content: string,
+  payload: SendMessagePayload,
 ) {
   // Verify channel existence
   const channel = await prisma.channel.findUnique({ where: { id: channelId } });
@@ -21,12 +26,25 @@ export async function sendMessage(
     );
 
   // Create the message
+  const data =
+    payload.type === "gif"
+      ? {
+          channelId,
+          authorId: userId,
+          type: "gif" as const,
+          content: payload.content ?? "",
+          mediaUrl: payload.mediaUrl,
+        }
+      : {
+          channelId,
+          authorId: userId,
+          type: "text" as const,
+          content: payload.content,
+          mediaUrl: null,
+        };
+
   return prisma.message.create({
-    data: {
-      channelId,
-      authorId: userId,
-      content,
-    },
+    data,
     include: {
       author: { select: { id: true, username: true } },
     },
@@ -52,34 +70,14 @@ export async function getChannelMessages(
 
 
 
-  // Configure pagination and fetching
-  const args: any = {
-    // where: { channelId },
-    where: { channelId, deletedAt: null },
-    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-    take: limit,
-  };
-
-  if (before) {
-    args.cursor = { id: before };
-    args.skip = 1;
-  }
-
   const rows = await prisma.message.findMany({
-  ...args,
-  include: {
-    author: { select: { id: true, username: true } },
-  },
+  ...buildPaginationArgs(limit, before),
+  where: { channelId, deletedAt: null },
+  include: { author: { select: { id: true, username: true } }, reactions: true },
 });
 
-  // Format order (Oldest to Newest)
-  const messages = rows.reverse();
+return paginateResult(rows);
 
-  
-  const nextCursor = messages.at(0)?.id ?? null;
-
-
-  return { messages, nextCursor };
 }
 
 export async function deleteMessage(userId: string, messageId: string) {
@@ -109,7 +107,7 @@ export async function deleteMessage(userId: string, messageId: string) {
 
   await prisma.message.update({
     where: { id: messageId },
-    data: { deletedAt: new Date(), content: "" },
+    data: { deletedAt: new Date(), content: "", mediaUrl: null },
   });
 
   return message.channelId;
@@ -126,6 +124,7 @@ export async function updateMessage(
   });
   if (!message) throw new HttpError(404, "Message not found");
   if (message.deletedAt) throw new HttpError(400, "Cannot edit a deleted message");
+  if (message.type !== "text") throw new HttpError(400, "Only text messages can be edited");
 
   if (message.authorId !== userId) {
     throw new HttpError(403, "You can only edit your own messages");

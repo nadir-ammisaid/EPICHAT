@@ -1,0 +1,9 @@
+{
+  "title": "Notifications",
+  "empty": "No recent notifications",
+  "markAllRead": "Mark all as read",
+  "aria": {
+    "default": "Notifications",
+    "unread": "Unread notifications"
+  }
+}

@@ -7,6 +7,8 @@ export type ServerDetails = {
   createdAt?: string;
 };
 
-export async function getServerDetails(serverId: string): Promise<ServerDetails> {
+export async function getServerDetails(
+  serverId: string,
+): Promise<ServerDetails> {
   return apiClient.request(`/servers/${serverId}`);
 }

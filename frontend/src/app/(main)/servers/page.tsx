@@ -1,0 +1,13 @@
+'use client'
+
+import { useTranslation } from "react-i18next";
+
+export default function ServersPage() {
+  const { t } = useTranslation("common");
+
+  return (
+    <main className="p-6">
+      <h1 className="text-2xl font-semibold">{t("pages.servers.listTitle")}</h1>
+    </main>
+  );
+}
