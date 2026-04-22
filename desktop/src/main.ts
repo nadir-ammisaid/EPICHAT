@@ -78,5 +78,5 @@ app.whenReady().then(() => {
 });
 
 app.on("window-all-closed", () => {
-  // Ne rien faire : l'app vit dans le tray jusqu'à "Quitter"
+  
 });
