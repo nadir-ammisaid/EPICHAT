@@ -4,7 +4,9 @@
   "welcome": "Bienvenue sur Epichat",
   "hero": {
     "title": "Discutez en temps réel avec votre équipe",
-    "subtitle": "Créez des salons, échangez des messages instantanés et collaborez efficacement."
+    "subtitle": "Créez des salons, échangez des messages instantanés et collaborez efficacement.",
+    "join": "Rejoindre",
+    "myAccount": "Mon compte"
   },
   "sections": {
     "roomsTitle": "Vos salons de discussion",

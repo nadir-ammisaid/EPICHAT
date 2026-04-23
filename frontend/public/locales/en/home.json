@@ -4,7 +4,9 @@
   "welcome": "Welcome to Epichat",
   "hero": {
     "title": "Chat in real time with your team",
-    "subtitle": "Create rooms, exchange instant messages and collaborate effectively."
+    "subtitle": "Create rooms, exchange instant messages and collaborate effectively.",
+    "join": "Join",
+    "myAccount": "My account"
   },
   "sections": {
     "roomsTitle": "Your chat rooms",
