@@ -5,6 +5,7 @@ import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
 import { useRegisterForm } from "@/lib/hooks/useRegisterForm";
 import { useTranslation } from "react-i18next";
+import { Label } from "./ui";
 
 export default function RegisterForm() {
   const { error, isLoading, handleSubmit } = useRegisterForm();
@@ -18,6 +19,7 @@ export default function RegisterForm() {
         onSubmit={handleSubmit}
         className="flex w-full max-w-md flex-col items-center justify-center gap-4"
       >
+        <Label htmlFor="email" aria-label="email" />
         <Input
           type="email"
           id="email"
@@ -27,6 +29,7 @@ export default function RegisterForm() {
           fullWidth
           required
         />
+        <Label htmlFor="username" aria-label="username" />
         <Input
           type="text"
           id="username"
@@ -38,6 +41,7 @@ export default function RegisterForm() {
           minLength={3}
           maxLength={32}
         />
+        <Label htmlFor="password" aria-label="password" />
         <Input
           type="password"
           id="password"
@@ -48,6 +52,7 @@ export default function RegisterForm() {
           required
           minLength={8}
         />
+        <Label htmlFor="confirmPassword" aria-label="confirmPassword" />
         <Input
           type="password"
           id="confirmPassword"

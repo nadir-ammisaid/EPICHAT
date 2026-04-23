@@ -16,7 +16,11 @@ export default function ChannelSearch({ query, setQuery, disabled }: Props) {
     <div className="border-border border-b px-3 py-3">
       <div className="relative">
         <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <label htmlFor="search" className="sr-only">
+          Rechercher un canal
+        </label>
         <input
+          id="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t("channels.searchPlaceholder")}

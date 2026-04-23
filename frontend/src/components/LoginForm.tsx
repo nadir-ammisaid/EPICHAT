@@ -5,6 +5,8 @@ import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
 import { useLoginForm } from "@/lib/hooks/useLoginForm";
 import { useTranslation } from "react-i18next";
+import { Label } from "./ui";
+import { Lancelot } from "next/font/google";
 
 export default function LoginForm() {
   const { error, isLoading, handleSubmit } = useLoginForm();
@@ -18,6 +20,7 @@ export default function LoginForm() {
         onSubmit={handleSubmit}
         className="flex w-full max-w-md flex-col items-center justify-center gap-4"
       >
+        <Label htmlFor="email" aria-label="email" />
         <Input
           type="email"
           id="email"
@@ -27,6 +30,7 @@ export default function LoginForm() {
           fullWidth
           required
         />
+        <Label htmlFor="password" aria-label="password" />
         <Input
           type="password"
           id="password"
