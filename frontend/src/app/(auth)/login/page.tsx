@@ -16,13 +16,13 @@ export default function LoginPage() {
       <div className="bg-background relative h-screen w-full md:grid md:grid-cols-2">
         <Link
           href="/"
-          className="absolute top-4 left-4 z-20 border-border hover:bg-muted flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors"
+          className="absolute top-4 left-4 z-60 border-border hover:bg-muted flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           {t("pages.profile.back")}
         </Link>
-        <div className="absolute inset-0 flex items-center justify-center md:relative md:order-1 md:flex md:items-center md:justify-center">
-          <div className="bg-background w-full max-w-[95%] rounded-lg px-4 py-14 md:px-0">
+        <div className="absolute inset-0 z-50 flex items-center justify-center md:relative md:order-1 md:flex md:items-center md:justify-center">
+          <div className="bg-background/90 w-full max-w-[95%] rounded-lg px-4 py-14 md:px-0">
             <LoginForm />
           </div>
         </div>
@@ -34,7 +34,7 @@ export default function LoginPage() {
             alt={t("pages.login.illustrationAlt")}
             fill
             sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-cover"
+            className="object-cover opacity-50"
             priority={true}
           />
         </div>

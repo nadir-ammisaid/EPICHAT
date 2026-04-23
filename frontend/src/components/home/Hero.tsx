@@ -25,7 +25,7 @@ export default function Hero() {
         <div className="absolute inset-0 bg-white/20" />
 
         <div className="relative z-10 mx-auto flex min-h-svh max-w-6xl items-center px-6 lg:px-8">
-          <div className="flex max-w-2xl flex-col space-y-6 md:mt-20">
+          <div className="flex max-w-2xl flex-col space-y-6 md:mt-20 bg-white/1 backdrop-blur-xs rounded-2xl px-8 py-8">
             <h1 className="text-4xl leading-[0.9] font-black tracking-tighter text-slate-900 uppercase drop-shadow-sm md:text-6xl lg:text-7xl">
               {title}
             </h1>

@@ -16,24 +16,25 @@ export default function RegisterPage() {
       <div className="bg-background relative h-screen w-full md:grid md:grid-cols-2">
         <Link
           href="/"
-          className="absolute top-4 left-4 z-20 border-border hover:bg-muted flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors"
+          className="absolute top-4 left-4 z-60 border-border hover:bg-muted flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           {t("pages.profile.back")}
         </Link>
-        <div className="absolute inset-0 flex items-center justify-center md:relative md:order-1 md:flex md:items-center md:justify-center">
-          <div className="bg-background w-full max-w-[95%] rounded-lg px-4 py-14 md:px-0">
+        <div className="absolute inset-0 z-50 flex items-center justify-center md:relative md:order-1 md:flex md:items-center md:justify-center">
+          <div className="bg-background/90 w-full max-w-[95%] rounded-lg px-4 py-14 md:px-0">
             <RegisterForm />
           </div>
         </div>
+
         <div className="relative h-full w-full md:order-2">
-          <div className="from-background absolute inset-y-0 left-0 z-10 hidden w-32 bg-linear-to-r to-transparent md:block" />
+          <div className="from-background absolute inset-y-0 left-0 z-10 hidden w-32 bg-gradient-to-r to-transparent md:block" />
           <Image
             src="/login.png"
             alt={t("pages.register.illustrationAlt")}
             fill
             sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-cover"
+            className="object-cover opacity-50"
             priority={true}
           />
         </div>
