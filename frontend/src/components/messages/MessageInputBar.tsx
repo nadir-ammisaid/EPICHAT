@@ -10,6 +10,7 @@ import { Smile, Image as ImageIcon, Search } from "lucide-react";
 import { EmojiPicker } from "@/components/ui/EmojiPicker";
 import { Modal } from "@/components/ui/Modal";
 import { apiClient } from "@/lib/api/client";
+import { useTranslation } from "react-i18next";
 
 type GifSearchItem = {
   id: string;
@@ -41,6 +42,7 @@ export function MessageInputBar({
   aboveInput,
   extraKeyDown,
 }: MessageInputBarProps) {
+  const { t } = useTranslation("common");
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const [gifModalOpen, setGifModalOpen] = useState(false);
   const [gifQuery, setGifQuery] = useState("");
@@ -73,7 +75,9 @@ export function MessageInputBar({
         return items[0] ?? null;
       });
     } catch (e: unknown) {
-      setGifError(e instanceof Error ? e.message : "Failed to search GIFs");
+      setGifError(
+        e instanceof Error ? e.message : t("messageInput.searchError"),
+      );
     } finally {
       setGifLoading(false);
     }
@@ -91,7 +95,9 @@ export function MessageInputBar({
       setGifQuery("");
       setGifOffset(0);
     } catch (e: unknown) {
-      setGifError(e instanceof Error ? e.message : "Failed to send GIF");
+      setGifError(
+        e instanceof Error ? e.message : t("messageInput.sendError"),
+      );
     } finally {
       setGifSending(false);
     }
@@ -110,7 +116,7 @@ export function MessageInputBar({
                 setGifError(null);
               }}
               className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-              aria-label="Open GIF search"
+              aria-label={t("messageInput.openGifSearch")}
             >
               <ImageIcon className="w-5 h-5" />
             </button>
@@ -120,7 +126,7 @@ export function MessageInputBar({
               type="button"
               onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
               className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-              aria-label="Open emoji picker"
+              aria-label={t("messageInput.openEmojiPicker")}
             >
               <Smile className="w-5 h-5" />
             </button>
@@ -137,7 +143,7 @@ export function MessageInputBar({
           <input
             ref={inputRef}
             className="flex-1 rounded border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder={placeholder ?? "Ecrire un message..."}
+            placeholder={placeholder ?? t("messageInput.placeholder")}
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={(e) => {
@@ -151,7 +157,7 @@ export function MessageInputBar({
             onClick={onSend}
             disabled={disabled || !value.trim()}
           >
-            Envoyer
+            {t("messageInput.send")}
           </button>
         </div>
       </div>
@@ -159,13 +165,13 @@ export function MessageInputBar({
       <Modal
         open={gifModalOpen}
         onClose={() => setGifModalOpen(false)}
-        title="Rechercher un GIF"
+        title={t("messageInput.gifModalTitle")}
       >
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <input
               className="flex-1 rounded border border-border bg-background px-3 py-2 text-sm"
-              placeholder="Rechercher sur Giphy..."
+              placeholder={t("messageInput.gifSearchPlaceholder")}
               value={gifQuery}
               onChange={(e) => setGifQuery(e.target.value)}
               onKeyDown={(e) => {
@@ -186,7 +192,7 @@ export function MessageInputBar({
 
           {selectedGif && (
             <div className="rounded border border-border p-2">
-              <p className="mb-2 text-xs text-muted-foreground">Previsualisation</p>
+              <p className="mb-2 text-xs text-muted-foreground">{t("messageInput.preview")}</p>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={selectedGif.gifUrl}
@@ -217,7 +223,7 @@ export function MessageInputBar({
             ))}
             {!gifLoading && gifResults.length === 0 && (
               <p className="col-span-2 text-center text-sm text-muted-foreground">
-                Aucun GIF pour le moment.
+                {t("messageInput.empty")}
               </p>
             )}
           </div>
@@ -229,7 +235,7 @@ export function MessageInputBar({
               onClick={() => searchGifs(gifOffset, true)}
               disabled={gifLoading || !gifOffset || !gifQuery.trim()}
             >
-              Charger plus
+              {t("messageInput.loadMore")}
             </button>
             <button
               type="button"
@@ -237,7 +243,7 @@ export function MessageInputBar({
               onClick={handleSendGif}
               disabled={!selectedGif || gifSending}
             >
-              Envoyer le GIF
+              {t("messageInput.sendGif")}
             </button>
           </div>
         </div>

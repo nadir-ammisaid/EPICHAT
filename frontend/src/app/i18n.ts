@@ -9,19 +9,27 @@ import frServers from "../../public/locales/fr/servers.json";
 import enServers from "../../public/locales/en/servers.json";
 import frNotifications from "../../public/locales/fr/notifications.json";
 import enNotifications from "../../public/locales/en/notifications.json";
+import frMembers from "../../public/locales/fr/members.json";
+import enMembers from "../../public/locales/en/members.json";
+import frDm from "../../public/locales/fr/dm.json";
+import enDm from "../../public/locales/en/dm.json";
 
 const resources = {
   fr: {
     common: frCommon,
     home: frHome,
     servers: frServers,
-    notifications: frNotifications
+    notifications: frNotifications,
+    members: frMembers,
+    dm: frDm,
   },
   en: {
     common: enCommon,
     home: enHome,
     servers: enServers,
-    notifications: enNotifications
+    notifications: enNotifications,
+    members: enMembers,
+    dm: enDm,
   },
 } as const;
 

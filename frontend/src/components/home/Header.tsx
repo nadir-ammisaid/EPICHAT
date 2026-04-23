@@ -16,7 +16,7 @@ const navItems = [
 export default function Header() {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
-  const { t } = useTranslation("home");
+  const { t } = useTranslation(["home", "common"]);
 
   return (
     <header className="bg-background/80 border-border sticky top-0 z-50 w-full border-b backdrop-blur">
@@ -24,7 +24,7 @@ export default function Header() {
         <Link href="/" className="flex items-center">
           <Image
             src="/logo.png"
-            alt="EpiChat"
+            alt="Texte epichat comme logo"
             width={130}
             height={130}
             priority
@@ -47,14 +47,14 @@ export default function Header() {
           </div>
           <Link
             href="/login"
-            className="hidden items-center justify-center rounded-full bg-[#2F6BFF] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#1E4ED8] hover:opacity-90 md:inline-flex"
+            className="hidden items-center justify-center rounded-full bg-brand px-4 py-2 text-sm font-medium text-white transition hover:bg-brand-hover hover:opacity-90 md:inline-flex"
           >
-            Se connecter
+            {t("buttons.login", { ns: "common" })}
           </Link>
           <button
             type="button"
             className="border-border hover:bg-foreground/5 inline-flex items-center justify-center rounded-full border p-2 transition md:hidden"
-            aria-label="Open menu"
+            aria-label={t("navigation.openMenu", { ns: "common" })}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
           >
@@ -103,7 +103,7 @@ export default function Header() {
                 className="hover:bg-foreground/5 flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition"
                 onClick={() => setOpen(false)}
               >
-                Se connecter
+                {t("buttons.login", { ns: "common" })}
                 <span className="text-foreground/50">→</span>
               </Link>
               <div className="border-border my-2 border-t" />

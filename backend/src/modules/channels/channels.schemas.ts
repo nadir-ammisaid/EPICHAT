@@ -9,8 +9,8 @@ export const serverIdParamsSchema = z.object({
 export const createChannelBodySchema = z.object({
   name: z
     .string()
-    .min(1, "1 character min for the name")
-    .max(15, "15 characters max for the name"),
+    .min(1, "1 caractère minimum pour le nom")
+    .max(15, "15 caractères max pour le nom"),
 });
 
 //Validate channelId from params
@@ -22,6 +22,6 @@ export const channelIdParamsSchema = z.object({
 export const updateChannelBodySchema = z.object({
   name: z
     .string()
-    .min(1, "1 character min for the name")
-    .max(15, "15 characters max for the name"),
+    .min(1, "1 caractère minimum pour le nom")
+    .max(15, "15 caractères max pour le nom"),
 });

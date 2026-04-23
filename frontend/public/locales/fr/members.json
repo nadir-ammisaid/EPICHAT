@@ -25,11 +25,18 @@
     "unban": "Débannir"
   },
 
+  "bans": {
+    "title": "Membres bannis",
+    "empty": "Aucun membre banni.",
+    "expiresOn": "Expire le {{date}}"
+  },
+
   "modals": {
     "role": {
       "title": "Changer le rôle",
       "confirm": "Confirmer",
-      "cancel": "Annuler"
+      "cancel": "Annuler",
+      "ownerWarning": "ATTENTION : Vous allez transférer la propriété à {{username}}. Vous deviendrez Admin. Cette action est irréversible."
     },
     "ban": {
       "title": "Ban temporaire",
@@ -51,6 +58,8 @@
     "cannotChangeOwnerRole": "Vous ne pouvez pas changer le rôle du propriétaire.",
     "roleUpdated": "Rôle mis à jour.",
     "roleUpdateFailed": "Échec de la mise à jour du rôle.",
+    "ownershipTransferred": "Propriété transférée.",
+    "ownershipTransferFailed": "Échec du transfert de propriété.",
 
     "banPermanentSuccess": "Ban permanent appliqué.",
     "banPermanentFailed": "Échec du ban permanent.",
@@ -60,5 +69,9 @@
 
     "unbanSuccess": "Membre débanni.",
     "unbanFailed": "Échec du débannissement."
+  },
+
+  "confirmations": {
+    "kick": "Expulser {{username}} du serveur ?"
   }
 }

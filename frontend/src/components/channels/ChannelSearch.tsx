@@ -1,6 +1,7 @@
 "use client";
 
 import { Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   query: string;
@@ -9,14 +10,20 @@ type Props = {
 };
 
 export default function ChannelSearch({ query, setQuery, disabled }: Props) {
+  const { t } = useTranslation("common");
+
   return (
     <div className="border-border border-b px-3 py-3">
       <div className="relative">
         <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <label htmlFor="search" className="sr-only">
+          Rechercher un canal
+        </label>
         <input
+          id="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Rechercher un canal"
+          placeholder={t("channels.searchPlaceholder")}
           disabled={disabled}
           className="border-border w-full rounded-xl border bg-white/70 py-2 pr-3 pl-9 text-sm text-slate-800 transition outline-none focus:bg-white focus:ring-2 focus:ring-blue-200 disabled:opacity-50"
         />
