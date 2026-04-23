@@ -12,8 +12,8 @@ export default function LoginPage() {
     <main>
       <RedirectIfAuthed />
       <div className="bg-background relative h-screen w-full md:grid md:grid-cols-2">
-        <div className="absolute inset-0 flex items-center justify-center md:relative md:order-1 md:flex md:items-center md:justify-center">
-          <div className="bg-background w-full max-w-[95%] rounded-lg px-4 py-14 md:px-0">
+        <div className="absolute inset-0 z-50 flex items-center justify-center md:relative md:order-1 md:flex md:items-center md:justify-center">
+          <div className="bg-background/90 w-full max-w-[95%] rounded-lg px-4 py-14 md:px-0">
             <LoginForm />
           </div>
         </div>
@@ -25,7 +25,7 @@ export default function LoginPage() {
             alt={t("pages.login.illustrationAlt")}
             fill
             sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-cover"
+            className="object-cover opacity-50"
             priority={true}
           />
         </div>
