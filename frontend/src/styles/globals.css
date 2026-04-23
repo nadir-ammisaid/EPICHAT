@@ -7,6 +7,7 @@
   --brand-hover: #0487e2;
   --brand-active: #09b1ec;
   --brand-muted: #77a3d2;
+  --brand-fonce: #2448C8;
   --border: #d0d0e0;
   --border-muted: #b8b8d0;
   --success: #4daa57;
@@ -20,6 +21,8 @@
   --color-brand-hover: var(--brand-hover);
   --color-brand-active: var(--brand-active);
   --color-brand-muted: var(--brand-muted);
+  --color-brand-fonce: var(--brand-fonce);
+  --color-text: var(--foreground);
   --color-border: var(--border);
   --color-border-muted: var(--border-muted);
   --color-success: var(--success);

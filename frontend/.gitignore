@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+/.vitest-coverage/
+/.vitest-coverage-temp/
 
 # next.js
 /.next/
