@@ -6,7 +6,6 @@ import { Input } from "./ui/Input";
 import { useLoginForm } from "@/lib/hooks/useLoginForm";
 import { useTranslation } from "react-i18next";
 import { Label } from "./ui";
-import { Lancelot } from "next/font/google";
 
 export default function LoginForm() {
   const { error, isLoading, handleSubmit } = useLoginForm();
