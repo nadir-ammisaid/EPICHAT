@@ -24,14 +24,31 @@ import { authRateLimiter } from "./shared/middlewares/rateLimit.middleware.js";
 import { notFound } from "./shared/middlewares/notFound.middleware.js";
 import { errorMiddleware } from "./shared/middlewares/error.middleware.js";
 
-// Read and validate allowed client origin
-function getClientUrl(): string {
-  const url = process.env.CLIENT_URL;
-  if (!url) throw new Error("CLIENT_URL is not defined");
-  return url;
+// Read and validate allowed client origins.
+// Supports:
+// - CLIENT_URL="https://app.example.com"
+// - CLIENT_URL="https://app.example.com,https://staging.example.com"
+// - CLIENT_URLS="https://app.example.com,https://staging.example.com"
+function getAllowedClientOrigins(): Set<string> {
+  const raw = [process.env.CLIENT_URL, process.env.CLIENT_URLS]
+    .filter(Boolean)
+    .join(",");
+
+  if (!raw) {
+    throw new Error("CLIENT_URL (or CLIENT_URLS) is not defined");
+  }
+
+  const origins = new Set(
+    raw
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean),
+  );
+
+  return origins;
 }
 
-const clientUrl = getClientUrl();
+const allowedClientOrigins = getAllowedClientOrigins();
 
 export function createApp() {
   const app = express();
@@ -52,7 +69,7 @@ export function createApp() {
         // allow non-browser clients (curl, postman)
         if (!origin) return callback(null, true);
 
-        if (origin === clientUrl) {
+        if (allowedClientOrigins.has(origin)) {
           return callback(null, true);
         }
 
