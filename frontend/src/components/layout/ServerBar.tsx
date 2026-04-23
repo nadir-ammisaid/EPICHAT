@@ -156,21 +156,22 @@ export default function ServerBar({ className = "" }: { className?: string }) {
   return (
     <>
       <div
-        className={`bg-background border-border flex h-full shrink-0 flex-col items-center justify-start border p-2 ${className}`}
+        className={`bg-background border-border flex h-full shrink-0 flex-col items-center justify-start border-r p-2 ${className}`}
       >
         <div className="mt-2 flex w-full flex-col items-center gap-2">
           <Link
             href="/dashboard"
-            className="hidden shrink-0 md:flex"
-            aria-label="Accueil"
+            aria-label={t("homeAria")}
+            className="hidden shrink-0 items-center gap-2 md:flex"
           >
             <Image
               src="/images/logo.png"
-              alt="Epichat"
+              alt=""
               width={100}
               height={100}
               className="rounded-lg object-cover"
             />
+            <span className="sr-only">{t("homeAria")}</span>
           </Link>
           <div className="mt-2 mb-2 flex w-full items-center gap-2">
             <hr className="border-border-muted flex-1" />

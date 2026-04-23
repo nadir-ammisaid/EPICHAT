@@ -17,10 +17,10 @@
     "test:coverage:local": "node ./node_modules/vitest/vitest.mjs run --coverage"
   },
   "dependencies": {
-    "axios": "^1.13.3",
+    "axios": "^1.15.0",
     "i18next": "^25.8.18",
     "lucide-react": "^0.563.0",
-    "next": "16.1.5",
+    "next": "16.2.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-i18next": "^15.5.2",
@@ -37,7 +37,7 @@
     "@types/react-dom": "^19",
     "@vitest/coverage-v8": "^4.1.0",
     "eslint": "^9",
-    "eslint-config-next": "16.1.5",
+    "eslint-config-next": "16.2.4",
     "jsdom": "^28.1.0",
     "tailwindcss": "^4",
     "typescript": "^5",

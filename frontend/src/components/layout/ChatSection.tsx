@@ -141,7 +141,7 @@ export default function ChatSection() {
 
   if (!channelId) {
     return (
-      <div className="border-border bg-background flex min-h-0 flex-1 flex-col border">
+      <div className="border-border bg-background flex min-h-0 flex-1 flex-col">
         <div className="flex-1 overflow-y-auto p-4">
           <p className="text-muted-foreground text-sm">
             {t("chat.selectCanal")}
@@ -154,7 +154,7 @@ export default function ChatSection() {
   return (
     <div className="border-border bg-background flex min-h-0 flex-1 flex-col border">
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
-        {loading && <p className="text-sm">Loading…</p>}
+        {loading && <p className="text-sm">{t("status.loading")}</p>}
         {error && <p className="text-red-500 text-sm">{error}</p>}
         {messages
           .filter((m) => {
@@ -206,7 +206,7 @@ export default function ChatSection() {
         onSend={handleSendText}
         onSendGif={(gif) => sendChannelGifMessage(channelId, gif)}
         disabled={sending}
-        placeholder="Ecrire un message..."
+        placeholder={t("messageInput.placeholder")}
         inputRef={inputRef}
         aboveInput={
           showMentions && filteredMembers.length > 0 ? (

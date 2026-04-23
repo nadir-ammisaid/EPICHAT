@@ -32,7 +32,13 @@ describe("Button", () => {
     );
 
     expect(screen.getByRole("button", { name: "Outline" })).toHaveClass(
-      "border-border-muted",
+      "rounded-md",
+      "font-medium",
+      "transition-colors",
+      "hover:cursor-pointer",
+      "border border-border",
+      "text-slate-600",
+      "hover:text-brand-hover",
       "px-8",
       "py-3",
       "text-lg",

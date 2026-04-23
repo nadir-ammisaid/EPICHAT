@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import type { Channel } from "@/lib/api/channels";
+import { useTranslation } from "react-i18next";
 
 export default function ChannelModals({
   // CREATE
@@ -60,15 +61,17 @@ export default function ChannelModals({
 
   selected: Channel | null;
 }) {
+  const { t } = useTranslation("common");
+
   return (
     <>
-      <Modal open={createOpen} onClose={onCloseCreate} title="Nouveau canal">
+      <Modal open={createOpen} onClose={onCloseCreate} title={t("channels.modals.create.title")}>
         <form onSubmit={onSubmitCreate} className="flex flex-col gap-3">
           <Input
-            label="Nom du canal"
+            label={t("channels.modals.create.nameLabel")}
             value={newChannelName}
             onChange={(e) => setNewChannelName(e.target.value)}
-            placeholder="Nom du canal"
+            placeholder={t("channels.modals.create.namePlaceholder")}
             maxLength={100}
             required
             disabled={createLoading}
@@ -84,7 +87,7 @@ export default function ChannelModals({
               onClick={onCloseCreate}
               disabled={createLoading}
             >
-              Annuler
+              {t("buttons.cancel")}
             </Button>
 
             <Button
@@ -93,7 +96,9 @@ export default function ChannelModals({
               className="flex-1"
               disabled={createLoading || !newChannelName.trim()}
             >
-              {createLoading ? "Création…" : "Créer"}
+              {createLoading
+                ? t("channels.modals.create.loading")
+                : t("channels.modals.create.submit")}
             </Button>
           </div>
         </form>
@@ -102,11 +107,11 @@ export default function ChannelModals({
       <Modal
         open={renameOpen}
         onClose={onCloseRename}
-        title="Renommer le canal"
+        title={t("channels.modals.rename.title")}
       >
         <form onSubmit={onSubmitRename} className="flex flex-col gap-3">
           <Input
-            label="Nouveau nom"
+            label={t("channels.modals.rename.nameLabel")}
             value={renameValue}
             onChange={(e) => setRenameValue(e.target.value)}
             maxLength={100}
@@ -124,7 +129,7 @@ export default function ChannelModals({
               onClick={onCloseRename}
               disabled={renameLoading}
             >
-              Annuler
+              {t("buttons.cancel")}
             </Button>
 
             <Button
@@ -133,7 +138,9 @@ export default function ChannelModals({
               className="flex-1"
               disabled={renameLoading || !renameValue.trim()}
             >
-              {renameLoading ? "En cours…" : "Renommer"}
+              {renameLoading
+                ? t("channels.modals.rename.loading")
+                : t("channels.modals.rename.submit")}
             </Button>
           </div>
         </form>
@@ -142,11 +149,11 @@ export default function ChannelModals({
       <Modal
         open={deleteOpen}
         onClose={onCloseDelete}
-        title="Supprimer le canal"
+        title={t("channels.modals.delete.title")}
       >
         <div className="flex flex-col gap-3">
           <p className="text-sm text-slate-700">
-            Tu es sûr de vouloir supprimer{" "}
+            {t("channels.modals.delete.confirmText")}{" "}
             <span className="font-semibold">#{selected?.name}</span> ?
           </p>
 
@@ -160,7 +167,7 @@ export default function ChannelModals({
               onClick={onCloseDelete}
               disabled={deleteLoading}
             >
-              Annuler
+              {t("buttons.cancel")}
             </Button>
 
             <Button
@@ -169,7 +176,9 @@ export default function ChannelModals({
               onClick={onConfirmDelete}
               disabled={deleteLoading}
             >
-              {deleteLoading ? "Suppression…" : "Supprimer"}
+              {deleteLoading
+                ? t("channels.modals.delete.loading")
+                : t("channels.modals.delete.submit")}
             </Button>
           </div>
         </div>

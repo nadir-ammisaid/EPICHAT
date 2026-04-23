@@ -5,6 +5,7 @@ import { EmojiPicker } from "@/components/ui/EmojiPicker";
 import { Check, Pencil, Trash2, X, SmilePlus } from "lucide-react";
 import { formatDate } from "@/lib/utils/formatDate";
 import type { MessageType } from "@/lib/types/message";
+import { useTranslation } from "react-i18next";
 
 type MessageItemProps = {
   id: string;
@@ -52,6 +53,7 @@ export function MessageItem({
   myUserId,
   onToggleReaction,
 }: MessageItemProps) {
+  const { t } = useTranslation("common");
   const wasEdited = updatedAt && updatedAt !== createdAt && !deletedAt;
   const [showQuickPicker, setShowQuickPicker] = useState(false);
   const [showFullPicker, setShowFullPicker] = useState(false);
@@ -186,7 +188,7 @@ export function MessageItem({
           <span>{authorName}</span>
           <span>-</span>
           <span>{formatDate(createdAt)}</span>
-          {wasEdited && <span className="italic">(modifié)</span>}
+          {wasEdited && <span className="italic">{t("chat.edited")}</span>}
         </div>
 
         {isEditing ? (
@@ -219,7 +221,7 @@ export function MessageItem({
         ) : (
           <div className="text-sm leading-5">
             {deletedAt ? (
-              <i className="opacity-60">(supprimé)</i>
+              <i className="opacity-60">{t("chat.deleted")}</i>
             ) : type === "gif" && mediaUrl ? (
               <a
                 href={mediaUrl}

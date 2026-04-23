@@ -1,14 +1,18 @@
 {
   "title": "Servers",
   "dm": "Direct messages",
+  "messages": "Messages",
+  "homeAria": "Home",
+  "logoAlt": "Epichat",
+  "createServerAria": "Create a server",
   "options": "Server options",
   "invite": "Invite",
   "delete": "Delete server",
   "leave": "Leave server",
 
   "actions": {
-    "create": "Create server",
-    "join": "Join server"
+    "create": "Create a server",
+    "join": "Join a server"
   },
 
   "createModal": {

@@ -1,6 +1,10 @@
 {
   "title": "Serveurs",
   "dm": "Messages privés",
+  "messages": "Messages",
+  "homeAria": "Accueil",
+  "logoAlt": "Epichat",
+  "createServerAria": "Créer un serveur",
   "options": "Options du serveur",
   "invite": "Inviter",
   "delete": "Supprimer le serveur",

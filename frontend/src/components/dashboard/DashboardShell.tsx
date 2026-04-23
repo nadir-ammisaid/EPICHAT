@@ -19,8 +19,10 @@ import { useInitializeGlobalPresence } from "@/lib/hooks/useGlobalPresence";
 import { useCurrentUserId } from "@/lib/hooks/useCurrentUserId";
 import getInitials from "@/lib/utils/getInitials";
 import UserControls from "@/components/ui/UserControls";
+import { useTranslation } from "react-i18next";
 
 export default function DashboardShell() {
+  const { t } = useTranslation(["common", "servers"]);
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -193,7 +195,7 @@ export default function DashboardShell() {
                   className="text-brand flex items-center gap-2 text-sm font-medium hover:underline"
                 >
                   <ArrowLeftIcon className="h-4 w-4" />
-                  Retour
+                  {t("navigation.back", { ns: "common" })}
                 </Link>
                 {dmContact && (
                   <div className="flex items-center gap-2">
@@ -234,7 +236,7 @@ export default function DashboardShell() {
                 className="text-brand flex items-center gap-2 text-sm font-medium hover:cursor-pointer hover:underline"
               >
                 <ArrowLeftIcon className="h-4 w-4" />
-                Retour
+                {t("navigation.back", { ns: "common" })}
               </Link>
               <UserControls />
             </header>
@@ -251,7 +253,7 @@ export default function DashboardShell() {
                 className="text-brand flex items-center gap-2 text-sm font-medium hover:cursor-pointer hover:underline"
               >
                 <ArrowLeftIcon className="h-4 w-4" />
-                Retour
+                {t("navigation.back", { ns: "common" })}
               </Link>
               <button
                 type="button"
