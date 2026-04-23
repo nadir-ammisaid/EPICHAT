@@ -8,7 +8,7 @@ import { apiClient } from "@/lib/api/client";
 import { disconnectSocket } from "@/lib/socket/socket";
 import { profileSchema } from "@/lib/validation/auth";
 import getRandomAvatar from "@/lib/utils/getRandomAvatar";
-import { Button, Input, Label, Modal } from "@/components/ui";
+import { Button, Input, Modal } from "@/components/ui";
 import Loader from "@/components/ui/Loader";
 import AuthGuard from "@/lib/auth/auth.guard";
 import { useNotificationPreferences } from "@/lib/notifications/preferences";
