@@ -90,7 +90,7 @@ export default function DashboardShell() {
 
   return (
     <>
-      <div className="hidden h-screen overflow-hidden md:flex">
+      <div className="hidden h-screen overflow-hidden md:flex border border-border">
         <ServerBar />
         {serverId === "dm" ? (
           <>

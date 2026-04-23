@@ -163,7 +163,7 @@ export default function ServerBar({ className = "" }: { className?: string }) {
   return (
     <>
       <div
-        className={`bg-background border-border flex h-full shrink-0 flex-col items-center justify-start border p-2 ${className}`}
+        className={`bg-background border-border flex h-full shrink-0 flex-col items-center justify-start border-r p-2 ${className}`}
       >
         <div className="mt-2 flex w-full flex-col items-center gap-2">
           <Link href="/dashboard" className="hidden md:flex shrink-0" aria-label={t("homeAria")}>
