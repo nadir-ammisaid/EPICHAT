@@ -9,7 +9,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "lcov"],
-      reportsDirectory: "./coverage",
+      reportsDirectory: "./.vitest-coverage",
       thresholds: {
         lines: 80,
         functions: 80,
