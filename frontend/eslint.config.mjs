@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Generated test reports should not be linted.
     "coverage/**",
+    ".vitest-coverage/**",
+    ".vitest-coverage-temp/**",
   ]),
 ]);
 

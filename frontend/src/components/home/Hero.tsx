@@ -14,35 +14,52 @@ export default function Hero() {
         <video
           className="absolute inset-0 h-full w-full object-cover object-right"
           src="/hero_v2.mp4"
+          poster="/hero.webp"
           autoPlay
           loop
           muted
           playsInline
+          preload="auto"
         />
-
         <div className="absolute inset-0 bg-white/20" />
-        <div className="relative z-10 mx-auto flex min-h-svh max-w-6xl items-center px-4 lg:px-6">
-          <div className="max-w-130 text-left lg:-ml-12 lg:max-w-140 pt-80">
-            <h1 className="text-5xl leading-[0.95] font-black tracking-[-0.04em] text-slate-900 uppercase lg:text-6xl">
+
+        <div className="relative z-10 mx-auto flex min-h-svh max-w-6xl items-center px-6 lg:px-8">
+          <div className="flex max-w-2xl flex-col space-y-6 md:mt-20">
+            <h1 className="text-4xl leading-[0.9] font-black tracking-tighter text-slate-900 uppercase drop-shadow-sm md:text-6xl lg:text-7xl">
               {title}
             </h1>
-            <p className="mt-6 text-xl leading-relaxed text-slate-700">
+
+            <p className="max-w-md text-lg leading-relaxed font-medium text-slate-700/90 drop-shadow-sm md:text-xl">
               {subtitle}
             </p>
+
+            {/* CTA  */}
+            <div className="flex flex-wrap gap-4 pt-2">
+              <button className="bg-brand hover:bg-brand-hover w-full cursor-pointer rounded-full px-8 py-4 font-semibold text-white transition duration-300 ease-in-out sm:w-fit">
+                Rejoindre
+              </button>
+
+              <button className="bg-background text-foreground border-border w-full cursor-pointer rounded-full border-2 px-8 py-4 font-semibold transition duration-300 ease-in-out hover:bg-white/80 sm:w-fit">
+                Mon compte
+              </button>
+            </div>
           </div>
         </div>
       </div>
       <div className="md:hidden">
         <div className="relative w-full">
           <video
+            role="presentation"
             className="w-full"
             src="/hero_v2.mp4"
+            poster="/hero.webp"
             autoPlay
             loop
             muted
             playsInline
+            preload="metadata"
           />
-          <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-28 bg-linear-to-b from-transparent to-[#F3F7FB]" />
+          <div className="to-background pointer-events-none absolute right-0 bottom-0 left-0 h-28 bg-linear-to-b from-transparent" />
         </div>
 
         <div className="bg-[#F3F7FB] px-6 pt-6 pb-10">
