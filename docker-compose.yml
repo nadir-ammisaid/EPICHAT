@@ -11,7 +11,9 @@ services:
       - pgdata:/var/lib/postgresql/data
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      target: build
     depends_on:
       - db
     ports:
@@ -26,7 +28,9 @@ services:
     command: sh -c "npx prisma generate && npx prisma db push && npm run dev"
 
   prisma-studio:
-    build: ./backend
+    build:
+      context: ./backend
+      target: build
     command: npx prisma studio --port 5555 --browser none
     ports:
       - "${PRISMA_STUDIO_PORT:-5555}:5555"

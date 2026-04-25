@@ -5,6 +5,7 @@ import "@/styles/body.css";
 import "@/styles/headings.css";
 import "@/styles/button.css";
 import I18nProvider from "./I18nProvider";
+import { BackendWarmup } from "@/components/BackendWarmup";
 
 const archivo = Archivo({
   variable: "--font-archivo",
@@ -25,6 +26,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={`${archivo.variable} bg-background antialiased`}>
+        <BackendWarmup />
         <I18nProvider locale="fr">
           {children}
         </I18nProvider>

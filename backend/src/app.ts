@@ -1,6 +1,7 @@
 import cors from "cors";
 import helmet from "helmet";
 import express from "express";
+import type { Request, Response } from "express";
 import dmRouter from "./modules/dm/dm.router.js";
 import { authRouter } from "./modules/auth/auth.router.js";
 import {
@@ -98,6 +99,10 @@ export function createApp() {
       allowedHeaders: ["Content-Type", "Authorization"],
     }),
   );
+
+  app.get("/health", (_req: Request, res: Response) => {
+    res.status(200).json({ ok: true });
+  });
 
   // /me routes
   app.get("/me", requireAuth, asyncHandler(meController));
