@@ -43,7 +43,9 @@ services:
       - db
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      target: development
     depends_on:
       - backend
     ports:
