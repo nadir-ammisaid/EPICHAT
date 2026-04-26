@@ -38,8 +38,13 @@ async function main() {
   try {
     // 2. SÉCURITÉ : Ne JAMAIS vider les tables si on est en environnement de production
     if (process.env.NODE_ENV !== "production") {
+      await prisma.messageReaction.deleteMany();
+      await prisma.dmReaction.deleteMany();
       await prisma.message.deleteMany();
+      await prisma.directMessage.deleteMany();
+      await prisma.directConversation.deleteMany();
       await prisma.invite.deleteMany();
+      await prisma.ban.deleteMany();
       await prisma.channel.deleteMany();
       await prisma.serverMember.deleteMany();
       await prisma.server.deleteMany();
