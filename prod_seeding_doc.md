@@ -99,7 +99,7 @@ L'exécution se fait via Docker pour utiliser l'environnement configuré du back
 **Commande à exécuter (depuis la racine du projet) :**
 
 ```bash
-docker compose exec -e DATABASE_URL="VOTRE_URL_NEON_ICI" -e NODE_ENV=development backend npm run db:seed
+docker compose exec -e DATABASE_URL="URL_DB_PROD" -e NODE_ENV=development backend npm run db:seed
 ```
 
 *   `-e DATABASE_URL` : Remplace temporairement l'URL locale par celle de Neon.
