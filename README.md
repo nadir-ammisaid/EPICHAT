@@ -153,7 +153,7 @@ Workflows:
 
 ## API Endpoints
 
-### Auth & Profile 
+### Auth & Profile
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
