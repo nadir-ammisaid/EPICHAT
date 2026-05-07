@@ -2,7 +2,17 @@ node_modules
 .next
 dist
 coverage
+
+# Environment variables
 .env
+.env.*
+!.env.sample
+!.env.example
+
+# Secrets / keys
+*.pem
+*.key
+
 @docs
 GEMINI*
 .codex*
